@@ -57,7 +57,7 @@ export function AuthInitializer({children}: AuthInitializerProps) {
 
     if (!isAuthenticated && !inAuthGroup) {
       console.log('➡️ Redirecionando para login');
-      router.replace('/(auth)/login');
+      router.replace('/(auth)/home');
     } else if (isAuthenticated && inAuthGroup) {
       console.log('➡️ Redirecionando para home');
       router.replace('/(app)/home');

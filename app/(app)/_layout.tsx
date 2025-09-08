@@ -1,260 +1,262 @@
-import {Tabs, usePathname} from 'expo-router';
-import {Heart, Home, LogOut, Settings, User} from '@tamagui/lucide-icons';
-import {Button, Text, View, XStack} from 'tamagui';
+import React from 'react';
+import {Tabs} from 'expo-router';
 import {useAuth, useAuthActions} from '@/features/auth';
-import {useCallback, useEffect, useMemo, useRef} from 'react';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {StatusBar} from 'expo-status-bar';
-import {Animated, Dimensions, StyleSheet} from 'react-native';
+import {Button, Circle, styled, Text, View, XStack, YStack,} from 'tamagui';
+import {Bookmark, Search, Users} from '@tamagui/lucide-icons';
 
-const {width: screenWidth} = Dimensions.get('window');
+// Container principal do menu - altura padrão do mercado
+const CustomTabBar = styled(View, {
+  position: 'absolute',
+  bottom: 0,
+  left: 0,
+  right: 0,
+  backgroundColor: 'white',
+  borderTopLeftRadius: '$6',
+  borderTopRightRadius: '$6',
+  shadowColor: 'rgba(0,0,0,0.1)',
+  shadowOffset: {width: 0, height: -2},
+  shadowOpacity: 0.2,
+  shadowRadius: 8,
+  elevation: 8,
+});
+
+// Container dos botões - altura compacta
+const TabContent = styled(XStack, {
+  justifyContent: 'space-around',
+  alignItems: 'center',
+  paddingHorizontal: '$3',
+  paddingTop: '$2',
+  paddingBottom: '$1',
+});
+
+// Botão de cada aba - SEM bordas ao pressionar
+const TabButton = styled(Button, {
+  backgroundColor: 'transparent',
+  borderWidth: 0,
+  borderRadius: 0,
+  padding: 0,
+  minHeight: 'auto',
+  height: 'auto',
+  flex: 1,
+  maxWidth: 70,
+
+  // Remove todos os efeitos visuais de pressionar
+  pressStyle: {
+    backgroundColor: 'transparent',
+    borderColor: 'transparent',
+    borderWidth: 0,
+    scale: 0.95,
+  },
+
+  // Remove efeitos de hover/focus
+  hoverStyle: {
+    backgroundColor: 'transparent',
+    borderColor: 'transparent',
+  },
+
+  focusStyle: {
+    backgroundColor: 'transparent',
+    borderColor: 'transparent',
+    borderWidth: 0,
+  },
+});
+
+// Container do item da aba - mais compacto
+const TabItemContainer = styled(YStack, {
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '$1',
+  paddingVertical: '$1',
+});
+
+// Container do ícone com círculo - tamanho padrão do mercado
+const IconContainer = styled(Circle, {
+  size: 40,
+  alignItems: 'center',
+  justifyContent: 'center',
+
+  variants: {
+    isActive: {
+      true: {
+        backgroundColor: '#6366F1',
+      },
+      false: {
+        backgroundColor: 'transparent',
+      },
+    },
+  } as const,
+});
+
+// Label do botão - tamanho menor
+const TabLabel = styled(Text, {
+  fontSize: 11,
+  fontWeight: '500',
+  textAlign: 'center',
+
+  variants: {
+    isActive: {
+      true: {
+        color: '#6366F1',
+      },
+      false: {
+        color: '#9CA3AF',
+      },
+    },
+  } as const,
+});
+
+// Configuração das abas
+const tabsConfig = [
+  {
+    name: 'home',
+    title: 'Community',
+    icon: Users,
+  },
+  {
+    name: 'favorites',
+    title: 'Explore',
+    icon: Search
+  },
+  {
+    name: 'profile',
+    title: 'Movement',
+    icon: () => null // Será customizado
+  },
+  {
+    name: 'settings',
+    title: 'Plan',
+    icon: Bookmark
+  },
+];
+
+// Ícone customizado para Community
+const CommunityIcon = ({color, isActive}: { color: string; isActive: boolean }) => (
+  <Circle
+    size={18}
+    backgroundColor={isActive ? 'rgba(255,255,255,0.2)' : 'transparent'}
+    borderWidth={1.5}
+    borderColor={color}
+    alignItems="center"
+    justifyContent="center"
+  >
+    <View
+      width={5}
+      height={5}
+      backgroundColor={color}
+      transform={[{rotate: '45deg'}]}
+    />
+  </Circle>
+);
+
+// Componente de Tab Bar customizada
+function CustomTabBarComponent({state, descriptors, navigation}: any) {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <CustomTabBar>
+      <TabContent paddingBottom={Math.max(insets.bottom, 6)}>
+        {state.routes.map((route: any, index: number) => {
+          const {options} = descriptors[route.key];
+          const isFocused = state.index === index;
+
+          const tabConfig = tabsConfig.find(tab => tab.name === route.name);
+          const IconComponent = tabConfig?.icon || Search;
+          const label = tabConfig?.title || route.name;
+
+          const onPress = () => {
+            const event = navigation.emit({
+              type: 'tabPress',
+              target: route.key,
+              canPreventDefault: true,
+            });
+
+            if (!isFocused && !event.defaultPrevented) {
+              navigation.navigate(route.name, route.params);
+            }
+          };
+
+          const iconColor = isFocused ? 'white' : '#9CA3AF';
+
+          return (
+            <TabButton
+              key={route.key}
+              onPress={onPress}
+              animation="quick"
+              unstyled={true} // Remove estilos padrão do Tamagui
+            >
+              <TabItemContainer>
+                <IconContainer isActive={isFocused}>
+                  {route.name === 'home' ? (
+                    <CommunityIcon color={iconColor} isActive={isFocused}/>
+                  ) : route.name === 'profile' ? (
+                    <YStack alignItems="center" gap={0}>
+                      <Text fontSize={9} color={iconColor} fontWeight="bold">0-0</Text>
+                      <Text fontSize={9} color={iconColor} fontWeight="bold">0-0</Text>
+                    </YStack>
+                  ) : (
+                    <IconComponent
+                      size={18}
+                      color={iconColor}
+                      strokeWidth={1.5}
+                    />
+                  )}
+                </IconContainer>
+                <TabLabel isActive={isFocused}>
+                  {label}
+                </TabLabel>
+              </TabItemContainer>
+            </TabButton>
+          );
+        })}
+      </TabContent>
+    </CustomTabBar>
+  );
+}
 
 export default function AppLayout() {
   const {user, userName} = useAuth();
   const {logout} = useAuthActions();
-  const pathname = usePathname();
   const insets = useSafeAreaInsets();
 
-  // Animação para o indicador deslizante
-  const slideAnimation = useRef(new Animated.Value(0)).current;
-
-  // Mapeamento das rotas para índices
-  const routeToIndex = {
-    '/home': 0,
-    '/favorites': 1,
-    '/profile': 2,
-    '/settings': 3,
-  };
-
-  // Largura de cada tab (recalculada para o novo tamanho)
-  const tabWidth = (screenWidth - 96) / 4; // Ajustado: 64px margem + 32px padding total
-
-  const handleLogout = useCallback(async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error('Erro ao fazer logout:', error);
-    }
-  }, [logout]);
-
-  const firstName = useMemo(() => {
-    return userName?.split(' ')[0] || 'Usuário';
-  }, [userName]);
-
-  // Animar quando a rota muda
-  useEffect(() => {
-    const newIndex = routeToIndex[pathname] ?? 0;
-
-    // Posição simples: cada tab ocupa uma largura igual
-    const targetPosition = newIndex * tabWidth;
-
-    Animated.spring(slideAnimation, {
-      toValue: targetPosition,
-      useNativeDriver: true,
-      tension: 120,
-      friction: 8,
-    }).start();
-  }, [pathname, tabWidth, slideAnimation]);
-
-  const HomeHeaderTitle = useCallback(() => (
-    <XStack alignItems="center" justifyContent="space-between" flex={1}>
-      <Text color="$white" fontSize="$6" fontWeight="bold">
-        Olá, {firstName}!
-      </Text>
-      <Button
-        size="$3"
-        backgroundColor="$red9"
-        color="$white"
-        onPress={handleLogout}
-        pressStyle={{scale: 0.95}}
-        borderRadius="$3"
-        paddingHorizontal="$3"
-      >
-        <XStack alignItems="center" gap="$2">
-          <LogOut size={16} color="white"/>
-          <Text color="$white" fontSize="$2" fontWeight="500">
-            Sair
-          </Text>
-        </XStack>
-      </Button>
-    </XStack>
-  ), [firstName, handleLogout]);
-
-  const LogoutButton = useCallback(() => (
-    <Button
-      size="$3"
-      backgroundColor="$red9"
-      color="$white"
-      onPress={handleLogout}
-      pressStyle={{scale: 0.95}}
-      borderRadius="$3"
-      marginRight="$4"
-    >
-      <LogOut size={16} color="white"/>
-    </Button>
-  ), [handleLogout]);
-
   return (
-    <View style={{flex: 1, backgroundColor: '#1a2a35'}}>
-      <StatusBar style="light" backgroundColor="#1a2a35"/>
-
-      <Tabs
-        screenOptions={{
-          headerShown: true,
-          headerStyle: {
-            backgroundColor: '#1a2a35',
-            elevation: 0,
-            shadowOpacity: 0,
-            borderBottomWidth: 0,
-          },
-          headerTintColor: '#fff',
-          headerTitleStyle: {
-            fontWeight: 'bold',
-          },
-          tabBarStyle: {
-            position: 'absolute',
-            bottom: insets.bottom,
-            left: 32, // Aumentado para 32px de padding lateral
-            right: 32, // Aumentado para 32px de padding lateral
-            height: 60,
-            backgroundColor: 'rgba(0, 0, 0, 0.95)',
-            borderRadius: 30,
-            paddingHorizontal: 16,
-
-            shadowColor: '#000',
-            shadowOffset: {
-              width: 0,
-              height: 12,
-            },
-            shadowOpacity: 0.4,
-            shadowRadius: 20,
-            elevation: 20,
-
-            borderTopWidth: 0,
-            borderWidth: 1,
-            borderColor: 'rgba(255, 255, 255, 0.1)',
-          },
-          tabBarActiveTintColor: '#000000',
-          tabBarInactiveTintColor: '#ffffff',
-          tabBarLabelStyle: {
-            fontSize: 0,
-            height: 0,
-          },
-          tabBarIconStyle: {
-            marginTop: 0,
-            marginBottom: 0,
-          },
-          tabBarItemStyle: {
-            paddingVertical: 12,
-          },
+    <Tabs
+      screenOptions={{
+        headerShown: true,
+      }}
+      tabBar={(props) => <CustomTabBarComponent {...props} />}
+    >
+      <Tabs.Screen
+        name="home"
+        options={{
+          title: 'Início',
+          tabBarLabel: 'Community',
         }}
-      >
-        <Tabs.Screen
-          name="home"
-          options={{
-            title: 'Início',
-            headerTitle: HomeHeaderTitle,
-            tabBarIcon: ({focused}) => (
-              <View style={{zIndex: 100}}>
-                <Home
-                  size={22}
-                  color={focused ? '#000' : '#fff'}
-                  strokeWidth={2}
-                />
-              </View>
-            ),
-          }}
-        />
+      />
 
-        <Tabs.Screen
-          name="favorites"
-          options={{
-            title: 'Favoritos',
-            headerTitle: 'Favoritos',
-            headerRight: LogoutButton,
-            tabBarIcon: ({focused}) => (
-              <View style={{zIndex: 100}}>
-                <Heart
-                  size={22}
-                  color={focused ? '#000000' : '#ffffff'}
-                  strokeWidth={2}
-                />
-              </View>
-            ),
-          }}
-        />
+      <Tabs.Screen
+        name="favorites"
+        options={{
+          title: 'Favoritos',
+          tabBarLabel: 'Explore',
+        }}
+      />
 
-        <Tabs.Screen
-          name="profile"
-          options={{
-            title: 'Perfil',
-            headerTitle: 'Meu Perfil',
-            headerRight: LogoutButton,
-            tabBarIcon: ({focused}) => (
-              <View style={{zIndex: 100}}>
-                <User
-                  size={22}
-                  color={focused ? '#000000' : '#ffffff'}
-                  strokeWidth={2}
-                />
-              </View>
-            ),
-          }}
-        />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Perfil',
+          tabBarLabel: 'Movement',
+        }}
+      />
 
-        <Tabs.Screen
-          name="settings"
-          options={{
-            title: 'Configurações',
-            headerTitle: 'Configurações',
-            headerRight: LogoutButton,
-            tabBarIcon: ({focused}) => (
-              <View style={{zIndex: 100}}>
-                <Settings
-                  size={22}
-                  color={focused ? '#000000' : '#ffffff'}
-                  strokeWidth={2}
-                />
-              </View>
-            ),
-          }}
-        />
-      </Tabs>
-
-      {/* Indicador deslizante circular branco */}
-      <View style={[styles.slidingIndicatorContainer, {bottom: insets.bottom + 8}]}>
-        <Animated.View
-          style={[
-            styles.slidingIndicator,
-            {
-              transform: [{translateX: slideAnimation}],
-            },
-          ]}
-        />
-      </View>
-    </View>
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: 'Configurações',
+          tabBarLabel: 'Plan',
+        }}
+      />
+    </Tabs>
   );
 }
-
-const styles = StyleSheet.create({
-  slidingIndicatorContainer: {
-    position: 'absolute',
-    left: 59, // Ajustado para o novo padding: 32 (margem) + 16 (padding) + offset
-    pointerEvents: 'none',
-    zIndex: 1,
-  },
-  slidingIndicator: {
-    width: 44,
-    height: 44,
-    backgroundColor: '#ffffff',
-    borderRadius: 22,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-});
