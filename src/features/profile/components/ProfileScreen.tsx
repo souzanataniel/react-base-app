@@ -4,11 +4,9 @@ import {Bell, Calendar, Edit3, Eye, Mail, MapPin, Shield} from '@tamagui/lucide-
 import {useAuth} from '@/features/auth';
 import {format} from '@/shared/utils';
 import {BaseScreen} from '@/shared/components/layout';
-import {useLogoutAction} from '@/features/auth/stores/authStore';
 
 export const ProfileScreen = () => {
-  const {user} = useAuth();
-  const logout = useLogoutAction();
+  const {user, signOut} = useAuth();
 
   const profileItems = [
     {
@@ -259,7 +257,7 @@ export const ProfileScreen = () => {
               size="$4"
               borderRadius="$3"
               pressStyle={{scale: 0.98}}
-              onPress={logout}
+              onPress={signOut}
             >
               <Text color="$white" fontSize="$4" fontWeight="500">
                 Sair da Conta

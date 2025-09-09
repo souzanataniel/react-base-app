@@ -2,24 +2,42 @@ import React from 'react';
 import {Text, View, XStack, YStack} from 'tamagui';
 import {CircleCheck, LockKeyhole, Mail} from '@tamagui/lucide-icons';
 import {CheckboxLabel, LoadingButton} from 'src/shared/components';
-import {useLoginForm} from '@/features/auth/hooks/useLoginForm';
 import {BaseScreenWrapper} from '@/shared/components/layout';
 import {LabelInput} from '@/shared/components/ui/Input/FormInput';
 import {LabelPasswordInput} from '@/shared/components/ui/Input/FormPasswordInput';
 import {Link} from 'expo-router';
-import {AuthHeader} from '@/features/auth';
+import {useSignIn} from '@/features/auth/hooks/useSignIn';
+import {AuthHeader} from '@/features/auth/components/AuthHeader';
 
-export const LoginScreen = () => {
-
+export const SignInScreen = () => {
   const {
-    formData,
-    errors,
-    loading,
+    credentials,
     updateField,
-    validateField,
-    handleLogin,
+    markFieldAsTouched,
+    handleSubmit,
+    getFieldError,
+    hasFieldError,
     canSubmit,
-  } = useLoginForm();
+    isLoading,
+    error,
+    clearError,
+  } = useSignIn();
+
+  const [rememberMe, setRememberMe] = React.useState(false);
+
+  const onSubmit = async () => {
+    const result = await handleSubmit();
+  };
+
+  const handleEmailChange = (text: string) => {
+    updateField('email', text);
+    clearError();
+  };
+
+  const handlePasswordChange = (text: string) => {
+    updateField('password', text);
+    clearError();
+  };
 
   return (
     <BaseScreenWrapper>
@@ -33,14 +51,13 @@ export const LoginScreen = () => {
           {/* Inputs */}
           <YStack gap="$4" paddingTop="$8">
             <YStack gap="$2">
-
               <LabelInput
                 label="E-mail"
                 placeholder="seu@email.com"
                 keyboardType="email-address"
-                value={formData.email}
-                onChangeText={(text) => updateField('email', text)}
-                onBlur={() => validateField('email')}
+                value={credentials.email}
+                onChangeText={handleEmailChange}
+                onBlur={() => markFieldAsTouched('email')}
                 backgroundColor="$white"
                 labelColor="$oceanDark"
                 borderWidth={0}
@@ -53,32 +70,43 @@ export const LoginScreen = () => {
                     fill="#1a2a35"
                   />
                 }
+                // Passa validação customizada se necessário
+                validationFn={(email) => !hasFieldError('email') && email.includes('@')}
               />
-              {errors.email && (
+              {hasFieldError('email') && (
                 <Text fontSize="$3" color="$red10" paddingLeft="$2">
-                  {errors.email}
+                  {getFieldError('email')}
                 </Text>
               )}
             </YStack>
-            <YStack gap="$2">
 
+            <YStack gap="$2">
               <LabelPasswordInput
                 label="Senha"
                 placeholder="Digite sua senha"
-                value={formData.password}
-                onChangeText={(text) => updateField('password', text)}
-                onBlur={() => validateField('password')}
+                value={credentials.password}
+                onChangeText={handlePasswordChange}
+                onBlur={() => markFieldAsTouched('password')}
                 backgroundColor="$white"
                 leftIcon={<LockKeyhole size={20} color="$oceanDark"/>}
                 borderWidth={0}
               />
-              {errors.password && (
+              {hasFieldError('password') && (
                 <Text fontSize="$3" color="$red10" paddingLeft="$2">
-                  {errors.password}
+                  {getFieldError('password')}
                 </Text>
               )}
             </YStack>
           </YStack>
+
+          {/* Erro geral */}
+          {error && (
+            <YStack paddingTop="$4">
+              <Text fontSize="$3" color="$red10" textAlign="center" paddingHorizontal="$2">
+                {error}
+              </Text>
+            </YStack>
+          )}
 
           {/* Área de ações */}
           <YStack gap="$4" marginTop="$4">
@@ -92,8 +120,8 @@ export const LoginScreen = () => {
                 <CheckboxLabel
                   size="$4"
                   label="Lembrar-me"
-                  checked={formData.rememberMe}
-                  onCheckedChange={(checked) => updateField('rememberMe', !!checked)}
+                  checked={rememberMe}
+                  onCheckedChange={(checked) => setRememberMe(!!checked)}
                 />
               </XStack>
 
@@ -110,10 +138,10 @@ export const LoginScreen = () => {
             </XStack>
 
             <LoadingButton
-              loading={loading}
+              loading={isLoading}
               loadingText="Realizando Login..."
-              onPress={handleLogin}
-
+              onPress={onSubmit}
+              disabled={!canSubmit}
             >
               Entrar
             </LoadingButton>
@@ -123,7 +151,7 @@ export const LoginScreen = () => {
           <View flex={1}/>
 
           {/* Rodapé - Link de cadastro */}
-          <Link href="/(auth)/register" replace asChild>
+          <Link href="/(auth)/sign-up" replace asChild>
             <YStack alignItems="center" paddingBottom="$4" pressStyle={{opacity: 0.7, scale: 0.98}}>
               <Text
                 fontSize="$4"

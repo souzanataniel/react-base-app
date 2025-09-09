@@ -1,4 +1,3 @@
-// 📁 components/HomeHeader.tsx
 import React from 'react';
 import {StatusBar, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -13,17 +12,14 @@ interface HomeHeaderProps {
   onNotificationPress?: () => void;
 }
 
-// Componentes animados
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
-// Configurações de animação
 const ANIMATION_CONFIG = {
   press: {damping: 15, stiffness: 400},
   bounce: {damping: 12, stiffness: 300},
   timing: {duration: 150},
 };
 
-// Hook para animação de botão
 const useButtonAnimation = () => {
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
@@ -44,15 +40,12 @@ const useButtonAnimation = () => {
   };
 
   const onPress = (callback?: () => void) => {
-    // Feedback háptico
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-    // Animação de "bounce"
     scale.value = withSpring(0.88, {damping: 10, stiffness: 500}, () => {
       scale.value = withSpring(1, ANIMATION_CONFIG.bounce);
     });
 
-    // Executar callback
     if (callback) {
       runOnJS(callback)();
     }
@@ -74,7 +67,6 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
                                                       }) => {
   const insets = useSafeAreaInsets();
 
-  // Animações para cada botão
   const userButtonAnim = useButtonAnimation();
   const searchButtonAnim = useButtonAnimation();
   const notificationButtonAnim = useButtonAnimation();
@@ -131,7 +123,7 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
               onPress={() => userButtonAnim.onPress(handleUserPress)}
               onPressIn={userButtonAnim.onPressIn}
               onPressOut={userButtonAnim.onPressOut}
-              activeOpacity={1} // Desabilita opacity padrão
+              activeOpacity={1}
             >
               <User
                 size={20}
@@ -198,20 +190,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    minHeight: 44, // Apple: touch target mínimo
+    minHeight: 44,
   },
   leftSection: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    paddingRight: 16, // Evita colisão com botões da direita
+    paddingRight: 16,
   },
   userButton: {
     width: 40,
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 8, // Apple: 8px entre ícone e texto
+    marginRight: 8,
     backgroundColor: '#D1D5DB',
     borderRadius: 20,
     shadowColor: '#000',
@@ -235,18 +227,18 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   title: {
-    fontSize: 17, // Apple: 17px para títulos de navegação
+    fontSize: 17,
     fontWeight: '600',
     color: '#000000',
     lineHeight: 20,
   },
   chevron: {
-    marginLeft: 4, // Apple: 4px após texto
+    marginLeft: 4,
   },
   rightSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8, // Apple: 8px entre botões
+    gap: 8,
   },
   actionButton: {
     width: 40,

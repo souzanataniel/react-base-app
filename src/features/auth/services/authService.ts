@@ -1,95 +1,212 @@
-import {apiClient} from '@/lib/api/client';
-import {tokenService} from './tokenService';
-import {
-  AuthResponse,
-  ForgotPasswordRequest,
-  LoginRequest,
-  RegisterRequest,
-  ResetPasswordRequest
-} from '@/features/auth/types';
+import {createClient} from '@supabase/supabase-js';
+import {AuthResponse, formatErrors, SignInCredentials, SignUpCredentials, User} from '@/features/auth';
 
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
 
-class AuthService {
-  private readonly baseUrl = '/auth';
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storage: require('@react-native-async-storage/async-storage').default,
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: false,
+  },
+});
 
-  async login(data: LoginRequest): Promise<AuthResponse> {
-    try {
-      const response = await apiClient.post<AuthResponse>(`${this.baseUrl}/login`, data);
+/**
+ * Faz login do usuário
+ */
+export const signIn = async (credentials: SignInCredentials): Promise<AuthResponse> => {
+  try {
+    console.log('🔐 Tentando fazer login...');
 
-      await tokenService.storeTokens(response.tokens, data.rememberMe);
+    const {data, error} = await supabase.auth.signInWithPassword({
+      email: credentials.email.trim().toLowerCase(),
+      password: credentials.password,
+    });
 
-      return response;
-    } catch (error) {
-      throw this.handleAuthError(error);
+    if (error) {
+      console.log('❌ Erro no login:', error.message);
+      return {user: null, error: formatErrors(error)};
     }
-  }
 
-  async register(data: RegisterRequest): Promise<AuthResponse> {
-    try {
-      const response = await apiClient.post<AuthResponse>(`${this.baseUrl}/register`, data);
-      await tokenService.storeTokens(response.tokens, false);
-
-      return response;
-    } catch (error) {
-      throw this.handleAuthError(error);
+    if (!data.user) {
+      console.log('❌ Nenhum usuário retornado');
+      return {user: null, error: 'Erro ao fazer login'};
     }
-  }
 
-  async forgotPassword(data: ForgotPasswordRequest): Promise<{ message: string }> {
-    try {
-      return await apiClient.post(`${this.baseUrl}/forgot-password`, data);
-    } catch (error) {
-      throw this.handleAuthError(error);
+    console.log('✅ Login realizado com sucesso:', data.user.email);
+
+    // Busca dados do perfil
+    const {data: profile} = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', data.user.id)
+      .single();
+
+    const user: User = {
+      id: data.user.id,
+      email: data.user.email!,
+      firstName: profile?.first_name,
+      lastName: profile?.last_name,
+      createdAt: data.user.created_at,
+    };
+
+    console.log('👤 Dados do usuário preparados:', user.email);
+    return {user, error: null};
+  } catch (error) {
+    console.error('💥 Exceção no login:', error);
+    return {user: null, error: formatErrors(error)};
+  }
+};
+
+/**
+ * Cadastra novo usuário
+ */
+export const signUp = async (credentials: SignUpCredentials): Promise<AuthResponse> => {
+  try {
+    console.log('📝 Tentando cadastrar usuário...');
+
+    const {data, error} = await supabase.auth.signUp({
+      email: credentials.email.trim().toLowerCase(),
+      password: credentials.password,
+      options: {
+        data: {
+          first_name: credentials.firstName?.trim(),
+          last_name: credentials.lastName?.trim(),
+        },
+      },
+    });
+
+    if (error) {
+      console.log('❌ Erro no cadastro:', error.message);
+      return {user: null, error: formatErrors(error)};
     }
-  }
 
-  async resetPassword(data: ResetPasswordRequest): Promise<{ message: string }> {
-    try {
-      return await apiClient.post(`${this.baseUrl}/reset-password`, data);
-    } catch (error) {
-      throw this.handleAuthError(error);
+    if (!data.user) {
+      console.log('❌ Nenhum usuário retornado no cadastro');
+      return {user: null, error: 'Erro ao criar conta'};
     }
+
+    console.log('✅ Cadastro realizado com sucesso:', data.user.email);
+
+    const user: User = {
+      id: data.user.id,
+      email: data.user.email!,
+      firstName: credentials.firstName?.trim(),
+      lastName: credentials.lastName?.trim(),
+      createdAt: data.user.created_at,
+    };
+
+    return {user, error: null};
+  } catch (error) {
+    console.error('💥 Exceção no cadastro:', error);
+    return {user: null, error: formatErrors(error)};
   }
+};
 
-  async logout(): Promise<void> {
-    try {
-      const refreshToken = await tokenService.getRefreshToken();
+/**
+ * Faz logout do usuário
+ */
+export const signOut = async (): Promise<{ error: string | null }> => {
+  try {
+    console.log('🚪 Fazendo logout...');
+    const {error} = await supabase.auth.signOut();
 
-      if (refreshToken) {
-        await apiClient.post(`${this.baseUrl}/logout`, {refreshToken}).catch(() => {});
-      }
-    } finally {
-      await tokenService.clearTokens();
+    if (error) {
+      console.log('❌ Erro no logout:', error.message);
+      return {error: formatErrors(error)};
     }
-  }
 
-  async verifyEmail(token: string): Promise<{ message: string }> {
-    try {
-      return await apiClient.post(`${this.baseUrl}/verify-email`, {token});
-    } catch (error) {
-      throw this.handleAuthError(error);
+    console.log('✅ Logout realizado com sucesso');
+    return {error: null};
+  } catch (error) {
+    console.error('💥 Exceção no logout:', error);
+    return {error: formatErrors(error)};
+  }
+};
+
+/**
+ * Obtém usuário atual
+ */
+export const getCurrentUser = async (): Promise<User | null> => {
+  try {
+    console.log('👤 Buscando usuário atual...');
+
+    const {data: {user}} = await supabase.auth.getUser();
+
+    if (!user) {
+      console.log('❌ Nenhum usuário encontrado');
+      return null;
     }
-  }
 
-  async resendVerificationEmail(): Promise<{ message: string }> {
-    try {
-      return await apiClient.post(`${this.baseUrl}/resend-verification`);
-    } catch (error) {
-      throw this.handleAuthError(error);
+    console.log('👤 Usuário encontrado:', user.email);
+
+    // Busca dados do perfil
+    const {data: profile} = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    const userData: User = {
+      id: user.id,
+      email: user.email!,
+      firstName: profile?.first_name,
+      lastName: profile?.last_name,
+      createdAt: user.created_at,
+    };
+
+    console.log('✅ Dados do usuário recuperados');
+    return userData;
+  } catch (error) {
+    console.error('💥 Erro ao obter usuário atual:', error);
+    return null;
+  }
+};
+
+/**
+ * Obtém sessão atual
+ */
+export const getSession = async () => {
+  try {
+    console.log('🔍 Verificando sessão atual...');
+
+    const {data: {session}, error} = await supabase.auth.getSession();
+
+    if (error) {
+      console.log('❌ Erro ao verificar sessão:', error.message);
+      return null;
     }
+
+    console.log('🔍 Sessão verificada:', {
+      hasSession: !!session,
+      hasUser: !!session?.user,
+      expiresAt: session?.expires_at,
+      email: session?.user?.email
+    });
+
+    return session;
+  } catch (error) {
+    console.error('💥 Erro ao obter sessão:', error);
+    return null;
   }
+};
 
-  private handleAuthError(error: any): Error {
-    const errorCode = error.response?.data?.code || error.code;
-    const errorMessage = error.response?.data?.message || error.message;
-    const authError = new Error(errorMessage) as any;
+/**
+ * Escuta mudanças no estado de autenticação
+ */
+export const onAuthStateChange = (callback: (user: User | null) => void) => {
+  console.log('👂 Configurando listener de mudanças de auth...');
 
-    authError.code = errorCode;
-    authError.status = error.response?.status;
-    authError.fieldErrors = error.response?.data?.fieldErrors;
+  return supabase.auth.onAuthStateChange(async (event, session) => {
+    console.log('🔄 Auth state changed:', {event, hasSession: !!session, hasUser: !!session?.user});
 
-    return authError;
-  }
-}
-
-export const authService = new AuthService();
+    if (session?.user) {
+      const user = await getCurrentUser();
+      callback(user);
+    } else {
+      callback(null);
+    }
+  });
+};

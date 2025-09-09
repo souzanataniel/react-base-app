@@ -6,7 +6,7 @@ import {BaseAlertProvider} from '../components/feedback/Alert';
 import {BaseLoaderProvider} from '../components/feedback/Loader';
 import {config} from '../../../tamagui.config';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
-import {AuthInitializer} from '@/features/auth/providers/AuthInitializer';
+import {AuthProvider} from '@/features/auth';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,7 +40,7 @@ export function AppProvider({children, ...rest}: Omit<TamaguiProviderProps, 'con
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
         <TamaguiProvider config={config} {...rest} defaultTheme="light">
-          <AuthInitializer>
+          <AuthProvider>
             <Theme name={themeName}>
               <ToastProvider swipeDirection="horizontal" duration={3000} native={[]}>
                 <BaseAlertProvider>
@@ -57,7 +57,7 @@ export function AppProvider({children, ...rest}: Omit<TamaguiProviderProps, 'con
                 </BaseAlertProvider>
               </ToastProvider>
             </Theme>
-          </AuthInitializer>
+          </AuthProvider>
         </TamaguiProvider>
       </SafeAreaProvider>
     </QueryClientProvider>

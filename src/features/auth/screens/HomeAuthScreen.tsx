@@ -98,7 +98,7 @@ export const HomeAuthScreen = () => {
         }}
       >
         <YStack gap="$4" justifyContent="center" flex={1}>
-          <Link href="/(auth)/login" asChild>
+          <Link href="/(auth)/sign-in" asChild>
             <Button
               backgroundColor="$oceanDark"
               color="white"
@@ -113,7 +113,7 @@ export const HomeAuthScreen = () => {
               <Text color="$white" fontWeight="$8" lineHeight={20}>Fazer Login</Text>
             </Button>
           </Link>
-          <Link href="/(auth)/register" asChild>
+          <Link href="/(auth)/sign-up" asChild>
             <Button
               backgroundColor="transparent"
               borderColor="$oceanDark"

@@ -1,119 +1,224 @@
 import {create} from 'zustand';
 import {createJSONStorage, persist} from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {authService, tokenService} from '../services';
-import {AuthState, AuthTokens} from '@/features/auth/types';
+import {AuthState, SignInCredentials, SignUpCredentials, User} from '@/features/auth';
+import * as authService from '../services/authService';
 
-export const useAuthStore = create<AuthState>()(
+interface AuthStore extends AuthState {
+  signIn: (credentials: SignInCredentials) => Promise<{ success: boolean; error?: string }>;
+  signUp: (credentials: SignUpCredentials) => Promise<{ success: boolean; error?: string }>;
+  signOut: () => Promise<void>;
+  initialize: () => Promise<void>;
+  setUser: (user: User | null) => void;
+  setError: (error: string | null) => void;
+  setLoading: (loading: boolean) => void;
+}
+
+export const useAuthStore = create<AuthStore>()(
   persist(
     (set, get) => ({
-      // Estado inicial
+      user: null,
       isAuthenticated: false,
       isLoading: false,
       isInitialized: false,
+      error: null,
 
-      // Login action - apenas marca como autenticado
-      login: async (tokens: AuthTokens) => {
-        set({
-          isAuthenticated: true,
-          isLoading: false
-        });
+      // Actions
+      signIn: async (credentials: SignInCredentials) => {
+        set({isLoading: true, error: null});
+        console.log('Cheguei aqui')
+
+        try {
+          const response = await authService.signIn(credentials);
+          console.log(response)
+          if (response.error) {
+            set({
+              error: response.error,
+              isLoading: false,
+              isAuthenticated: false,
+              user: null
+            });
+            return {success: false, error: response.error};
+          }
+
+          set({
+            user: response.user,
+            isAuthenticated: true,
+            isLoading: false,
+            error: null,
+          });
+
+          return {success: true};
+        } catch (error) {
+          const errorMessage = 'Erro inesperado ao fazer login';
+          set({
+            error: errorMessage,
+            isLoading: false,
+            isAuthenticated: false,
+            user: null
+          });
+          return {success: false, error: errorMessage};
+        }
       },
 
-      // Logout action - limpa autenticação
-      logout: async () => {
+      signUp: async (credentials: SignUpCredentials) => {
+        set({isLoading: true, error: null});
+
+        try {
+          const response = await authService.signUp(credentials);
+
+          if (response.error) {
+            set({
+              error: response.error,
+              isLoading: false,
+              isAuthenticated: false,
+              user: null
+            });
+            return {success: false, error: response.error};
+          }
+
+          set({
+            user: response.user,
+            isAuthenticated: true,
+            isLoading: false,
+            error: null,
+          });
+
+          return {success: true};
+        } catch (error) {
+          const errorMessage = 'Erro inesperado ao criar conta';
+          set({
+            error: errorMessage,
+            isLoading: false,
+            isAuthenticated: false,
+            user: null
+          });
+          return {success: false, error: errorMessage};
+        }
+      },
+
+      signOut: async () => {
         set({isLoading: true});
 
         try {
-          await authService.logout();
+          await authService.signOut();
         } catch (error) {
-          console.error('Logout error:', error);
+          console.error('Erro ao fazer logout:', error);
         } finally {
           set({
+            user: null,
             isAuthenticated: false,
-            isLoading: false
+            isLoading: false,
+            error: null,
           });
         }
       },
 
-      // Initialize auth state on app start
       initialize: async () => {
         set({isLoading: true});
 
         try {
-          const isAuthenticated = await tokenService.isAuthenticated();
+          // Primeiro verifica se há dados persistidos
+          const persistedState = get();
 
+          // Se há usuário persistido, verifica se a sessão ainda é válida
+          if (persistedState.user) {
+            console.log('Usuário encontrado no storage, verificando sessão...');
+
+            const session = await authService.getSession();
+
+            if (session?.user) {
+              // Sessão válida, busca dados atualizados do usuário
+              const currentUser = await authService.getCurrentUser();
+
+              if (currentUser) {
+                console.log('Sessão válida, mantendo usuário logado');
+                set({
+                  user: currentUser,
+                  isAuthenticated: true,
+                  isInitialized: true,
+                  isLoading: false,
+                  error: null,
+                });
+                return;
+              }
+            }
+
+            // Sessão inválida, limpa dados
+            console.log('Sessão inválida, fazendo logout');
+            set({
+              user: null,
+              isAuthenticated: false,
+              isInitialized: true,
+              isLoading: false,
+              error: null,
+            });
+            return;
+          }
+
+          // Não há usuário persistido, verifica se há sessão ativa
+          const session = await authService.getSession();
+
+          if (session?.user) {
+            const user = await authService.getCurrentUser();
+
+            if (user) {
+              console.log('Sessão ativa encontrada, fazendo login automático');
+              set({
+                user,
+                isAuthenticated: true,
+                isInitialized: true,
+                isLoading: false,
+                error: null,
+              });
+              return;
+            }
+          }
+
+          // Nenhuma sessão encontrada
+          console.log('Nenhuma sessão encontrada');
           set({
-            isAuthenticated,
+            user: null,
+            isAuthenticated: false,
+            isInitialized: true,
             isLoading: false,
-            isInitialized: true
+            error: null,
           });
         } catch (error) {
-          console.error('Auth initialization error:', error);
+          console.error('Erro ao inicializar auth:', error);
           set({
+            user: null,
             isAuthenticated: false,
+            isInitialized: true,
             isLoading: false,
-            isInitialized: true
+            error: null,
           });
         }
       },
 
-      // Check current auth status
-      checkAuthStatus: async () => {
-        try {
-          const isAuthenticated = await tokenService.isAuthenticated();
+      setUser: (user: User | null) => {
+        set({
+          user,
+          isAuthenticated: !!user
+        });
+      },
 
-          if (!isAuthenticated && get().isAuthenticated) {
-            // Token expirou, desloga
-            set({isAuthenticated: false});
-          }
+      setError: (error: string | null) => {
+        set({error});
+      },
 
-          return isAuthenticated;
-        } catch (error) {
-          console.error('Auth check error:', error);
-          set({isAuthenticated: false});
-          return false;
-        }
+      setLoading: (loading: boolean) => {
+        set({isLoading: loading});
       },
     }),
     {
-      name: 'auth-store',
+      name: 'auth-storage',
       storage: createJSONStorage(() => AsyncStorage),
-
-      // Só persiste estado de autenticação
+      // Persiste apenas dados essenciais
       partialize: (state) => ({
+        user: state.user,
         isAuthenticated: state.isAuthenticated,
       }),
-
-      // Hydrate corretamente após load
-      onRehydrateStorage: () => (state) => {
-        if (state) {
-          state.isLoading = false;
-          state.isInitialized = false;
-        }
-      },
     }
   )
 );
-
-// Selectors para performance
-export const useIsAuthenticated = () => useAuthStore((state) => state.isAuthenticated);
-export const useAuthLoading = () => useAuthStore((state) => state.isLoading);
-export const useIsInitialized = () => useAuthStore((state) => state.isInitialized);
-
-// Actions - CORRIGIDO: Usar seletores específicos para evitar novo objeto
-export const useLoginAction = () => useAuthStore((state) => state.login);
-export const useLogoutAction = () => useAuthStore((state) => state.logout);
-export const useInitializeAction = () => useAuthStore((state) => state.initialize);
-export const useCheckAuthStatusAction = () => useAuthStore((state) => state.checkAuthStatus);
-
-// MANTIDO para compatibilidade - mas agora memoizado corretamente
-export const useAuthActions = () => {
-  const login = useLoginAction();
-  const logout = useLogoutAction();
-  const initialize = useInitializeAction();
-  const checkAuthStatus = useCheckAuthStatusAction();
-
-  // Zustand já memoiza estas funções automaticamente
-  return { login, logout, initialize, checkAuthStatus };
-};

@@ -1,4 +1,4 @@
-export {LoginScreen} from './LoginScreen'
-export {RegisterScreen} from './RegisterScreen'
+export {SignInScreen} from './SignInScreen'
+export {SignUpScreen} from './SignUpScreen'
 export {HomeAuthScreen} from './HomeAuthScreen'
 
