@@ -18,16 +18,16 @@ function BaseLabelPasswordInput(
     label,
     containerProps,
     labelFontSize = '$4',
-    labelColor = '$color',
+    labelColor = '$medium',
     leftIcon,
     showSuccessIcon = false,
     successIcon,
     validationFn,
-    height = 50,
+    height = 52,
     fontSize = '$4',
-    backgroundColor = 'transparent',
-    borderColor = '$gray7',
-    borderWidth = 1,
+    backgroundColor = '$white',
+    borderColor = 'transparent',
+    borderWidth = 0,
     onChangeText,
     ...inputProps
   }: LabelPasswordInputProps,
@@ -35,30 +35,22 @@ function BaseLabelPasswordInput(
 ) {
   const [visible, setVisible] = useState(false);
   const [inputValue, setInputValue] = useState(inputProps.value || '');
-  const [isValid, setIsValid] = useState(false);
 
   const handleChangeText = (text: string) => {
     setInputValue(text);
-
-    if (validationFn) {
-      setIsValid(validationFn(text));
-    } else if (showSuccessIcon) {
-      setIsValid(text.length >= 6);
-    }
 
     if (onChangeText) {
       onChangeText(text);
     }
   };
 
-  const shouldShowSuccessIcon = showSuccessIcon && isValid && inputValue.length > 0;
-  const paddingLeft = leftIcon ? 45 : 15;
-  const paddingRight = shouldShowSuccessIcon ? 85 : 50;
+  const paddingLeft = leftIcon ? 45 : 16;
+  const paddingRight = 50; // Espaço fixo para o ícone de visibilidade
 
   return (
     <YStack gap="$2" {...containerProps}>
       {label ? (
-        <Text fontSize={labelFontSize} color={labelColor} fontWeight="$6">
+        <Text fontSize={labelFontSize} color={labelColor} fontWeight="500">
           {label}
         </Text>
       ) : null}
@@ -85,12 +77,14 @@ function BaseLabelPasswordInput(
           backgroundColor={backgroundColor}
           borderColor={borderColor}
           borderWidth={borderWidth}
+          borderRadius="$4"
           paddingLeft={paddingLeft}
           paddingRight={paddingRight}
+          placeholderTextColor="$light"
           secureTextEntry={!visible}
           focusStyle={{
-            borderColor,
-            borderWidth: (borderWidth as number) + 1
+            borderColor: '$medium',
+            borderWidth: 1
           }}
           onChangeText={handleChangeText}
           {...inputProps}
@@ -103,21 +97,7 @@ function BaseLabelPasswordInput(
           bottom={0}
           alignItems="center"
           zIndex={1}
-          gap="$1"
         >
-          {shouldShowSuccessIcon && (
-            <XStack
-              alignItems="center"
-              pointerEvents="none"
-            >
-              {successIcon || (
-                <Text color="$green10" fontSize="$5">
-                  ✓
-                </Text>
-              )}
-            </XStack>
-          )}
-
           <XStack
             alignItems="center"
             justifyContent="center"
@@ -125,14 +105,14 @@ function BaseLabelPasswordInput(
             height={32}
             borderRadius="$4"
             pressStyle={{opacity: 0.6}}
-            hoverStyle={{backgroundColor: '$gray3'}}
+            hoverStyle={{backgroundColor: '$lighter'}}
             onPress={() => setVisible(v => !v)}
             cursor="pointer"
           >
             {visible ? (
-              <EyeOff size={18} color="$dark"/>
+              <EyeOff size={18} color="$medium"/>
             ) : (
-              <Eye size={18} color="$dark"/>
+              <Eye size={18} color="$medium"/>
             )}
           </XStack>
         </XStack>

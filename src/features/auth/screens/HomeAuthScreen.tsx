@@ -11,8 +11,8 @@ export const HomeAuthScreen = () => {
   return (
     <BackgroundImage
       imageUrl="https://images.pexels.com/photos/3602154/pexels-photo-3602154.jpeg?cs=srgb&dl=pexels-josh-hild-1270765-3602154.jpg&fm=jpg"
-      overlayOpacity={0.7}
-      fallbackOpacity={0.3}
+      overlayOpacity={0.8}
+      fallbackOpacity={0.4}
     >
       <View position="absolute" top={insets.top + 20} left={0} right={0} zIndex={10}>
         <YStack alignItems="center">
@@ -24,7 +24,7 @@ export const HomeAuthScreen = () => {
             fontWeight="600"
             opacity={0.9}
           >
-            Base App
+            PUBA
           </Text>
         </YStack>
       </View>
@@ -43,13 +43,13 @@ export const HomeAuthScreen = () => {
           lineHeight="$8"
           textAlign="center"
         >
-          Start a new{'\n'}social adventure.
+          Comece uma nova{'\n'}aventura social.
         </Text>
       </View>
 
       <View
         position="absolute"
-        bottom={270 + insets.bottom}
+        bottom={200 + insets.bottom}
         left={0}
         right={0}
         zIndex={10}
@@ -81,62 +81,64 @@ export const HomeAuthScreen = () => {
         bottom={0}
         left={0}
         right={0}
-        backgroundColor="$cream"
-        borderTopRightRadius="$12"
-        padding="$5"
-        style={{
-          height: 250 + insets.bottom,
-          paddingBottom: insets.bottom,
-          shadowColor: '#000',
-          shadowOffset: {
-            width: 0,
-            height: -5,
-          },
-          shadowOpacity: 0.1,
-          shadowRadius: 15,
-          elevation: 10,
-        }}
+        zIndex={10}
+        paddingHorizontal="$5"
+        paddingBottom={insets.bottom + 40}
+        paddingTop="$6"
       >
-        <YStack gap="$4" justifyContent="center" flex={1}>
+        <YStack gap="$4" justifyContent="center">
           <Link href="/(auth)/sign-in" asChild>
             <Button
-              backgroundColor="$oceanDark"
-              color="white"
+              backgroundColor="$white"
+              color="$dark"
               size="$5"
-              borderRadius="$6"
+              borderRadius="$10"
               fontWeight="600"
               pressStyle={{
                 scale: 0.98,
-                backgroundColor: '$ocean'
+                backgroundColor: '$lightest'
+              }}
+              style={{
+                shadowColor: '#000',
+                shadowOffset: {
+                  width: 0,
+                  height: 4,
+                },
+                shadowOpacity: 0.3,
+                shadowRadius: 8,
+                elevation: 8,
               }}
             >
-              <Text color="$white" fontWeight="$8" lineHeight={20}>Fazer Login</Text>
+              <Text color="$dark" fontWeight="600" lineHeight={20}>Fazer Login</Text>
             </Button>
           </Link>
+
           <Link href="/(auth)/sign-up" asChild>
             <Button
               backgroundColor="transparent"
-              borderColor="$oceanDark"
+              borderColor="white"
               borderWidth={2}
-              color="$oceanDark"
+              color="white"
               size="$5"
-              borderRadius="$6"
+              borderRadius="$10"
               fontWeight="600"
               pressStyle={{
                 scale: 0.98,
-                backgroundColor: '$cream',
-                borderColor: '$ocean'
+                backgroundColor: 'rgba(255,255,255,0.1)'
+              }}
+              style={{
+                backdropFilter: 'blur(10px)',
               }}
             >
-              <Text color="$oceanDark" fontWeight="$5">
+              <Text color="white" fontWeight="500">
                 Realizar Cadastro
               </Text>
             </Button>
           </Link>
 
-          <YStack alignItems="center" marginTop="$2">
-            <Text fontSize="$4" color="$color11" fontWeight="300" marginTop="$5">
-              Precisa de ajuda ?
+          <YStack alignItems="center" marginTop="$4">
+            <Text fontSize="$4" color="rgba(255,255,255,0.8)" fontWeight="300">
+              Precisa de ajuda?
             </Text>
           </YStack>
         </YStack>

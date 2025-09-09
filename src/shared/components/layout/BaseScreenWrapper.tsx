@@ -8,7 +8,7 @@ interface BaseScreenWrapperProps {
 
 export const BaseScreenWrapper: React.FC<BaseScreenWrapperProps> = ({children}) => {
   return (
-    <YStack flex={1} backgroundColor="$cream">
+    <YStack flex={1} backgroundColor="#F8F8F8">
       <KeyboardAvoidingView
         style={{flex: 1}}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

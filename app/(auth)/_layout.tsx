@@ -13,21 +13,15 @@ export default function AuthLayout() {
       >
         <Stack.Screen
           name="home"
-          options={{
-            title: 'HomeAuth',
-          }}
+          options={{title: 'HomeAuth',}}
         />
         <Stack.Screen
           name="sign-in"
-          options={{
-            title: 'Login',
-          }}
+          options={{title: 'Login'}}
         />
         <Stack.Screen
           name="sign-up"
-          options={{
-            title: 'Registrar',
-          }}
+          options={{title: 'Registrar'}}
         />
       </Stack>
     </AuthGuard>

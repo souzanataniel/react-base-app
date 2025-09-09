@@ -1,15 +1,15 @@
-import {Checkbox, CheckboxProps, CheckedState, Label, XStack} from 'tamagui';
+import {Checkbox, CheckboxProps, Text, XStack} from 'tamagui';
 import {Check as CheckIcon} from '@tamagui/lucide-icons'
-import {useState} from 'react';
 
 export function CheckboxLabel({
                                 size,
                                 label = 'Checkbox label',
+                                checked,
+                                onCheckedChange,
                                 ...checkboxProps
                               }: CheckboxProps & { label?: string }) {
 
   const id = `checkbox-${(size || '').toString().slice(1)}`
-  const [checked, setChecked] = useState<CheckedState>(false);
 
   return (
     <XStack alignItems="center" gap="$2">
@@ -18,9 +18,9 @@ export function CheckboxLabel({
         size={size}
         {...checkboxProps}
         checked={checked}
-        onCheckedChange={setChecked}
-        backgroundColor={checked ? '$oceanDark' : 'transparent'}
-        borderColor={checked ? '$oceanDark' : '$gray8'}
+        onCheckedChange={onCheckedChange}
+        backgroundColor={checked ? '$dark' : 'transparent'}
+        borderColor='$dark'
         borderWidth={2}
         borderRadius={4}
       >
@@ -29,9 +29,16 @@ export function CheckboxLabel({
         </Checkbox.Indicator>
       </Checkbox>
 
-      <Label size={size} htmlFor={id}>
+      <Text
+        fontSize="$3"
+        color="$medium"
+        lineHeight="$4"
+        flex={1}
+        onPress={() => onCheckedChange && onCheckedChange(!checked)}
+        pressStyle={{opacity: 0.7}}
+      >
         {label}
-      </Label>
+      </Text>
     </XStack>
   )
 }

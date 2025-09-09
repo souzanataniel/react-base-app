@@ -13,23 +13,29 @@ type LabelInputProps = InputProps & {
   validationFn?: (value: string) => boolean;
 };
 
+const isValidEmail = (email: string): boolean => {
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  return emailRegex.test(email.trim());
+};
+
 function BaseLabelInput(
   {
     label,
     containerProps,
     labelFontSize = '$4',
-    labelColor = '$color',
+    labelColor = '$medium',
     leftIcon,
     rightIcon,
     showSuccessIcon = false,
     successIcon,
     validationFn,
-    height = 50,
+    height = 52,
     fontSize = '$4',
-    backgroundColor = 'transparent',
-    borderColor = '$gray7',
-    borderWidth = 1,
+    backgroundColor = '$white',
+    borderColor = 'transparent',
+    borderWidth = 0,
     onChangeText,
+    keyboardType,
     ...inputProps
   }: LabelInputProps,
   ref: React.Ref<any>
@@ -40,7 +46,9 @@ function BaseLabelInput(
   const handleChangeText = (text: string) => {
     setInputValue(text);
 
-    if (validationFn) {
+    if (keyboardType === 'email-address') {
+      setIsValid(isValidEmail(text));
+    } else if (validationFn) {
       setIsValid(validationFn(text));
     } else if (showSuccessIcon) {
       setIsValid(text.trim().length > 0);
@@ -52,13 +60,13 @@ function BaseLabelInput(
   };
 
   const shouldShowSuccessIcon = showSuccessIcon && isValid && inputValue.trim().length > 0;
-  const paddingLeft = leftIcon ? 45 : 15;
-  const paddingRight = (rightIcon || shouldShowSuccessIcon) ? 45 : 15;
+  const paddingLeft = leftIcon ? 45 : 16;
+  const paddingRight = (rightIcon || shouldShowSuccessIcon) ? 45 : 16;
 
   return (
     <YStack gap="$2" {...containerProps}>
       {label ? (
-        <Text fontSize={labelFontSize} color={labelColor} fontWeight="$6">
+        <Text fontSize={labelFontSize} color={labelColor} fontWeight="500">
           {label}
         </Text>
       ) : null}
@@ -85,17 +93,20 @@ function BaseLabelInput(
           backgroundColor={backgroundColor}
           borderColor={borderColor}
           borderWidth={borderWidth}
+          borderRadius="$4"
           paddingLeft={paddingLeft}
           paddingRight={paddingRight}
+          placeholderTextColor="$light"
+          keyboardType={keyboardType}
           focusStyle={{
-            borderColor,
-            borderWidth: (borderWidth as number) + 1
+            borderColor: '$medium',
+            borderWidth: 1
           }}
           onChangeText={handleChangeText}
           {...inputProps}
         />
 
-        {(rightIcon || shouldShowSuccessIcon) && (
+        {rightIcon && (
           <XStack
             position="absolute"
             right={12}
@@ -105,15 +116,7 @@ function BaseLabelInput(
             zIndex={1}
             pointerEvents="none"
           >
-            {shouldShowSuccessIcon ? (
-              successIcon || (
-                <Text color="$green10" fontSize="$5">
-                  ✓
-                </Text>
-              )
-            ) : (
-              rightIcon
-            )}
+            {rightIcon}
           </XStack>
         )}
       </YStack>

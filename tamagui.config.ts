@@ -27,51 +27,21 @@ const poppinsFont = createFont({
 const customTokens = createTokens({
   ...defaultConfig.tokens,
   color: {
-    // Paleta principal baseada no gradiente
-    ocean: '#2a4d5a',        // Cor principal - azul oceano
-    oceanDark: '#1a2a35',    // Oceano escuro
-    oceanDeep: '#0f1419',    // Oceano profundo
+    // Paleta principal - 5 cores da imagem
+    dark: '#1A2D42',      // Azul escuro
+    medium: '#2E4156',    // Azul médio
+    light: '#AAB7B7',     // Cinza azulado
+    lighter: '#C0C8CA',   // Cinza claro
+    lightest: '#D4D8DD',  // Cinza muito claro
 
-    // Neutros
+    // Neutros básicos
     white: '#FFFFFF',
-    cream: '#F5F5F5',        // Off-white cremoso
     black: '#000000',
 
-    // Variações da paleta oceano
-    oceanLight: '#3d6b7a',   // Versão mais clara do oceano
-    oceanMuted: '#243c47',   // Versão mais suave
-
-    // Backgrounds
-    backgroundLight: '#F8F7F6',  // Baseado no cream
-    backgroundDark: '#0f1419',   // Oceano profundo
-    backgroundCard: '#FFFFFF',
-    backgroundOverlay: 'rgba(15, 20, 25, 0.7)', // Overlay escuro
-
-    // Grays baseados na paleta
-    darkGray: '#1a2a35',
-    midGray: '#2a4d5a',
-    lightGray: '#E5E1DE',
-    softGray: '#F0EFED',     // Versão mais suave do cream
-
-    // Status colors harmonizados com a paleta
-    primary: '#2a4d5a',      // Oceano como primary
-    primaryLight: '#3d6b7a',
-    primaryDark: '#1a2a35',
-
-    secondary: '#4a6b5a',    // Verde oceânico
-    secondaryLight: '#6b8a7a',
-    secondaryDark: '#2e4235',
-
-    success: '#3a5d4a',      // Verde escuro oceânico
-    warning: '#5a4d2a',      // Marrom oceânico
-    error: '#5a2a2a',        // Vermelho escuro oceânico
-    info: '#2a4d5a',         // Mesma cor primary
-
-    // Cores antigas mantidas para compatibilidade (caso necessário)
-    dark: '#1a2a35',
-    medium: '#2a4d5a',
-    light: '#E5E1DE',
-    lighter: '#F0EFED',
+    // Status colors simples
+    success: '#10B981',
+    warning: '#F59E0B',
+    error: '#EF4444',
   },
 })
 
@@ -96,40 +66,40 @@ export const config = createTamagui({
     light: {
       ...defaultConfig.themes.light,
       background: '#FFFFFF',
-      backgroundHover: '#F8F7F6',
-      backgroundPress: '#F0EFED',
-      backgroundFocus: '#E5E1DE',
+      backgroundHover: '#D4D8DD',
+      backgroundPress: '#C0C8CA',
+      backgroundFocus: '#AAB7B7',
 
-      color: '#1a2a35',
-      colorHover: '#0f1419',
-      colorPress: '#2a4d5a',
-      colorFocus: '#1a2a35',
+      color: '#1A2D42',
+      colorHover: '#2E4156',
+      colorPress: '#1A2D42',
+      colorFocus: '#1A2D42',
 
-      borderColor: '#E5E1DE',
-      borderColorHover: '#2a4d5a',
-      borderColorPress: '#1a2a35',
-      borderColorFocus: '#2a4d5a',
+      borderColor: '#C0C8CA',
+      borderColorHover: '#AAB7B7',
+      borderColorPress: '#2E4156',
+      borderColorFocus: '#1A2D42',
 
-      placeholderColor: '#2a4d5a',
+      placeholderColor: '#AAB7B7',
     },
     dark: {
       ...defaultConfig.themes.dark,
-      background: '#0f1419',
-      backgroundHover: '#1a2a35',
-      backgroundPress: '#2a4d5a',
-      backgroundFocus: '#243c47',
+      background: '#1A2D42',
+      backgroundHover: '#2E4156',
+      backgroundPress: '#AAB7B7',
+      backgroundFocus: '#C0C8CA',
 
-      color: '#E5E1DE',
+      color: '#D4D8DD',
       colorHover: '#FFFFFF',
-      colorPress: '#F0EFED',
-      colorFocus: '#E5E1DE',
+      colorPress: '#C0C8CA',
+      colorFocus: '#D4D8DD',
 
-      borderColor: '#2a4d5a',
-      borderColorHover: '#3d6b7a',
-      borderColorPress: '#E5E1DE',
-      borderColorFocus: '#2a4d5a',
+      borderColor: '#2E4156',
+      borderColorHover: '#AAB7B7',
+      borderColorPress: '#C0C8CA',
+      borderColorFocus: '#AAB7B7',
 
-      placeholderColor: '#2a4d5a',
+      placeholderColor: '#AAB7B7',
     }
   },
   shorthands,

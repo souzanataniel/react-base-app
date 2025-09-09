@@ -1,13 +1,15 @@
 import React from 'react';
 import {Text, View, XStack, YStack} from 'tamagui';
 import {CircleCheck, LockKeyhole, Mail} from '@tamagui/lucide-icons';
-import {CheckboxLabel, LoadingButton} from 'src/shared/components';
+import {BackButtonInline, CheckboxLabel, LoadingButton} from 'src/shared/components';
 import {BaseScreenWrapper} from '@/shared/components/layout';
 import {LabelInput} from '@/shared/components/ui/Input/FormInput';
 import {LabelPasswordInput} from '@/shared/components/ui/Input/FormPasswordInput';
 import {Link} from 'expo-router';
 import {useSignIn} from '@/features/auth/hooks/useSignIn';
-import {AuthHeader} from '@/features/auth/components/AuthHeader';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {COLORS} from '@/shared/constants/colors';
+import {Logo} from '@/shared/components/ui/Background/Logo';
 
 export const SignInScreen = () => {
   const {
@@ -24,6 +26,7 @@ export const SignInScreen = () => {
   } = useSignIn();
 
   const [rememberMe, setRememberMe] = React.useState(false);
+  const insets = useSafeAreaInsets();
 
   const onSubmit = async () => {
     const result = await handleSubmit();
@@ -41,80 +44,87 @@ export const SignInScreen = () => {
 
   return (
     <BaseScreenWrapper>
-      <YStack flex={1}>
-        <AuthHeader
-          title="Bem Vindo !"
-          subtitle="Preencha os dados abaixo para realizar seu login."
-        />
+      <View>
+        <XStack
+          justifyContent="space-between"
+          alignItems="center"
+          paddingTop={insets.top + 10}
+          paddingHorizontal="$4"
+          marginBottom="$4"
+        >
+          <BackButtonInline buttonColor="$dark" iconColor="$white"/>
+        </XStack>
 
-        <YStack flex={1} padding="$5">
-          {/* Inputs */}
-          <YStack gap="$4" paddingTop="$8">
+        <YStack flex={1}>
+          {/* Logo Section */}
+          <YStack alignItems="center" justifyContent="center">
+            <Logo tintColor={COLORS.LIGHTEST} size={100}/>
+          </YStack>
+
+          {/* Form Section */}
+          <YStack flex={0.6} padding="$5" paddingTop="$4">
+            {/* Sign In Title */}
+            <YStack gap="$1" marginBottom="$6">
+              <Text
+                fontSize="$6"
+                fontWeight="600"
+                color="$dark"
+              >
+                Entrar
+              </Text>
+              <Text
+                fontSize="$3"
+                fontWeight="400"
+                color="$medium"
+              >
+                Insira seus dados para continuar
+              </Text>
+            </YStack>
+
+            {/* Inputs */}
             <YStack gap="$2">
               <LabelInput
-                label="E-mail"
-                placeholder="seu@email.com"
+                label="Email"
+                placeholder="exemplo@gmail.com"
                 keyboardType="email-address"
                 value={credentials.email}
                 onChangeText={handleEmailChange}
                 onBlur={() => markFieldAsTouched('email')}
                 backgroundColor="$white"
-                labelColor="$oceanDark"
+                labelColor="$medium"
                 borderWidth={0}
-                leftIcon={<Mail size={20} color="$oceanDark"/>}
+                borderRadius="$4"
+                leftIcon={<Mail size={20} color="$medium"/>}
                 showSuccessIcon
-                successIcon={
+                rightIcon={
                   <CircleCheck
-                    size={30}
-                    color="white"
-                    fill="#1a2a35"
+                    size={20}
+                    color="$dark"
                   />
                 }
-                // Passa validação customizada se necessário
-                validationFn={(email) => !hasFieldError('email') && email.includes('@')}
               />
-              {hasFieldError('email') && (
-                <Text fontSize="$3" color="$red10" paddingLeft="$2">
-                  {getFieldError('email')}
-                </Text>
-              )}
-            </YStack>
 
-            <YStack gap="$2">
               <LabelPasswordInput
                 label="Senha"
-                placeholder="Digite sua senha"
+                placeholder="••••••••"
                 value={credentials.password}
                 onChangeText={handlePasswordChange}
                 onBlur={() => markFieldAsTouched('password')}
                 backgroundColor="$white"
-                leftIcon={<LockKeyhole size={20} color="$oceanDark"/>}
+                labelColor="$medium"
+                leftIcon={<LockKeyhole size={20} color="$medium"/>}
                 borderWidth={0}
+                borderRadius="$4"
               />
-              {hasFieldError('password') && (
-                <Text fontSize="$3" color="$red10" paddingLeft="$2">
-                  {getFieldError('password')}
-                </Text>
-              )}
             </YStack>
-          </YStack>
 
-          {/* Erro geral */}
-          {error && (
-            <YStack paddingTop="$4">
-              <Text fontSize="$3" color="$red10" textAlign="center" paddingHorizontal="$2">
-                {error}
-              </Text>
-            </YStack>
-          )}
-
-          {/* Área de ações */}
-          <YStack gap="$4" marginTop="$4">
+            {/* Remember Me e Forgot Password */}
             <XStack
               justifyContent="space-between"
               alignItems="center"
               paddingHorizontal="$2"
-              minHeight={50}
+              marginTop="$2"
+              minHeight={40}
             >
               <XStack alignItems="center" gap="$2" flex={1}>
                 <CheckboxLabel
@@ -127,50 +137,59 @@ export const SignInScreen = () => {
 
               <Text
                 fontSize="$3"
-                color="$oceanDark"
+                color="$medium"
                 textDecorationLine="underline"
                 fontWeight="500"
-                lineHeight={20}
-                pressStyle={{opacity: 0.7, scale: 0.98}}
+                pressStyle={{opacity: 0.7}}
               >
                 Esqueceu sua senha?
               </Text>
             </XStack>
 
-            <LoadingButton
-              loading={isLoading}
-              loadingText="Realizando Login..."
-              onPress={onSubmit}
-              disabled={!canSubmit}
-            >
-              Entrar
-            </LoadingButton>
-          </YStack>
-
-          {/* Spacer para empurrar conteúdo para baixo */}
-          <View flex={1}/>
-
-          {/* Rodapé - Link de cadastro */}
-          <Link href="/(auth)/sign-up" replace asChild>
-            <YStack alignItems="center" paddingBottom="$4" pressStyle={{opacity: 0.7, scale: 0.98}}>
-              <Text
+            {/* Sign In Button */}
+            <YStack marginTop="$6">
+              <LoadingButton
+                loading={isLoading}
+                loadingText="Entrando..."
+                onPress={onSubmit}
+                disabled={!canSubmit}
+                backgroundColor="$dark"
+                color="$white"
+                borderRadius="$10"
+                height={52}
                 fontSize="$4"
-                color="$oceanDark"
-                fontWeight="400"
-                textAlign="center"
+                fontWeight="600"
               >
-                Não possui conta?{' '}
-                <Text
-                  fontWeight="600"
-                  textDecorationLine="underline"
-                >
-                  Cadastre-se
-                </Text>
-              </Text>
+                Entrar
+              </LoadingButton>
             </YStack>
-          </Link>
+
+            {/* Spacer */}
+            <View flex={1}/>
+
+            {/* Footer - Sign up link */}
+            <Link href="/(auth)/sign-up" replace asChild>
+              <YStack alignItems="center" paddingTop="$4" pressStyle={{opacity: 0.7}}>
+                <Text
+                  fontSize="$4"
+                  color="$light"
+                  fontWeight="400"
+                  textAlign="center"
+                >
+                  Não possui conta?{' '}
+                  <Text
+                    fontWeight="600"
+                    textDecorationLine="underline"
+                    color="$dark"
+                  >
+                    Cadastre-se
+                  </Text>
+                </Text>
+              </YStack>
+            </Link>
+          </YStack>
         </YStack>
-      </YStack>
+      </View>
     </BaseScreenWrapper>
   );
 }
