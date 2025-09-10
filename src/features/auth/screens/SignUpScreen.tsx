@@ -7,6 +7,7 @@ import {useSignUp} from '@/features/auth/hooks/useSignUp';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {SignUpForm} from '@/features/auth/components/SignUpForm';
 import {Logo} from '@/shared/components/ui/Background/Logo';
+import {BlurView} from 'expo-blur';
 
 export const SignUpScreen = () => {
   const {
@@ -61,20 +62,39 @@ export const SignUpScreen = () => {
   const canSubmitForm = canSubmit && acceptedTerms;
 
   return (
-    <BaseScreenWrapper>
-      <View>
-        <XStack
-          justifyContent="space-between"
-          alignItems="center"
-          paddingTop={insets.top + 10}
-          paddingHorizontal="$4"
-          marginBottom="$4"
+    <>
+      {/* Header Fixo com Blur - FORA do BaseScreenWrapper */}
+      <View
+        position="absolute"
+        top={0}
+        left={0}
+        right={0}
+        zIndex={1000}
+        height={insets.top + 80}
+      >
+        <BlurView
+          intensity={80}
+          style={{
+            flex: 1,
+            paddingTop: insets.top + 10,
+            paddingHorizontal: 16,
+            justifyContent: 'flex-start',
+          }}
         >
-          <BackButton/>
-          <Logo variant="small"/>
-        </XStack>
+          <XStack
+            justifyContent="space-between"
+            alignItems="center"
+            height={50}
+          >
+            <BackButton/>
+            <Logo variant="small"/>
+          </XStack>
+        </BlurView>
+      </View>
 
-        <YStack flex={1}>
+      {/* Conteúdo usando BaseScreenWrapper com padding-top para o header */}
+      <BaseScreenWrapper>
+        <View flex={1} paddingTop={insets.top + 90}>
           <YStack flex={1} padding="$3" paddingBottom="$2">
             <YStack
               gap="$4"
@@ -163,8 +183,8 @@ export const SignUpScreen = () => {
               </YStack>
             </YStack>
           </YStack>
-        </YStack>
-      </View>
-    </BaseScreenWrapper>
+        </View>
+      </BaseScreenWrapper>
+    </>
   );
 }
