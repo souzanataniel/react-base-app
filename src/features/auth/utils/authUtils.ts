@@ -1,4 +1,4 @@
-import {FormValidationError, SignInCredentials, SignUpCredentials} from '@/features/auth';
+import {FormValidationError, SignInCredentials, SignUpCredentials} from '@/features/auth/types/auth.types';
 
 /**
  * Valida formato de email

@@ -1,5 +1,6 @@
 export const COLORS = {
   // Paleta principal - 5 cores da imagem
+  BACKGROUND: '#F8F8F8',
   DARK: '#1A2D42',      // Azul escuro
   MEDIUM: '#2E4156',    // Azul médio
   LIGHT: '#AAB7B7',     // Cinza azulado

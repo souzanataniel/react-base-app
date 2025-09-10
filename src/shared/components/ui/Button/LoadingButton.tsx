@@ -17,14 +17,14 @@ export const LoadingButton = ({
                                 loadingColor = '$white',
                                 spinnerSize = 'small',
                                 disabled,
-                                backgroundColor = '$oceanDark',
+                                backgroundColor = '$dark',
                                 color = 'white',
                                 size = '$5',
                                 borderRadius = '$6',
                                 fontWeight = '600',
                                 pressStyle = {
                                   scale: 0.98,
-                                  backgroundColor: '$ocean'
+                                  backgroundColor: '$dark'
                                 },
                                 marginTop = '$4',
                                 ...props

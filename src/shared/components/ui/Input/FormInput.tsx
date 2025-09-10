@@ -80,8 +80,7 @@ function BaseLabelInput(
             bottom={0}
             alignItems="center"
             zIndex={1}
-            pointerEvents="none"
-          >
+            pointerEvents="none">
             {leftIcon}
           </XStack>
         )}
@@ -96,8 +95,9 @@ function BaseLabelInput(
           borderRadius="$4"
           paddingLeft={paddingLeft}
           paddingRight={paddingRight}
-          placeholderTextColor="$light"
+          placeholderTextColor="$grayBlue"
           keyboardType={keyboardType}
+          color="$darkBlue"
           focusStyle={{
             borderColor: '$medium',
             borderWidth: 1
@@ -106,7 +106,7 @@ function BaseLabelInput(
           {...inputProps}
         />
 
-        {rightIcon && (
+        {rightIcon && isValid && (
           <XStack
             position="absolute"
             right={12}

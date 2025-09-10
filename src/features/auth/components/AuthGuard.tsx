@@ -1,6 +1,6 @@
 import React from 'react';
 import {Redirect} from 'expo-router';
-import {useAuth} from '@/features/auth';
+import {useAuth} from '@/features/auth/hooks/useAuth';
 
 interface AuthGuardProps {
   requireAuth?: boolean;

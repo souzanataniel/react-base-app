@@ -6,7 +6,8 @@ import {BaseAlertProvider} from '../components/feedback/Alert';
 import {BaseLoaderProvider} from '../components/feedback/Loader';
 import {config} from '../../../tamagui.config';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
-import {AuthProvider} from '@/features/auth';
+import {useColorScheme} from 'react-native';
+import {AuthProvider} from '@/features/auth/providers/AuthProvider';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,13 +34,13 @@ const queryClient = new QueryClient({
 });
 
 export function AppProvider({children, ...rest}: Omit<TamaguiProviderProps, 'config'>) {
-
-  const themeName = 'light'
+  const colorScheme = useColorScheme();
+  const themeName = colorScheme ?? 'light';
 
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
-        <TamaguiProvider config={config} {...rest} defaultTheme="light">
+        <TamaguiProvider config={config} {...rest}>
           <AuthProvider>
             <Theme name={themeName}>
               <ToastProvider swipeDirection="horizontal" duration={3000} native={[]}>

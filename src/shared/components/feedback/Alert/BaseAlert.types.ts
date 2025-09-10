@@ -7,7 +7,7 @@ export interface BaseAlertProps {
   cancelText?: string;
   onConfirm?: () => void;
   onCancel?: () => void;
-  type?: 'info' | 'success' | 'warning' | 'error';
+  variant?: 'info' | 'success' | 'warning' | 'error';
   showCancel?: boolean;
 }
 

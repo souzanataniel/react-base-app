@@ -1,5 +1,6 @@
 import {createClient} from '@supabase/supabase-js';
-import {AuthResponse, formatErrors, SignInCredentials, SignUpCredentials, User} from '@/features/auth';
+import {AuthResponse, SignInCredentials, SignUpCredentials, User} from '@/features/auth/types/auth.types';
+import {formatErrors} from '@/features/auth/utils/authUtils';
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;

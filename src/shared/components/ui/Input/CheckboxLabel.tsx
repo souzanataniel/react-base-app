@@ -19,8 +19,8 @@ export function CheckboxLabel({
         {...checkboxProps}
         checked={checked}
         onCheckedChange={onCheckedChange}
-        backgroundColor={checked ? '$dark' : 'transparent'}
-        borderColor='$dark'
+        backgroundColor={checked ? '$darkBlue' : 'transparent'}
+        borderColor='$darkBlue'
         borderWidth={2}
         borderRadius={4}
       >
@@ -31,7 +31,7 @@ export function CheckboxLabel({
 
       <Text
         fontSize="$3"
-        color="$medium"
+        color="$mediumBlue"
         lineHeight="$4"
         flex={1}
         onPress={() => onCheckedChange && onCheckedChange(!checked)}

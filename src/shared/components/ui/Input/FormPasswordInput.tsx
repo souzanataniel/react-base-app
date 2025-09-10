@@ -110,9 +110,9 @@ function BaseLabelPasswordInput(
             cursor="pointer"
           >
             {visible ? (
-              <EyeOff size={18} color="$medium"/>
+              <EyeOff size={18} color="$darkBlue"/>
             ) : (
-              <Eye size={18} color="$medium"/>
+              <Eye size={18} color="$darkBlue"/>
             )}
           </XStack>
         </XStack>

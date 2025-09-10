@@ -1,51 +1,36 @@
 import React from 'react';
-import {Image, View} from 'tamagui';
+import {Image, useTheme, useThemeName, View} from 'tamagui';
 
 interface LogoProps {
   size?: number;
+  variant?: 'small' | 'medium' | 'large';
   tintColor?: string;
-  variant?: 'default' | 'header' | 'splash';
-  showBackground?: boolean;
-  backgroundColor?: string;
 }
 
 const logoSizes = {
-  default: 120,
-  header: 40,
-  splash: 150,
+  small: 40,
+  medium: 80,
+  large: 120,
 };
 
 export const Logo = ({
                        size,
-                       tintColor = 'white',
-                       variant = 'default',
-                       showBackground = false,
+                       variant = 'medium',
+                       tintColor,
                      }: LogoProps) => {
+  const theme = useTheme();
+  const themeName = useThemeName();
   const logoSize = size || logoSizes[variant];
 
-  const content = (
-    <Image
-      source={require('@/assets/images/logo.png')}
-      width={logoSize}
-      height={logoSize}
-      objectFit="contain"
-      tintColor={tintColor}
-    />
-  );
+  const getAdaptiveTintColor = () => {
+    if (tintColor) return tintColor;
 
-  if (showBackground) {
-    return (
-      <View
-        width={logoSize + 20}
-        height={logoSize + 20}
-        borderRadius="$10"
-        alignItems="center"
-        justifyContent="center"
-      >
-        {content}
-      </View>
-    );
-  }
+    if (themeName === 'dark') {
+      return theme.white?.get();
+    } else {
+      return theme.dark?.get();
+    }
+  };
 
   return (
     <View
@@ -54,7 +39,13 @@ export const Logo = ({
       alignItems="center"
       justifyContent="center"
     >
-      {content}
+      <Image
+        source={require('@/assets/images/logo.png')}
+        width={logoSize}
+        height={logoSize}
+        objectFit="contain"
+        tintColor={getAdaptiveTintColor()}
+      />
     </View>
   );
 };

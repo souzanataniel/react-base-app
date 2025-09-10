@@ -1,9 +1,9 @@
 import React from 'react';
 import {Avatar, Button, Card, ScrollView, Separator, Text, XStack, YStack} from 'tamagui';
 import {Bell, Calendar, Edit3, Eye, Mail, MapPin, Shield} from '@tamagui/lucide-icons';
-import {useAuth} from '@/features/auth';
 import {format} from '@/shared/utils';
 import {BaseScreen} from '@/shared/components/layout';
+import {useAuth} from '@/features/auth/hooks/useAuth';
 
 export const ProfileScreen = () => {
   const {user, signOut} = useAuth();

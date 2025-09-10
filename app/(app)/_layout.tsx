@@ -1,7 +1,7 @@
 import React from 'react';
 import {Tabs} from 'expo-router';
 import {AnimatedTabBar} from '@/shared/components/ui/AnimatedTabBar';
-import {AuthGuard} from '@/features/auth';
+import {AuthGuard} from '@/features/auth/components/AuthGuard';
 
 export default function AppLayout() {
   return (

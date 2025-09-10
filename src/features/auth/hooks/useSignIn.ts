@@ -1,12 +1,17 @@
 import {useEffect, useState} from 'react';
-import {debounce, FormValidationError, SignInCredentials, validateSignInForm} from '@/features/auth';
 import {useAuth} from './useAuth';
+import {useBaseAlert} from '@/shared/components/feedback/Alert/BaseAlertProvider';
+import {FormValidationError, SignInCredentials} from '@/features/auth/types/auth.types';
+import {debounce, validateSignInForm} from '@/features/auth/utils/authUtils';
+import {useRouter} from 'expo-router';
 
 /**
  * Hook para gerenciar formulário de login
  */
 export const useSignIn = () => {
   const {signIn, isLoading, error, clearError} = useAuth();
+  const useAlert = useBaseAlert();
+  const router = useRouter();
 
   const [credentials, setCredentials] = useState<SignInCredentials>({
     email: '',
@@ -67,30 +72,41 @@ export const useSignIn = () => {
   /**
    * Verifica se pode submeter (válido + não está carregando)
    */
-  const canSubmit = isValid() && !isLoading;
+  const canSubmit = !isLoading;
 
   /**
    * Submete formulário
    */
   const handleSubmit = async () => {
-    // Marca todos os campos como tocados
     setTouched({email: true, password: true});
 
-    // Valida formulário
     const validationErrors = validateSignInForm(credentials);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
+      useAlert.showError('Login', 'Preencha corretamente os campos de Email e Senha.');
       return {success: false};
     }
 
-    // Faz login
     const result = await signIn(credentials);
 
     if (result.success) {
-      // Reset form em caso de sucesso
+      // Limpa formulário
       setCredentials({email: '', password: ''});
       setErrors({});
       setTouched({email: false, password: false});
+
+      // REDIRECIONAMENTO IMEDIATO
+      try {
+        router.replace('/(app)/home');
+        console.log('✅ Redirecionamento executado');
+      } catch (redirectError) {
+        console.error('❌ Erro no redirecionamento:', redirectError);
+        // Fallback
+        router.push('/(app)/home');
+      }
+    } else {
+      // Mostra erro e PERMANECE na tela
+      useAlert.showError('Erro no Login', result.error || 'Credenciais inválidas');
     }
 
     return result;

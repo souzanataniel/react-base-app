@@ -4,6 +4,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {BackgroundImage} from '@/shared/components/ui/Background/BackgroundImage';
 import {Link} from 'expo-router';
 import {Logo} from '@/shared/components/ui/Background/Logo';
+import {COLORS} from '@/shared/constants/colors';
 
 export const HomeAuthScreen = () => {
   const insets = useSafeAreaInsets()
@@ -16,7 +17,7 @@ export const HomeAuthScreen = () => {
     >
       <View position="absolute" top={insets.top + 20} left={0} right={0} zIndex={10}>
         <YStack alignItems="center">
-          <Logo variant="default" showBackground tintColor="white"/>
+          <Logo variant="large" tintColor={COLORS.WHITE}/>
 
           <Text
             color="white"
@@ -24,7 +25,7 @@ export const HomeAuthScreen = () => {
             fontWeight="600"
             opacity={0.9}
           >
-            PUBA
+            BASE
           </Text>
         </YStack>
       </View>
@@ -89,7 +90,7 @@ export const HomeAuthScreen = () => {
         <YStack gap="$4" justifyContent="center">
           <Link href="/(auth)/sign-in" asChild>
             <Button
-              backgroundColor="$white"
+              backgroundColor="$lightBackground"
               color="$dark"
               size="$5"
               borderRadius="$10"
@@ -109,7 +110,7 @@ export const HomeAuthScreen = () => {
                 elevation: 8,
               }}
             >
-              <Text color="$dark" fontWeight="600" lineHeight={20}>Fazer Login</Text>
+              <Text color="$darkBlue" fontWeight="600" lineHeight={20}>Fazer Login</Text>
             </Button>
           </Link>
 

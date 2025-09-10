@@ -1,8 +1,9 @@
 import {create} from 'zustand';
 import {createJSONStorage, persist} from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {AuthState, SignInCredentials, SignUpCredentials, User} from '@/features/auth';
 import * as authService from '../services/authService';
+import {AuthState, SignInCredentials, SignUpCredentials, User} from '@/features/auth/types/auth.types';
+import { router } from 'expo-router';
 
 interface AuthStore extends AuthState {
   signIn: (credentials: SignInCredentials) => Promise<{ success: boolean; error?: string }>;
@@ -12,6 +13,7 @@ interface AuthStore extends AuthState {
   setUser: (user: User | null) => void;
   setError: (error: string | null) => void;
   setLoading: (loading: boolean) => void;
+  clearError: () => void;
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -23,15 +25,103 @@ export const useAuthStore = create<AuthStore>()(
       isInitialized: false,
       error: null,
 
-      // Actions
+      initialize: async () => {
+        try {
+          // Configurar listener de mudanças de auth
+          authService.onAuthStateChange((user) => {
+            console.log('🔄 Auth state changed in store:', { hasUser: !!user, email: user?.email });
+
+            const currentState = get();
+            const wasAuthenticated = currentState.isAuthenticated;
+            const isNowAuthenticated = !!user;
+
+            set({
+              user,
+              isAuthenticated: isNowAuthenticated,
+              error: null,
+            });
+
+            // Redirecionamento automático apenas quando há mudança de estado
+            if (!wasAuthenticated && isNowAuthenticated && currentState.isInitialized) {
+              console.log('🏠 Redirecionamento automático: usuário autenticado');
+              setTimeout(() => {
+                try {
+                  router.replace('/(app)/home');
+                } catch (error) {
+                  console.error('❌ Erro no redirecionamento automático:', error);
+                }
+              }, 100);
+            } else if (wasAuthenticated && !isNowAuthenticated && currentState.isInitialized) {
+              console.log('🚪 Redirecionamento automático: usuário desautenticado');
+              setTimeout(() => {
+                try {
+                  router.replace('/(auth)/home');
+                } catch (error) {
+                  console.error('❌ Erro no redirecionamento automático:', error);
+                }
+              }, 100);
+            }
+          });
+
+          const persistedState = get();
+
+          if (persistedState.user) {
+            const session = await authService.getSession();
+
+            if (session?.user) {
+              const currentUser = await authService.getCurrentUser();
+              if (currentUser) {
+                set({
+                  user: currentUser,
+                  isAuthenticated: true,
+                  isInitialized: true,
+                  error: null,
+                });
+                return;
+              }
+            }
+          }
+
+          const session = await authService.getSession();
+          if (session?.user) {
+            const user = await authService.getCurrentUser();
+            if (user) {
+              set({
+                user,
+                isAuthenticated: true,
+                isInitialized: true,
+                error: null,
+              });
+              return;
+            }
+          }
+
+          // Estado não autenticado
+          set({
+            user: null,
+            isAuthenticated: false,
+            isInitialized: true,
+            error: null,
+          });
+        } catch (error) {
+          console.error('Erro na inicialização:', error);
+          set({
+            user: null,
+            isAuthenticated: false,
+            isInitialized: true,
+            error: null,
+          });
+        }
+      },
+
       signIn: async (credentials: SignInCredentials) => {
         set({isLoading: true, error: null});
-        console.log('Cheguei aqui')
-
         try {
+          console.log('🔐 Executando signIn no store...');
           const response = await authService.signIn(credentials);
-          console.log(response)
+
           if (response.error) {
+            console.log('❌ Erro no signIn:', response.error);
             set({
               error: response.error,
               isLoading: false,
@@ -41,6 +131,9 @@ export const useAuthStore = create<AuthStore>()(
             return {success: false, error: response.error};
           }
 
+          console.log('✅ SignIn bem-sucedido, atualizando estado...');
+
+          // Atualiza o estado local imediatamente
           set({
             user: response.user,
             isAuthenticated: true,
@@ -48,8 +141,27 @@ export const useAuthStore = create<AuthStore>()(
             error: null,
           });
 
+          console.log('🏠 Executando redirecionamento pós-login...');
+
+          // Redirecionamento imediato
+          setTimeout(() => {
+            try {
+              router.replace('/(app)/home');
+              console.log('✅ Redirecionamento executado com sucesso');
+            } catch (redirectError) {
+              console.error('❌ Erro no redirecionamento:', redirectError);
+              // Fallback
+              try {
+                router.push('/(app)/home');
+              } catch (fallbackError) {
+                console.error('❌ Erro no redirecionamento fallback:', fallbackError);
+              }
+            }
+          }, 50); // Delay mínimo para garantir que o estado foi atualizado
+
           return {success: true};
         } catch (error) {
+          console.error('💥 Exceção no signIn:', error);
           const errorMessage = 'Erro inesperado ao fazer login';
           set({
             error: errorMessage,
@@ -84,6 +196,15 @@ export const useAuthStore = create<AuthStore>()(
             error: null,
           });
 
+          // Redirecionamento após signup
+          setTimeout(() => {
+            try {
+              router.replace('/(app)/home');
+            } catch (error) {
+              console.error('❌ Erro no redirecionamento pós-signup:', error);
+            }
+          }, 50);
+
           return {success: true};
         } catch (error) {
           const errorMessage = 'Erro inesperado ao criar conta';
@@ -102,94 +223,14 @@ export const useAuthStore = create<AuthStore>()(
 
         try {
           await authService.signOut();
+          // O listener irá detectar a mudança automaticamente
         } catch (error) {
           console.error('Erro ao fazer logout:', error);
         } finally {
+          // Garantir que o estado local seja limpo
           set({
             user: null,
             isAuthenticated: false,
-            isLoading: false,
-            error: null,
-          });
-        }
-      },
-
-      initialize: async () => {
-        set({isLoading: true});
-
-        try {
-          // Primeiro verifica se há dados persistidos
-          const persistedState = get();
-
-          // Se há usuário persistido, verifica se a sessão ainda é válida
-          if (persistedState.user) {
-            console.log('Usuário encontrado no storage, verificando sessão...');
-
-            const session = await authService.getSession();
-
-            if (session?.user) {
-              // Sessão válida, busca dados atualizados do usuário
-              const currentUser = await authService.getCurrentUser();
-
-              if (currentUser) {
-                console.log('Sessão válida, mantendo usuário logado');
-                set({
-                  user: currentUser,
-                  isAuthenticated: true,
-                  isInitialized: true,
-                  isLoading: false,
-                  error: null,
-                });
-                return;
-              }
-            }
-
-            // Sessão inválida, limpa dados
-            console.log('Sessão inválida, fazendo logout');
-            set({
-              user: null,
-              isAuthenticated: false,
-              isInitialized: true,
-              isLoading: false,
-              error: null,
-            });
-            return;
-          }
-
-          // Não há usuário persistido, verifica se há sessão ativa
-          const session = await authService.getSession();
-
-          if (session?.user) {
-            const user = await authService.getCurrentUser();
-
-            if (user) {
-              console.log('Sessão ativa encontrada, fazendo login automático');
-              set({
-                user,
-                isAuthenticated: true,
-                isInitialized: true,
-                isLoading: false,
-                error: null,
-              });
-              return;
-            }
-          }
-
-          // Nenhuma sessão encontrada
-          console.log('Nenhuma sessão encontrada');
-          set({
-            user: null,
-            isAuthenticated: false,
-            isInitialized: true,
-            isLoading: false,
-            error: null,
-          });
-        } catch (error) {
-          console.error('Erro ao inicializar auth:', error);
-          set({
-            user: null,
-            isAuthenticated: false,
-            isInitialized: true,
             isLoading: false,
             error: null,
           });
@@ -197,9 +238,11 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       setUser: (user: User | null) => {
+        const currentState = get();
         set({
           user,
-          isAuthenticated: !!user
+          isAuthenticated: !!user,
+          error: user ? null : currentState.error
         });
       },
 
@@ -210,11 +253,14 @@ export const useAuthStore = create<AuthStore>()(
       setLoading: (loading: boolean) => {
         set({isLoading: loading});
       },
+
+      clearError: () => {
+        set({error: null});
+      },
     }),
     {
       name: 'auth-storage',
       storage: createJSONStorage(() => AsyncStorage),
-      // Persiste apenas dados essenciais
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,

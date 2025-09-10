@@ -1,6 +1,7 @@
 import {useEffect, useState} from 'react';
-import {debounce, FormValidationError, SignUpCredentials, validateSignUpForm} from '@/features/auth';
 import {useAuth} from './useAuth';
+import {FormValidationError, SignUpCredentials} from '@/features/auth/types/auth.types';
+import {debounce, validateSignUpForm} from '@/features/auth/utils/authUtils';
 
 /**
  * Hook para gerenciar formulário de cadastro

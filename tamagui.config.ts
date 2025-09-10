@@ -27,21 +27,26 @@ const poppinsFont = createFont({
 const customTokens = createTokens({
   ...defaultConfig.tokens,
   color: {
-    // Paleta principal - 5 cores da imagem
-    dark: '#1A2D42',      // Azul escuro
-    medium: '#2E4156',    // Azul médio
-    light: '#AAB7B7',     // Cinza azulado
-    lighter: '#C0C8CA',   // Cinza claro
-    lightest: '#D4D8DD',  // Cinza muito claro
+    baseBackground: '#F8F8F8',
+    baseBackgroundHover: '#EEEEEE',      // Hover em backgrounds
 
-    // Neutros básicos
+    // Cores base que não mudam
     white: '#FFFFFF',
     black: '#000000',
 
-    // Status colors simples
+    // Paleta principal - cores fixas
+    darkBlue: '#1A2D42',
+    mediumBlue: '#2E4156',
+    grayBlue: '#AAB7B7',
+    lightGray: '#C0C8CA',
+    lighterGray: '#D4D8DD',
+    lightBackground: '#F8F8F8',
+
+    // Status colors
     success: '#10B981',
     warning: '#F59E0B',
     error: '#EF4444',
+    info: '#3B82F6',
   },
 })
 
@@ -49,10 +54,10 @@ export const config = createTamagui({
   ...defaultConfig,
   settings: {
     ...defaultConfig.settings,
-    shouldAddPrefersColorThemes: false,
-    themeClassNameOnRoot: false,
+    shouldAddPrefersColorThemes: true,
+    themeClassNameOnRoot: true,
     defaultProps: {
-      disableThemeTransitions: true,
+      disableThemeTransitions: false,
     },
   },
   tokens: customTokens,
@@ -62,44 +67,101 @@ export const config = createTamagui({
     mono: poppinsFont,
   },
   themes: {
-    ...defaultConfig.themes,
     light: {
-      ...defaultConfig.themes.light,
-      background: '#FFFFFF',
-      backgroundHover: '#D4D8DD',
-      backgroundPress: '#C0C8CA',
-      backgroundFocus: '#AAB7B7',
+      // === BACKGROUNDS ===
+      background: '#F8F8F8',           // Fundo principal da tela
+      backgroundHover: '#EEEEEE',      // Hover em backgrounds
+      backgroundPress: '#C0C8CA',      // Press em backgrounds
+      backgroundFocus: '#AAB7B7',      // Focus em backgrounds
+      backgroundStrong: '#FFFFFF',     // Cards, modais, inputs
+      backgroundTransparent: 'transparent',
 
-      color: '#1A2D42',
-      colorHover: '#2E4156',
-      colorPress: '#1A2D42',
-      colorFocus: '#1A2D42',
+      // === COLORS (texto e ícones) ===
+      color: '#1A2D42',               // Texto principal
+      colorHover: '#2E4156',          // Hover em textos
+      colorPress: '#1A2D42',          // Press em textos
+      colorFocus: '#1A2D42',          // Focus em textos
 
-      borderColor: '#C0C8CA',
-      borderColorHover: '#AAB7B7',
-      borderColorPress: '#2E4156',
-      borderColorFocus: '#1A2D42',
+      // === BORDERS ===
+      borderColor: '#C0C8CA',         // Bordas padrão
+      borderColorHover: '#AAB7B7',    // Hover em bordas
+      borderColorPress: '#2E4156',    // Press em bordas
+      borderColorFocus: '#1A2D42',    // Focus em bordas
 
-      placeholderColor: '#AAB7B7',
+      // === PLACEHOLDERS ===
+      placeholderColor: '#AAB7B7',    // Texto de placeholder
+
+      // === SUAS CORES CUSTOMIZADAS ===
+      // Estas são as cores que você usa no seu código
+      dark: '#1A2D42',               // Cor principal escura
+      medium: '#2E4156',             // Cor média
+      light: '#AAB7B7',              // Cor clara
+      lighter: '#C0C8CA',            // Cor mais clara
+      lightest: '#D4D8DD',           // Cor mais clara ainda
+
+      // === CORES NEUTRAS ===
+      white: '#FFFFFF',
+      black: '#000000',
+
+      // === STATUS COLORS ===
+      success: '#10B981',
+      warning: '#F59E0B',
+      error: '#EF4444',
+      info: '#3B82F6',
+
+      // === SHADOWS ===
+      shadowColor: '#1A2D42',
+      shadowColorHover: '#2E4156',
+      shadowColorPress: '#AAB7B7',
+      shadowColorFocus: '#C0C8CA',
     },
+
     dark: {
-      ...defaultConfig.themes.dark,
-      background: '#1A2D42',
-      backgroundHover: '#2E4156',
-      backgroundPress: '#AAB7B7',
-      backgroundFocus: '#C0C8CA',
+      // === BACKGROUNDS ===
+      background: '#1A2D42',           // Fundo principal escuro
+      backgroundHover: '#2E4156',      // Hover mais claro
+      backgroundPress: '#AAB7B7',      // Press ainda mais claro
+      backgroundFocus: '#C0C8CA',      // Focus mais claro
+      backgroundStrong: '#2E4156',     // Cards, modais, inputs (mais escuro que o fundo)
+      backgroundTransparent: 'transparent',
 
-      color: '#D4D8DD',
-      colorHover: '#FFFFFF',
-      colorPress: '#C0C8CA',
-      colorFocus: '#D4D8DD',
+      // === COLORS (texto e ícones) ===
+      color: '#FFFFFF',               // Texto principal claro
+      colorHover: '#FFFFFF',          // Hover em textos (mais claro)
+      colorPress: '#C0C8CA',          // Press em textos
+      colorFocus: '#D4D8DD',          // Focus em textos
 
-      borderColor: '#2E4156',
-      borderColorHover: '#AAB7B7',
-      borderColorPress: '#C0C8CA',
-      borderColorFocus: '#AAB7B7',
+      // === BORDERS ===
+      borderColor: '#2E4156',         // Bordas escuras
+      borderColorHover: '#AAB7B7',    // Hover em bordas
+      borderColorPress: '#C0C8CA',    // Press em bordas
+      borderColorFocus: '#AAB7B7',    // Focus em bordas
 
-      placeholderColor: '#AAB7B7',
+      // === PLACEHOLDERS ===
+      placeholderColor: '#AAB7B7',    // Placeholder visível no escuro
+
+      // === SUAS CORES CUSTOMIZADAS (adaptadas para modo escuro) ===
+      dark: '#D4D8DD',               // Texto claro no modo escuro
+      medium: '#AAB7B7',             // Cor média adaptada
+      light: '#C0C8CA',              // Cor clara adaptada
+      lighter: '#D4D8DD',            // Cor mais clara adaptada
+      lightest: '#FFFFFF',           // A mais clara vira branco
+
+      // === CORES NEUTRAS ===
+      white: '#FFFFFF',              // Branco puro mantém
+      black: '#000000',              // Preto puro mantém
+
+      // === STATUS COLORS (mantém as mesmas) ===
+      success: '#10B981',
+      warning: '#F59E0B',
+      error: '#EF4444',
+      info: '#3B82F6',
+
+      // === SHADOWS ===
+      shadowColor: '#000000',
+      shadowColorHover: '#1A2D42',
+      shadowColorPress: '#2E4156',
+      shadowColorFocus: '#AAB7B7',
     }
   },
   shorthands,
