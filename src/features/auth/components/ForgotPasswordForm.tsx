@@ -50,13 +50,13 @@ export function ForgotPasswordForm({
           loading={isLoading}
           loadingText="Enviando..."
           onPress={onSubmit}
-          disabled={!canSubmit}
           backgroundColor="$darkBlue"
           color="$white"
           borderRadius="$10"
           height={52}
           fontSize="$4"
           fontWeight="600"
+          hapticType="medium"
         >
           Recuperar Senha
         </LoadingButton>

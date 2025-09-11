@@ -3,21 +3,21 @@ import {Button, Text, View, XStack, YStack} from 'tamagui';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {BackgroundImage} from '@/shared/components/ui/Background/BackgroundImage';
 import {Link} from 'expo-router';
-import {Logo} from '@/shared/components/ui/Background/Logo';
-import {COLORS} from '@/shared/constants/colors';
+import {LogoLarge, LogoLargeLight} from '@/shared/components/ui/Background/Logo';
 
 export const HomeAuthScreen = () => {
   const insets = useSafeAreaInsets()
 
   return (
     <BackgroundImage
-      imageUrl="https://images.pexels.com/photos/3602154/pexels-photo-3602154.jpeg?cs=srgb&dl=pexels-josh-hild-1270765-3602154.jpg&fm=jpg"
-      overlayOpacity={0.8}
-      fallbackOpacity={0.4}
+      lightSource={require('assets/images/bg.png')}
+      darkSource={require('assets/images/bg.png')}
+      overlayOpacity={0.6}
+      fallbackOpacity={0.25}
     >
       <View position="absolute" top={insets.top + 20} left={0} right={0} zIndex={10}>
         <YStack alignItems="center">
-          <Logo variant="large" tintColor={COLORS.WHITE}/>
+          <LogoLargeLight/>
 
           <Text
             color="white"

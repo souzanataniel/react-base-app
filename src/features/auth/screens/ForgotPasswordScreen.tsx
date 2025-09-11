@@ -3,44 +3,32 @@ import {Text, View, XStack, YStack} from 'tamagui';
 import {BackButton} from 'src/shared/components';
 import {BaseScreenWrapper} from '@/shared/components/layout';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {Logo} from '@/shared/components/ui/Background/Logo';
+import {LogoMedium} from '@/shared/components/ui/Background/Logo';
 import {ForgotPasswordForm} from '@/features/auth/components/ForgotPasswordForm';
+import {useForgotPassword} from '@/features/auth/hooks/useForgotPassword';
+import {useBaseAlert} from '@/shared/components/feedback/Alert/BaseAlertProvider';
 
 export const ForgotPasswordScreen = () => {
-  const [email, setEmail] = React.useState('');
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [isEmailTouched, setIsEmailTouched] = React.useState(false);
+  const {
+    email,
+    updateEmail,
+    submit,
+    canSubmit,
+    isLoading,
+    clearError,
+  } = useForgotPassword();
+
   const insets = useSafeAreaInsets();
+  const alert = useBaseAlert();
 
-  const canSubmit = email.length > 0 && email.includes('@');
+  const handleSubmitClick = async () => {
+    const result = await submit();
 
-  const onSubmit = async () => {
-    if (!canSubmit) return;
-
-    setIsLoading(true);
-    try {
-      // Aqui você implementa a lógica de recuperação de senha
-      console.log('Enviando email de recuperação para:', email);
-
-      // Simular delay de API
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Navegar para tela de confirmação ou mostrar toast
-      // router.push('/(auth)/forgot-password-sent');
-
-    } catch (error) {
-      console.error('Erro ao enviar email de recuperação:', error);
-    } finally {
-      setIsLoading(false);
+    if (result.success) {
+      alert.showSuccess('Email Enviado', result.message);
+    } else {
+      alert.showError('Erro', result.message);
     }
-  };
-
-  const handleEmailChange = (text: string) => {
-    setEmail(text);
-  };
-
-  const handleEmailBlur = () => {
-    setIsEmailTouched(true);
   };
 
   return (
@@ -59,7 +47,7 @@ export const ForgotPasswordScreen = () => {
         <YStack flex={1} gap="$4">
           {/* Logo Section */}
           <YStack alignItems="center" justifyContent="center">
-            <Logo variant="medium"/>
+            <LogoMedium/>
           </YStack>
 
           {/* Form Section */}
@@ -69,7 +57,10 @@ export const ForgotPasswordScreen = () => {
               borderRadius="$6"
               padding="$5"
               marginHorizontal="$2"
-              elevation={1}
+              shadowColor="#000"
+              shadowOpacity={0.15}
+              shadowOffset={{width: 0, height: 1}}
+              shadowRadius={3}
             >
               <YStack gap="$1" marginBottom="$6">
                 <Text
@@ -88,13 +79,17 @@ export const ForgotPasswordScreen = () => {
                   Digite seu email para receber um link de recuperação de senha.
                 </Text>
               </YStack>
+
               <ForgotPasswordForm
                 email={email}
-                onEmailChange={handleEmailChange}
-                onBlurEmail={handleEmailBlur}
+                onEmailChange={(text) => {
+                  updateEmail(text);
+                  clearError();
+                }}
+                onBlurEmail={() => {}}
                 canSubmit={canSubmit}
                 isLoading={isLoading}
-                onSubmit={onSubmit}
+                onSubmit={handleSubmitClick}
               />
             </YStack>
           </YStack>
@@ -102,4 +97,4 @@ export const ForgotPasswordScreen = () => {
       </View>
     </BaseScreenWrapper>
   );
-}
+};

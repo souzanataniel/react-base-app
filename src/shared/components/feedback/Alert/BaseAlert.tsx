@@ -2,6 +2,7 @@ import React from 'react';
 import {AlertDialog, Button, useTheme, useThemeName, XStack, YStack} from 'tamagui';
 import {AlertTriangle, CheckCircle, Info, XCircle} from '@tamagui/lucide-icons';
 import {BaseAlertProps} from './BaseAlert.types';
+import {Keyboard, TouchableWithoutFeedback} from 'react-native';
 
 export function BaseAlert({
                             open,
@@ -57,6 +58,7 @@ export function BaseAlert({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <AlertDialog.Portal>
         <AlertDialog.Overlay
           key="overlay"
@@ -187,6 +189,7 @@ export function BaseAlert({
           </YStack>
         </AlertDialog.Content>
       </AlertDialog.Portal>
+      </TouchableWithoutFeedback>
     </AlertDialog>
   );
 }

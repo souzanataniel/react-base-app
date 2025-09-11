@@ -6,64 +6,53 @@ import {Link} from 'expo-router';
 import {useSignUp} from '@/features/auth/hooks/useSignUp';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {SignUpForm} from '@/features/auth/components/SignUpForm';
-import {Logo} from '@/shared/components/ui/Background/Logo';
+import {LogoSmall} from '@/shared/components/ui/Background/Logo';
 import {BlurView} from 'expo-blur';
+import {useBaseAlert} from '@/shared/components/feedback/Alert/BaseAlertProvider';
 
 export const SignUpScreen = () => {
   const {
-    credentials,
-    updateField,
-    markFieldAsTouched,
-    handleSubmit,
+    firstName,
+    lastName,
+    email,
+    phone,
+    password,
+    acceptTerms,
+    updateFirstName,
+    updateLastName,
+    updateEmail,
+    updatePhone,
+    updatePassword,
+    updateAcceptTerms,
+    submit,
     canSubmit,
     isLoading,
-    error,
     clearError,
+    errors,
     getPasswordStrength,
   } = useSignUp();
 
-  const [acceptedTerms, setAcceptedTerms] = React.useState(false);
   const insets = useSafeAreaInsets();
+  const alert = useBaseAlert();
 
-  const onSubmit = async () => {
-    const result = await handleSubmit();
+  const handleSubmitClick = async () => {
+    const result = await submit();
+
+    if (!result.success) {
+      alert.showError('Erro no Cadastro', result.message);
+    }
+
+    if (Object.keys(errors).length > 0) {
+      const msgs = Object.values(errors)
+        .map((e: any) => e?.message)
+        .filter(Boolean)
+        .join('\n');
+      alert.showError('Corrija os campos', msgs || 'Há erros no formulário.');
+    }
   };
-
-  const handleEmailChange = (text: string) => {
-    updateField('email', text);
-    clearError();
-  };
-
-  const handlePasswordChange = (text: string) => {
-    updateField('password', text);
-    clearError();
-  };
-
-  const handleFirstNameChange = (text: string) => {
-    updateField('firstName', text);
-    clearError();
-  };
-
-  const handleLastNameChange = (text: string) => {
-    updateField('lastName', text);
-    clearError();
-  };
-
-  // Configurações do indicador de força da senha
-  const passwordStrength = getPasswordStrength();
-  const strengthConfig = {
-    weak: {color: '$error', progress: 33, text: 'Fraca'},
-    medium: {color: '$warning', progress: 66, text: 'Média'},
-    strong: {color: '$success', progress: 100, text: 'Forte'},
-  };
-  const currentStrength = strengthConfig[passwordStrength];
-
-  // Verifica se pode submeter (incluindo aceitar termos)
-  const canSubmitForm = canSubmit && acceptedTerms;
 
   return (
     <>
-      {/* Header Fixo com Blur - FORA do BaseScreenWrapper */}
       <View
         position="absolute"
         top={0}
@@ -87,67 +76,77 @@ export const SignUpScreen = () => {
             height={50}
           >
             <BackButton/>
-            <Logo variant="small"/>
+            <LogoSmall/>
           </XStack>
         </BlurView>
       </View>
 
-      {/* Conteúdo usando BaseScreenWrapper com padding-top para o header */}
       <BaseScreenWrapper>
         <View flex={1} paddingTop={insets.top + 90}>
-          <YStack flex={1} padding="$3" paddingBottom="$2">
+          <YStack flex={1} padding="$3" paddingBottom="$10">
             <YStack
-              gap="$4"
               backgroundColor="$white"
               borderRadius="$6"
               padding="$5"
               marginHorizontal="$2"
-              shadowColor="$shadowColor"
-              shadowOffset={{width: 0, height: 2}}
-              shadowOpacity={0.1}
-              shadowRadius={8}
-              elevation={3}
+              shadowColor="#000"
+              shadowOpacity={0.15}
+              shadowOffset={{width: 0, height: 1}}
+              shadowRadius={3}
+              gap="$4"
             >
               <YStack gap="$2">
-                <Text
-                  fontSize="$6"
-                  fontWeight="600"
-                  color="$darkBlue"
-                >
+                <Text fontSize="$6" fontWeight="600" color="$darkBlue">
                   Cadastrar
                 </Text>
-                <Text
-                  fontSize="$3"
-                  fontWeight="400"
-                  color="$mediumBlue"
-                >
+                <Text fontSize="$3" fontWeight="400" color="$mediumBlue">
                   Preencha os dados para criar sua conta
                 </Text>
               </YStack>
 
               <SignUpForm
-                firstName={credentials.firstName}
-                lastName={credentials.lastName}
-                email={credentials.email}
-                password={credentials.password}
-                acceptedTerms={acceptedTerms}
-                setAcceptedTerms={setAcceptedTerms}
-                onFirstNameChange={handleFirstNameChange}
-                onLastNameChange={handleLastNameChange}
-                onEmailChange={handleEmailChange}
-                onPasswordChange={handlePasswordChange}
-                onBlurFirstName={() => markFieldAsTouched('firstName')}
-                onBlurLastName={() => markFieldAsTouched('lastName')}
-                onBlurEmail={() => markFieldAsTouched('email')}
-                onBlurPassword={() => markFieldAsTouched('password')}
+                firstName={firstName}
+                lastName={lastName}
+                email={email}
+                phone={phone}
+                password={password}
+                acceptTerms={acceptTerms}
+                onFirstNameChange={(value) => {
+                  updateFirstName(value);
+                  clearError();
+                }}
+                onLastNameChange={(value) => {
+                  updateLastName(value);
+                  clearError();
+                }}
+                onEmailChange={(value) => {
+                  updateEmail(value);
+                  clearError();
+                }}
+                onPhoneChange={(value) => {
+                  updatePhone(value);
+                  clearError();
+                }}
+                onPasswordChange={(value) => {
+                  updatePassword(value);
+                  clearError();
+                }}
+                onAcceptTermsChange={(value) => {
+                  updateAcceptTerms(value);
+                  clearError();
+                }}
+                onBlurFirstName={() => {}}
+                onBlurLastName={() => {}}
+                onBlurEmail={() => {}}
+                onBlurPhone={() => {}}
+                onBlurPassword={() => {}}
                 canSubmit={canSubmit}
                 isLoading={isLoading}
-                onSubmit={onSubmit}
-                error={error}
-                passwordStrength={passwordStrength}
+                onSubmit={handleSubmitClick}
+                passwordStrength={getPasswordStrength()}
               />
 
-              <YStack alignItems="center" gap="$3">
+              <YStack alignItems="center" gap="$3" paddingTop="$4">
                 <XStack alignItems="center" width="100%" paddingHorizontal="$4">
                   <View flex={1} height={1} backgroundColor="$borderColor"/>
                   <Text
@@ -163,18 +162,9 @@ export const SignUpScreen = () => {
 
                 <Link href="/(auth)/sign-in" replace asChild>
                   <YStack alignItems="center" pressStyle={{opacity: 0.7}}>
-                    <Text
-                      fontSize="$3"
-                      color="$mediumBlue"
-                      fontWeight="400"
-                      textAlign="center"
-                    >
+                    <Text fontSize="$3" color="$mediumBlue" fontWeight="400" textAlign="center">
                       Já possui conta?{' '}
-                      <Text
-                        fontWeight="600"
-                        textDecorationLine="underline"
-                        color="$darkBlue"
-                      >
+                      <Text fontWeight="600" textDecorationLine="underline" color="$darkBlue">
                         Fazer login
                       </Text>
                     </Text>
@@ -187,4 +177,4 @@ export const SignUpScreen = () => {
       </BaseScreenWrapper>
     </>
   );
-}
+};

@@ -1,161 +1,121 @@
-import {useEffect, useState} from 'react';
+import {useForm} from 'react-hook-form';
+import {zodResolver} from '@hookform/resolvers/zod';
 import {useAuth} from './useAuth';
-import {useBaseAlert} from '@/shared/components/feedback/Alert/BaseAlertProvider';
-import {FormValidationError, SignInCredentials} from '@/features/auth/types/auth.types';
-import {debounce, validateSignInForm} from '@/features/auth/utils/authUtils';
 import {useRouter} from 'expo-router';
+import {loginSchema, SignInFormData} from '@/features/auth/schemas/loginSchema';
 
-/**
- * Hook para gerenciar formulário de login
- */
+type SubmitResult = {
+  success: true;
+} | {
+  success: false;
+  message: string;
+};
+
 export const useSignIn = () => {
   const {signIn, isLoading, error, clearError} = useAuth();
-  const useAlert = useBaseAlert();
   const router = useRouter();
 
-  const [credentials, setCredentials] = useState<SignInCredentials>({
-    email: '',
-    password: '',
+  const form = useForm<SignInFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {email: '', password: ''},
+    mode: 'onSubmit',
+    reValidateMode: 'onSubmit',
   });
 
-  const [errors, setErrors] = useState<FormValidationError>({});
-  const [touched, setTouched] = useState<Record<keyof SignInCredentials, boolean>>({
-    email: false,
-    password: false,
-  });
+  const {
+    formState,
+    reset,
+    getValues,
+    setValue,
+    setError,
+  } = form;
 
-  /**
-   * Valida formulário com debounce
-   */
-  const debouncedValidate = debounce((creds: SignInCredentials) => {
-    const validationErrors = validateSignInForm(creds);
-    setErrors(validationErrors);
-  }, 300);
+  const onValid = async (data: SignInFormData): Promise<SubmitResult> => {
+    try {
+      const result = await signIn(data);
 
-  /**
-   * Atualiza campo específico
-   */
-  const updateField = (field: keyof SignInCredentials, value: string) => {
-    const newCredentials = {...credentials, [field]: value};
-    setCredentials(newCredentials);
-
-    // Limpa erro geral quando usuário começa a digitar
-    if (error) {
-      clearError();
-    }
-
-    // Valida apenas se campo foi tocado
-    if (touched[field]) {
-      debouncedValidate(newCredentials);
-    }
-  };
-
-  /**
-   * Marca campo como tocado
-   */
-  const markFieldAsTouched = (field: keyof SignInCredentials) => {
-    if (!touched[field]) {
-      setTouched(prev => ({...prev, [field]: true}));
-      // Valida imediatamente quando campo é tocado
-      debouncedValidate(credentials);
-    }
-  };
-
-  /**
-   * Verifica se formulário é válido
-   */
-  const isValid = () => {
-    const validationErrors = validateSignInForm(credentials);
-    return Object.keys(validationErrors).length === 0;
-  };
-
-  /**
-   * Verifica se pode submeter (válido + não está carregando)
-   */
-  const canSubmit = !isLoading;
-
-  /**
-   * Submete formulário
-   */
-  const handleSubmit = async () => {
-    setTouched({email: true, password: true});
-
-    const validationErrors = validateSignInForm(credentials);
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      useAlert.showError('Login', 'Preencha corretamente os campos de Email e Senha.');
-      return {success: false};
-    }
-
-    const result = await signIn(credentials);
-
-    if (result.success) {
-      // Limpa formulário
-      setCredentials({email: '', password: ''});
-      setErrors({});
-      setTouched({email: false, password: false});
-
-      // REDIRECIONAMENTO IMEDIATO
-      try {
-        router.replace('/(app)/home');
-        console.log('✅ Redirecionamento executado');
-      } catch (redirectError) {
-        console.error('❌ Erro no redirecionamento:', redirectError);
-        // Fallback
-        router.push('/(app)/home');
+      if (result.success) {
+        reset();
+        try {
+          router.replace('/(app)/home');
+        } catch {
+          router.push('/(app)/home');
+        }
+        return {success: true};
       }
-    } else {
-      // Mostra erro e PERMANECE na tela
-      useAlert.showError('Erro no Login', result.error || 'Credenciais inválidas');
+
+      if (result.fieldErrors) {
+        if (result.fieldErrors.email) setError('email', {type: 'server', message: result.fieldErrors.email});
+        if (result.fieldErrors.password) setError('password', {type: 'server', message: result.fieldErrors.password});
+      }
+
+      return {
+        success: false,
+        message: result.error || 'Credenciais inválidas'
+      };
+    } catch (err) {
+      return {
+        success: false,
+        message: 'Erro inesperado. Tente novamente.'
+      };
+    }
+  };
+
+  const onInvalid = (errors: any): SubmitResult => {
+    const msgs = Object.values(errors)
+      .map((e: any) => e?.message)
+      .filter(Boolean)
+      .join('\n');
+
+    return {
+      success: false,
+      message: msgs || 'Há erros no formulário.'
+    };
+  };
+
+  const submit = async (): Promise<SubmitResult> => {
+    if (Object.keys(formState.errors).length > 0) {
+      return onInvalid(formState.errors);
     }
 
-    return result;
-  };
+    const currentValues = getValues();
+    const validation = loginSchema.safeParse(currentValues);
 
-  /**
-   * Reset do formulário
-   */
-  const reset = () => {
-    setCredentials({email: '', password: ''});
-    setErrors({});
-    setTouched({email: false, password: false});
-    clearError();
-  };
+    if (!validation.success) {
+      const validationErrors = validation.error.issues.reduce((acc, err) => {
+        const fieldName = err.path[0] as keyof SignInFormData;
+        acc[fieldName] = {message: err.message};
+        return acc;
+      }, {} as any);
 
-  /**
-   * Obtém erro de campo específico
-   */
-  const getFieldError = (field: keyof SignInCredentials): string | undefined => {
-    return touched[field] ? errors[field] : undefined;
-  };
-
-  // Valida quando credentials mudam e todos os campos foram tocados
-  useEffect(() => {
-    if (touched.email && touched.password) {
-      debouncedValidate(credentials);
+      return onInvalid(validationErrors);
     }
-  }, [credentials, touched]);
+
+    return await onValid(validation.data);
+  };
+
+  const getFieldError = (name: keyof SignInFormData): string | undefined =>
+    (formState.errors?.[name]?.message as string) || undefined;
+
+  const hasFieldError = (name: keyof SignInFormData): boolean =>
+    !!formState.errors?.[name];
 
   return {
-    // Estado
-    credentials,
-    errors,
-    touched,
-    isValid: isValid(),
-    canSubmit,
-    isLoading,
-    error,
+    email: getValues('email') || '',
+    password: getValues('password') || '',
+    updateEmail: (v: string) => setValue('email', v, {shouldDirty: true}),
+    updatePassword: (v: string) => setValue('password', v, {shouldDirty: true}),
 
-    // Actions
-    updateField,
-    markFieldAsTouched,
-    handleSubmit,
-    reset,
+    submit,
+
+    isLoading,
+    canSubmit: !isLoading,
+    error,
+    errors: formState.errors,
     getFieldError,
+    hasFieldError,
     clearError,
 
-    // Helpers
-    isFieldTouched: (field: keyof SignInCredentials) => touched[field],
-    hasFieldError: (field: keyof SignInCredentials) => !!getFieldError(field),
+    form,
   };
 };

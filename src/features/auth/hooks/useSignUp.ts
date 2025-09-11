@@ -1,86 +1,118 @@
-import {useEffect, useState} from 'react';
+import {useForm} from 'react-hook-form';
+import {zodResolver} from '@hookform/resolvers/zod';
 import {useAuth} from './useAuth';
-import {FormValidationError, SignUpCredentials} from '@/features/auth/types/auth.types';
-import {debounce, validateSignUpForm} from '@/features/auth/utils/authUtils';
+import {useRouter} from 'expo-router';
+import {registerSchema, SignUpFormData} from '@/features/auth/schemas/registerSchema';
 
-/**
- * Hook para gerenciar formulário de cadastro
- */
+type SubmitResult = {
+  success: true;
+} | {
+  success: false;
+  message: string;
+};
+
 export const useSignUp = () => {
   const {signUp, isLoading, error, clearError} = useAuth();
+  const router = useRouter();
 
-  const [credentials, setCredentials] = useState<SignUpCredentials>({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    firstName: '',
-    lastName: '',
+  const form = useForm<SignUpFormData>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      password: '',
+      acceptTerms: false
+    },
+    mode: 'onSubmit',
+    reValidateMode: 'onSubmit',
   });
 
-  const [errors, setErrors] = useState<FormValidationError>({});
-  const [touched, setTouched] = useState<Record<keyof SignUpCredentials, boolean>>({
-    email: false,
-    password: false,
-    confirmPassword: false,
-    firstName: false,
-    lastName: false,
-  });
+  const {
+    formState,
+    reset,
+    getValues,
+    setValue,
+    setError,
+  } = form;
 
-  /**
-   * Valida formulário com debounce
-   */
-  const debouncedValidate = debounce((creds: SignUpCredentials) => {
-    const validationErrors = validateSignUpForm(creds);
-    setErrors(validationErrors);
-  }, 300);
+  const onValid = async (data: SignUpFormData): Promise<SubmitResult> => {
+    try {
+      const result = await signUp({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        password: data.password,
+      });
 
-  /**
-   * Atualiza campo específico
-   */
-  const updateField = (field: keyof SignUpCredentials, value: string) => {
-    const newCredentials = {...credentials, [field]: value};
-    setCredentials(newCredentials);
+      if (result.success) {
+        reset();
+        try {
+          router.replace('/(app)/home');
+        } catch {
+          router.push('/(app)/home');
+        }
+        return {success: true};
+      }
 
-    // Limpa erro geral quando usuário começa a digitar
-    if (error) {
-      clearError();
-    }
+      if (result.fieldErrors) {
+        if (result.fieldErrors.firstName) setError('firstName', {type: 'server', message: result.fieldErrors.firstName});
+        if (result.fieldErrors.lastName) setError('lastName', {type: 'server', message: result.fieldErrors.lastName});
+        if (result.fieldErrors.email) setError('email', {type: 'server', message: result.fieldErrors.email});
+        if (result.fieldErrors.phone) setError('phone', {type: 'server', message: result.fieldErrors.phone});
+        if (result.fieldErrors.password) setError('password', {type: 'server', message: result.fieldErrors.password});
+      }
 
-    // Valida apenas se campo foi tocado
-    if (touched[field]) {
-      debouncedValidate(newCredentials);
+      return {
+        success: false,
+        message: result.error || 'Erro ao criar conta'
+      };
+    } catch (err) {
+      return {
+        success: false,
+        message: 'Erro inesperado. Tente novamente.'
+      };
     }
   };
 
-  /**
-   * Marca campo como tocado
-   */
-  const markFieldAsTouched = (field: keyof SignUpCredentials) => {
-    if (!touched[field]) {
-      setTouched(prev => ({...prev, [field]: true}));
-      // Valida imediatamente quando campo é tocado
-      debouncedValidate(credentials);
+  const onInvalid = (errors: any): SubmitResult => {
+    const msgs = Object.values(errors)
+      .map((e: any) => e?.message)
+      .filter(Boolean)
+      .join('\n');
+
+    return {
+      success: false,
+      message: msgs || 'Há erros no formulário.'
+    };
+  };
+
+  const submit = async (): Promise<SubmitResult> => {
+    if (Object.keys(formState.errors).length > 0) {
+      return onInvalid(formState.errors);
     }
+
+    const currentValues = getValues();
+    const validation = registerSchema.safeParse(currentValues);
+
+    if (!validation.success) {
+      const validationErrors = validation.error.issues.reduce((acc, err) => {
+        const fieldName = err.path[0] as keyof SignUpFormData;
+        acc[fieldName] = {message: err.message};
+        return acc;
+      }, {} as any);
+
+      return onInvalid(validationErrors);
+    }
+
+    return await onValid(validation.data);
   };
 
-  /**
-   * Verifica se formulário é válido
-   */
-  const isValid = () => {
-    const validationErrors = validateSignUpForm(credentials);
-    return Object.keys(validationErrors).length === 0;
-  };
-
-  /**
-   * Verifica se pode submeter (válido + não está carregando)
-   */
-  const canSubmit = isValid() && !isLoading;
-
-  /**
-   * Calcula força da senha
-   */
+  // Função para calcular força da senha
   const getPasswordStrength = (): 'weak' | 'medium' | 'strong' => {
-    const {password} = credentials;
+    const password = getValues('password') || '';
 
     if (password.length < 6) return 'weak';
 
@@ -95,112 +127,40 @@ export const useSignUp = () => {
     return 'weak';
   };
 
-  /**
-   * Submete formulário
-   */
-  const handleSubmit = async () => {
-    // Marca todos os campos obrigatórios como tocados
-    const requiredFields: (keyof SignUpCredentials)[] = ['email', 'password', 'confirmPassword'];
-    const newTouched = {...touched};
-    requiredFields.forEach(field => {
-      newTouched[field] = true;
-    });
-    // Marca campos opcionais como tocados se preenchidos
-    if (credentials.firstName) newTouched.firstName = true;
-    if (credentials.lastName) newTouched.lastName = true;
+  const getFieldError = (name: keyof SignUpFormData): string | undefined =>
+    (formState.errors?.[name]?.message as string) || undefined;
 
-    setTouched(newTouched);
-
-    // Valida formulário
-    const validationErrors = validateSignUpForm(credentials);
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return {success: false};
-    }
-
-    // Faz cadastro
-    const result = await signUp(credentials);
-
-    if (result.success) {
-      // Reset form em caso de sucesso
-      setCredentials({
-        email: '',
-        password: '',
-        confirmPassword: '',
-        firstName: '',
-        lastName: '',
-      });
-      setErrors({});
-      setTouched({
-        email: false,
-        password: false,
-        confirmPassword: false,
-        firstName: false,
-        lastName: false,
-      });
-    }
-
-    return result;
-  };
-
-  /**
-   * Reset do formulário
-   */
-  const reset = () => {
-    setCredentials({
-      email: '',
-      password: '',
-      confirmPassword: '',
-      firstName: '',
-      lastName: '',
-    });
-    setErrors({});
-    setTouched({
-      email: false,
-      password: false,
-      confirmPassword: false,
-      firstName: false,
-      lastName: false,
-    });
-    clearError();
-  };
-
-  /**
-   * Obtém erro de campo específico
-   */
-  const getFieldError = (field: keyof SignUpCredentials): string | undefined => {
-    return touched[field] ? errors[field] : undefined;
-  };
-
-  // Valida quando credentials mudam e campos obrigatórios foram tocados
-  useEffect(() => {
-    const hasRequiredTouched = touched.email || touched.password || touched.confirmPassword;
-    if (hasRequiredTouched) {
-      debouncedValidate(credentials);
-    }
-  }, [credentials, touched]);
+  const hasFieldError = (name: keyof SignUpFormData): boolean =>
+    !!formState.errors?.[name];
 
   return {
-    // Estado
-    credentials,
-    errors,
-    touched,
-    isValid: isValid(),
-    canSubmit,
+    // Valores dos campos
+    firstName: getValues('firstName') || '',
+    lastName: getValues('lastName') || '',
+    email: getValues('email') || '',
+    phone: getValues('phone') || '',
+    password: getValues('password') || '',
+    acceptTerms: getValues('acceptTerms') || false,
+
+    // Funções de atualização
+    updateFirstName: (v: string) => setValue('firstName', v, {shouldDirty: true}),
+    updateLastName: (v: string) => setValue('lastName', v, {shouldDirty: true}),
+    updateEmail: (v: string) => setValue('email', v, {shouldDirty: true}),
+    updatePhone: (v: string) => setValue('phone', v, {shouldDirty: true}),
+    updatePassword: (v: string) => setValue('password', v, {shouldDirty: true}),
+    updateAcceptTerms: (v: boolean) => setValue('acceptTerms', v, {shouldDirty: true}),
+
+    submit,
+
     isLoading,
+    canSubmit: !isLoading,
     error,
-
-    // Actions
-    updateField,
-    markFieldAsTouched,
-    handleSubmit,
-    reset,
+    errors: formState.errors,
     getFieldError,
+    hasFieldError,
     clearError,
-
-    // Helpers
-    isFieldTouched: (field: keyof SignUpCredentials) => touched[field],
-    hasFieldError: (field: keyof SignUpCredentials) => !!getFieldError(field),
     getPasswordStrength,
+
+    form,
   };
 };

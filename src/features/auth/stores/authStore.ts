@@ -3,11 +3,19 @@ import {createJSONStorage, persist} from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as authService from '../services/authService';
 import {AuthState, SignInCredentials, SignUpCredentials, User} from '@/features/auth/types/auth.types';
-import { router } from 'expo-router';
+import {router} from 'expo-router';
 
 interface AuthStore extends AuthState {
-  signIn: (credentials: SignInCredentials) => Promise<{ success: boolean; error?: string }>;
-  signUp: (credentials: SignUpCredentials) => Promise<{ success: boolean; error?: string }>;
+  signIn: (credentials: SignInCredentials) => Promise<{
+    success: boolean;
+    error?: string,
+    fieldErrors?: Record<string, string>;
+  }>;
+  signUp: (credentials: SignUpCredentials) => Promise<{
+    success: boolean;
+    error?: string,
+    fieldErrors?: Record<string, string>;
+  }>;
   signOut: () => Promise<void>;
   initialize: () => Promise<void>;
   setUser: (user: User | null) => void;
@@ -27,9 +35,8 @@ export const useAuthStore = create<AuthStore>()(
 
       initialize: async () => {
         try {
-          // Configurar listener de mudanças de auth
           authService.onAuthStateChange((user) => {
-            console.log('🔄 Auth state changed in store:', { hasUser: !!user, email: user?.email });
+            console.log('🔄 Auth state changed in store:', {hasUser: !!user, email: user?.email});
 
             const currentState = get();
             const wasAuthenticated = currentState.isAuthenticated;
@@ -41,7 +48,6 @@ export const useAuthStore = create<AuthStore>()(
               error: null,
             });
 
-            // Redirecionamento automático apenas quando há mudança de estado
             if (!wasAuthenticated && isNowAuthenticated && currentState.isInitialized) {
               console.log('🏠 Redirecionamento automático: usuário autenticado');
               setTimeout(() => {
@@ -96,7 +102,6 @@ export const useAuthStore = create<AuthStore>()(
             }
           }
 
-          // Estado não autenticado
           set({
             user: null,
             isAuthenticated: false,
@@ -133,7 +138,6 @@ export const useAuthStore = create<AuthStore>()(
 
           console.log('✅ SignIn bem-sucedido, atualizando estado...');
 
-          // Atualiza o estado local imediatamente
           set({
             user: response.user,
             isAuthenticated: true,
@@ -143,21 +147,19 @@ export const useAuthStore = create<AuthStore>()(
 
           console.log('🏠 Executando redirecionamento pós-login...');
 
-          // Redirecionamento imediato
           setTimeout(() => {
             try {
               router.replace('/(app)/home');
               console.log('✅ Redirecionamento executado com sucesso');
             } catch (redirectError) {
               console.error('❌ Erro no redirecionamento:', redirectError);
-              // Fallback
               try {
                 router.push('/(app)/home');
               } catch (fallbackError) {
                 console.error('❌ Erro no redirecionamento fallback:', fallbackError);
               }
             }
-          }, 50); // Delay mínimo para garantir que o estado foi atualizado
+          }, 50);
 
           return {success: true};
         } catch (error) {
@@ -196,7 +198,6 @@ export const useAuthStore = create<AuthStore>()(
             error: null,
           });
 
-          // Redirecionamento após signup
           setTimeout(() => {
             try {
               router.replace('/(app)/home');
@@ -223,11 +224,9 @@ export const useAuthStore = create<AuthStore>()(
 
         try {
           await authService.signOut();
-          // O listener irá detectar a mudança automaticamente
         } catch (error) {
           console.error('Erro ao fazer logout:', error);
         } finally {
-          // Garantir que o estado local seja limpo
           set({
             user: null,
             isAuthenticated: false,

@@ -46,9 +46,12 @@ export const ForgotPasswordSentScreen = ({email = 'seu email !'}: Props) => {
             <YStack
               backgroundColor="$white"
               borderRadius="$6"
-              padding="$6"
+              padding="$5"
               marginHorizontal="$2"
-              elevation={1}
+              shadowColor="#000"
+              shadowOpacity={0.15}
+              shadowOffset={{ width: 0, height: 1 }}
+              shadowRadius={3}
               alignItems="center"
             >
 

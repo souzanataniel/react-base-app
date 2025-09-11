@@ -9,7 +9,6 @@ import {Link} from 'expo-router';
 type Props = {
   email: string;
   password: string;
-  rememberMe: boolean;
   onEmailChange: (v: string) => void;
   onPasswordChange: (v: string) => void;
   onBlurEmail: () => void;
@@ -69,7 +68,8 @@ export function SignInForm({
           alignItems="center"
           paddingHorizontal="$2"
           minHeight={40}
-          pressStyle={{opacity: 0.7}}>
+          pressStyle={{opacity: 0.7}}
+        >
           <Text
             fontSize="$3"
             color="$mediumBlue"
@@ -93,6 +93,7 @@ export function SignInForm({
           height={52}
           fontSize="$4"
           fontWeight="600"
+          hapticType="medium"
         >
           Entrar
         </LoadingButton>
