@@ -6,7 +6,7 @@ import {Link} from 'expo-router';
 import {useSignUp} from '@/features/auth/hooks/useSignUp';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {SignUpForm} from '@/features/auth/components/SignUpForm';
-import {LogoSmall} from '@/shared/components/ui/Background/Logo';
+import {LogoMediumDark, LogoSmall} from '@/shared/components/ui/Background/Logo';
 import {BlurView} from 'expo-blur';
 import {useBaseAlert} from '@/shared/components/feedback/Alert/BaseAlertProvider';
 
@@ -52,37 +52,8 @@ export const SignUpScreen = () => {
   };
 
   return (
-    <>
-      <View
-        position="absolute"
-        top={0}
-        left={0}
-        right={0}
-        zIndex={1000}
-        height={insets.top + 80}
-      >
-        <BlurView
-          intensity={80}
-          style={{
-            flex: 1,
-            paddingTop: insets.top + 10,
-            paddingHorizontal: 16,
-            justifyContent: 'flex-start',
-          }}
-        >
-          <XStack
-            justifyContent="space-between"
-            alignItems="center"
-            height={50}
-          >
-            <BackButton/>
-            <LogoSmall/>
-          </XStack>
-        </BlurView>
-      </View>
-
       <BaseScreenWrapper>
-        <View flex={1} paddingTop={insets.top + 90}>
+        <View flex={1} paddingTop={insets.top + 10}>
           <YStack flex={1} padding="$3" paddingBottom="$10">
             <YStack
               backgroundColor="$white"
@@ -95,11 +66,17 @@ export const SignUpScreen = () => {
               shadowRadius={3}
               gap="$4"
             >
-              <YStack gap="$2">
-                <Text fontSize="$6" fontWeight="600" color="$darkBlue">
+              {/* Logo centralizada */}
+              <YStack alignItems="center" marginBottom="$2">
+                <LogoMediumDark/>
+              </YStack>
+
+              {/* Título e subtítulo centralizados */}
+              <YStack gap="$2" alignItems="center">
+                <Text fontSize="$6" fontWeight="600" color="$darkBlue" textAlign="center">
                   Cadastrar
                 </Text>
-                <Text fontSize="$3" fontWeight="400" color="$mediumBlue">
+                <Text fontSize="$3" fontWeight="400" color="$mediumBlue" textAlign="center">
                   Preencha os dados para criar sua conta
                 </Text>
               </YStack>
@@ -175,6 +152,5 @@ export const SignUpScreen = () => {
           </YStack>
         </View>
       </BaseScreenWrapper>
-    </>
   );
 };
