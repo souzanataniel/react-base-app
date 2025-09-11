@@ -6,9 +6,10 @@ import {Link} from 'expo-router';
 import {useSignIn} from '@/features/auth/hooks/useSignIn';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {COLORS} from '@/shared/constants/colors';
-import {LogoMedium} from '@/shared/components/ui/Background/Logo';
+import {LogoSmall} from '@/shared/components/ui/Background/Logo';
 import {SignInForm} from '@/features/auth/components/SignInForm';
 import {useBaseAlert} from '@/shared/components/feedback/Alert/BaseAlertProvider';
+import {BlurView} from 'expo-blur';
 
 export const SignInScreen = () => {
   const {
@@ -43,24 +44,41 @@ export const SignInScreen = () => {
   };
 
   return (
-    <BaseScreenWrapper>
-      <View>
-        <XStack
-          justifyContent="space-between"
-          alignItems="center"
-          paddingTop={insets.top + 10}
-          paddingHorizontal="$4"
-          marginBottom="$4"
+    <>
+      <View
+        position="absolute"
+        top={0}
+        left={0}
+        right={0}
+        zIndex={1000}
+        height={insets.top + 80}
+      >
+        <BlurView
+          intensity={80}
+          style={{
+            flex: 1,
+            paddingTop: insets.top + 10,
+            paddingHorizontal: 16,
+            justifyContent: 'flex-start',
+          }}
         >
-          <BackButton/>
-        </XStack>
+          <XStack
+            justifyContent="space-between"
+            alignItems="center"
+            height={50}
+          >
+            <BackButton/>
+            <LogoSmall/>
+          </XStack>
+        </BlurView>
+      </View>
 
-        <YStack flex={1} gap="$4">
-          <YStack alignItems="center" justifyContent="center">
-            <LogoMedium/>
-          </YStack>
-
-          <YStack flex={0.6} padding="$3">
+      <BaseScreenWrapper>
+        <View
+          flex={1}
+          justifyContent="center"
+        >
+          <YStack padding="$3">
             <YStack
               backgroundColor="$white"
               borderRadius="$6"
@@ -103,8 +121,6 @@ export const SignInScreen = () => {
                 }}
               />
 
-              <View flex={1}/>
-
               <YStack alignItems="center" gap="$4" paddingTop="$4">
                 <XStack alignItems="center" width="100%" paddingHorizontal="$4">
                   <View flex={1} height={1} backgroundColor="$borderColor"/>
@@ -132,8 +148,8 @@ export const SignInScreen = () => {
               </YStack>
             </YStack>
           </YStack>
-        </YStack>
-      </View>
-    </BaseScreenWrapper>
+        </View>
+      </BaseScreenWrapper>
+    </>
   );
 };
