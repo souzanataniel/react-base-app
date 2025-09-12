@@ -1,7 +1,6 @@
-// 📁 components/AnimatedTabBar/index.tsx
-import React, { useCallback, useMemo } from 'react';
-import { Pressable } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React, {useCallback, useMemo} from 'react';
+import {Pressable} from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import Animated, {
   runOnJS,
@@ -11,10 +10,10 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import { Circle, styled, Text, View, XStack, YStack } from 'tamagui';
-import { MaterialIcons } from '@expo/vector-icons';
+import {Circle, styled, Text, View, XStack, YStack} from 'tamagui';
+import {MaterialIcons} from '@expo/vector-icons';
+import {COLORS} from '@/shared/constants/colors';
 
-// Types
 interface TabRoute {
   key: string;
   name: string;
@@ -42,13 +41,12 @@ interface AnimatedTabButtonProps {
   descriptor: any;
 }
 
-// Theme - Otimizado para ícones cristalinos
 const TAB_THEME = {
   colors: {
-    active: '#3d6b7a',
-    inactive: '#3d6b7a',
+    active: COLORS.PRIMARY,
+    inactive: COLORS.PRIMARY,
     iconActive: 'white',
-    iconInactive: '#3d6b7a',
+    iconInactive: COLORS.PRIMARY,
     background: 'white',
     shadow: 'rgba(0,0,0,0.1)',
   },
@@ -68,16 +66,14 @@ const TAB_THEME = {
   }
 } as const;
 
-// Configurações de animação - Otimizadas para qualidade visual
 const ANIMATION_CONFIG = {
-  scale: { damping: 18, stiffness: 250 },
-  press: { damping: 20, stiffness: 500 },
-  bounce: { damping: 15, stiffness: 400 },
-  return: { damping: 15, stiffness: 350 },
-  timing: { duration: 200 },
+  scale: {damping: 18, stiffness: 250},
+  press: {damping: 20, stiffness: 500},
+  bounce: {damping: 15, stiffness: 400},
+  return: {damping: 15, stiffness: 350},
+  timing: {duration: 200},
 } as const;
 
-// Styled Components
 const AnimatedView = Animated.createAnimatedComponent(View);
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 const AnimatedText = Animated.createAnimatedComponent(Text);
@@ -91,7 +87,7 @@ const CustomTabBar = styled(View, {
   borderTopLeftRadius: TAB_THEME.spacing.borderRadius,
   borderTopRightRadius: TAB_THEME.spacing.borderRadius,
   shadowColor: TAB_THEME.colors.shadow,
-  shadowOffset: { width: 0, height: -2 },
+  shadowOffset: {width: 0, height: -2},
   shadowOpacity: 0.2,
   shadowRadius: 8,
 });
@@ -113,7 +109,6 @@ const TabItemContainer = styled(YStack, {
   maxWidth: TAB_THEME.sizes.maxWidth,
 });
 
-// Mapeamento de ícones
 const ICON_MAPPING = {
   home: 'home',
   favorites: 'favorite',
@@ -129,21 +124,19 @@ const ICON_MAPPING = {
 
 type IconKey = keyof typeof ICON_MAPPING;
 
-// Componente de ícone OTIMIZADO para máxima qualidade
 const TabIcon = React.memo<{
   iconKey: IconKey;
   color: string;
   size: number;
   isFocused: boolean;
-}>(({ iconKey, color, size, isFocused }) => {
+}>(({iconKey, color, size, isFocused}) => {
   const iconName = ICON_MAPPING[iconKey] || ICON_MAPPING.home;
 
-  // Estilo otimizado para renderização cristalina
   const iconStyle = {
     textAlign: 'center' as const,
     textAlignVertical: 'center' as const,
     includeFontPadding: false,
-    textShadowOffset: { width: 0, height: 0 },
+    textShadowOffset: {width: 0, height: 0},
     textShadowRadius: 0,
     lineHeight: size,
   };
@@ -161,29 +154,24 @@ const TabIcon = React.memo<{
 
 TabIcon.displayName = 'TabIcon';
 
-// Utils
 const getTabLabel = (options: any, routeName: string): string => {
   return options?.tabBarLabel || options?.title || routeName;
 };
 
 const getTabIconKey = (options: any, routeName: string): IconKey => {
-  // Prioridade: tabBarIconKey -> mapeamento por route -> mapeamento por label -> fallback
   if (options?.tabBarIconKey && options.tabBarIconKey in ICON_MAPPING) {
     return options.tabBarIconKey as IconKey;
   }
 
-  // Mapear route name para ícone
   if (routeName in ICON_MAPPING) {
     return routeName as IconKey;
   }
 
-  // Mapear por label se disponível (normalizado para lowercase)
   const label = (options?.tabBarLabel || '').toLowerCase().trim();
   if (label in ICON_MAPPING) {
     return label as IconKey;
   }
 
-  // Mapear por título se disponível (normalizado para lowercase)
   const title = (options?.title || '').toLowerCase().trim();
   if (title in ICON_MAPPING) {
     return title as IconKey;
@@ -192,7 +180,6 @@ const getTabIconKey = (options: any, routeName: string): IconKey => {
   return 'home';
 };
 
-// Hook de animação OTIMIZADO - SEM ESCALA para preservar qualidade dos ícones
 const useTabAnimation = (index: number, activeIndex: number) => {
   const scale = useSharedValue(1);
   const translateY = useSharedValue(0);
@@ -204,14 +191,12 @@ const useTabAnimation = (index: number, activeIndex: number) => {
   const animatedContainerStyle = useAnimatedStyle(() => {
     const distance = animatedDistance.value;
 
-    // ✅ APENAS opacidade - SEM ESCALA para preservar qualidade dos ícones
     const targetOpacity = distance === 0 ? 1 : distance === 1 ? 0.8 : 0.65;
 
     return {
       transform: [
-        // Mantém escala 1 sempre - apenas translateY para feedback
-        { scale: 1 },
-        { translateY: translateY.value }
+        {scale: 1},
+        {translateY: translateY.value}
       ],
       opacity: withTiming(targetOpacity, ANIMATION_CONFIG.timing),
     };
@@ -225,7 +210,6 @@ const useTabAnimation = (index: number, activeIndex: number) => {
         isActive ? TAB_THEME.colors.active : 'transparent',
         ANIMATION_CONFIG.timing
       ),
-      // ✅ Escala APENAS no círculo de fundo, não afeta o ícone
       transform: [{
         scale: withSpring(
           isActive ? 1 : 0.9,
@@ -246,7 +230,7 @@ const useTabAnimation = (index: number, activeIndex: number) => {
       transform: [{
         translateY: withSpring(
           isActive ? -1 : 0,
-          { damping: 15, stiffness: 250 }
+          {damping: 15, stiffness: 250}
         )
       }],
     };
@@ -261,7 +245,6 @@ const useTabAnimation = (index: number, activeIndex: number) => {
   };
 };
 
-// Tab Button Component OTIMIZADO
 const AnimatedTabButton = React.memo<AnimatedTabButtonProps>(({
                                                                 route,
                                                                 index,
@@ -286,10 +269,8 @@ const AnimatedTabButton = React.memo<AnimatedTabButtonProps>(({
 
   const iconColor = isFocused ? TAB_THEME.colors.iconActive : TAB_THEME.colors.iconInactive;
 
-  // Handlers de press com movimento mínimo para preservar qualidade
   const handlePressIn = useCallback(() => {
     if (disabled) return;
-    // Movimento muito sutil para preservar nitidez
     scale.value = withSpring(0.98, ANIMATION_CONFIG.press);
     translateY.value = withSpring(0.5, ANIMATION_CONFIG.press);
   }, [disabled, scale, translateY]);
@@ -305,7 +286,6 @@ const AnimatedTabButton = React.memo<AnimatedTabButtonProps>(({
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-    // Bounce mínimo para preservar qualidade visual
     translateY.value = withSpring(-2, ANIMATION_CONFIG.bounce, () => {
       translateY.value = withSpring(0, ANIMATION_CONFIG.return);
     });
@@ -322,7 +302,7 @@ const AnimatedTabButton = React.memo<AnimatedTabButtonProps>(({
       accessible
       accessibilityRole="tab"
       accessibilityLabel={`${label} tab`}
-      accessibilityState={{ selected: isFocused }}
+      accessibilityState={{selected: isFocused}}
       accessibilityHint={`Navigate to ${label} screen`}
       style={{
         flex: 1,
@@ -338,13 +318,11 @@ const AnimatedTabButton = React.memo<AnimatedTabButtonProps>(({
             justifyContent="center"
             style={animatedCircleStyle}
           >
-            {/* Container extra para isolar o ícone das transformações */}
             <View style={{
               width: TAB_THEME.sizes.icon + 4,
               height: TAB_THEME.sizes.icon + 4,
               alignItems: 'center',
               justifyContent: 'center',
-              // Força renderização pixel-perfect
               borderRadius: 0,
             }}>
               <TabIcon
@@ -372,7 +350,6 @@ const AnimatedTabButton = React.memo<AnimatedTabButtonProps>(({
 
 AnimatedTabButton.displayName = 'AnimatedTabButton';
 
-// Main Component - Com padding bottom para evitar sobreposição
 const CustomTabBarComponent = React.memo<TabBarProps>(({
                                                          state,
                                                          descriptors,
@@ -381,8 +358,7 @@ const CustomTabBarComponent = React.memo<TabBarProps>(({
   const insets = useSafeAreaInsets();
   const activeIndex = state.index;
 
-  // Calcular altura total do tab bar para usar como padding
-  const tabBarHeight = 44 + 16 + Math.max(insets.bottom, 6); // circle + padding + safe area
+  const tabBarHeight = 44 + 16 + Math.max(insets.bottom, 6);
 
   const handleTabPress = useCallback((route: TabRoute, index: number) => {
     const isFocused = state.index === index;
@@ -418,13 +394,10 @@ const CustomTabBarComponent = React.memo<TabBarProps>(({
     [state.routes, state.index, activeIndex, handleTabPress, descriptors]
   );
 
-  // Adicionar padding bottom para as telas
   React.useEffect(() => {
-    // Informar para as telas que precisam de padding bottom
     state.routes.forEach((route) => {
       const descriptor = descriptors[route.key];
       if (descriptor?.options?.tabBarStyle !== false) {
-        // Inject tab bar height into screen options for padding
         descriptor.options = {
           ...descriptor.options,
           tabBarHeight: tabBarHeight,
@@ -444,7 +417,6 @@ const CustomTabBarComponent = React.memo<TabBarProps>(({
 
 CustomTabBarComponent.displayName = 'CustomTabBarComponent';
 
-// Exported Component
 export const AnimatedTabBar = React.memo<Partial<TabBarProps>>(({
                                                                   state,
                                                                   descriptors,

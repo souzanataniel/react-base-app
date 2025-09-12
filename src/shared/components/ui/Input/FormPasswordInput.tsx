@@ -50,7 +50,9 @@ function BaseLabelPasswordInput(
   return (
     <YStack gap="$2" {...containerProps}>
       {label ? (
-        <Text fontSize={labelFontSize} color={labelColor} fontWeight="500">
+        <Text fontSize={labelFontSize}
+              color="$absoluteTextPrimary"
+              fontWeight="500">
           {label}
         </Text>
       ) : null}
@@ -74,13 +76,16 @@ function BaseLabelPasswordInput(
           ref={ref}
           height={height}
           fontSize={fontSize}
-          backgroundColor={backgroundColor}
           borderColor={borderColor}
           borderWidth={borderWidth}
+
+          backgroundColor="$lightest"
+          placeholderTextColor="$absolutePlaceholder"
+
           borderRadius="$4"
           paddingLeft={paddingLeft}
           paddingRight={paddingRight}
-          placeholderTextColor="$light"
+          color="$darkBlue"
           secureTextEntry={!visible}
           focusStyle={{
             borderColor: '$medium',

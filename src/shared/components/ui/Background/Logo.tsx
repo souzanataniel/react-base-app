@@ -2,7 +2,7 @@ import React from 'react';
 import {Image, useThemeName, View} from 'tamagui';
 
 const LOGO_SOURCE = require('@/assets/images/logo.png');
-const DARK_COLOR = '#1A2D42';
+const DARK_COLOR = '#0F1419';
 const LIGHT_COLOR = '#FFFFFF';
 
 export const LogoSmall = React.memo(() => {

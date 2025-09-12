@@ -1,12 +1,12 @@
 import React from 'react';
-import {Text, View, XStack, YStack} from 'tamagui';
-import {BackButton} from 'src/shared/components';
+import {Text, View, YStack} from 'tamagui';
 import {BaseScreenWrapper} from '@/shared/components/layout';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {LogoMedium} from '@/shared/components/ui/Background/Logo';
+import {LogoMediumDark} from '@/shared/components/ui/Background/Logo';
 import {ForgotPasswordForm} from '@/features/auth/components/ForgotPasswordForm';
 import {useForgotPassword} from '@/features/auth/hooks/useForgotPassword';
 import {useBaseAlert} from '@/shared/components/feedback/Alert/BaseAlertProvider';
+import {HapticButton} from '@/shared/components';
+import {router} from 'expo-router';
 
 export const ForgotPasswordScreen = () => {
   const {
@@ -17,8 +17,6 @@ export const ForgotPasswordScreen = () => {
     isLoading,
     clearError,
   } = useForgotPassword();
-
-  const insets = useSafeAreaInsets();
   const alert = useBaseAlert();
 
   const handleSubmitClick = async () => {
@@ -26,6 +24,7 @@ export const ForgotPasswordScreen = () => {
 
     if (result.success) {
       alert.showSuccess('Email Enviado', result.message);
+      router.push('/(auth)/forgot-password-sent')
     } else {
       alert.showError('Erro', result.message);
     }
@@ -33,53 +32,32 @@ export const ForgotPasswordScreen = () => {
 
   return (
     <BaseScreenWrapper>
-      <View>
-        <XStack
-          justifyContent="space-between"
-          alignItems="center"
-          paddingTop={insets.top + 10}
-          paddingHorizontal="$4"
-          marginBottom="$4"
-        >
-          <BackButton/>
-        </XStack>
+      <View flex={1} justifyContent="center">
+        <YStack padding="$2">
+          <YStack
+            backgroundColor="$white"
+            borderRadius="$6"
+            padding="$5"
+            marginHorizontal="$2"
+            shadowColor="#000"
+            shadowOpacity={0.15}
+            shadowOffset={{width: 0, height: 1}}
+            shadowRadius={3}
+          >
+            <YStack alignItems="center" marginBottom="$4">
+              <LogoMediumDark/>
+            </YStack>
 
-        <YStack flex={1} gap="$4">
-          {/* Logo Section */}
-          <YStack alignItems="center" justifyContent="center">
-            <LogoMedium/>
-          </YStack>
+            <YStack gap="$2" marginBottom="$6" alignItems="center">
+              <Text fontSize="$6" fontWeight="600" color="$absoluteTextPrimary" textAlign="center">
+                Recuperar senha
+              </Text>
+              <Text fontSize="$3" fontWeight="400" color="$absoluteTextSecondary" textAlign="center">
+                Digite seu email para receber um link de recuperação de senha.
+              </Text>
+            </YStack>
 
-          {/* Form Section */}
-          <YStack flex={0.6} padding="$3" paddingTop="$10">
-            <YStack
-              backgroundColor="$white"
-              borderRadius="$6"
-              padding="$5"
-              marginHorizontal="$2"
-              shadowColor="#000"
-              shadowOpacity={0.15}
-              shadowOffset={{width: 0, height: 1}}
-              shadowRadius={3}
-            >
-              <YStack gap="$1" marginBottom="$6">
-                <Text
-                  fontSize="$6"
-                  fontWeight="600"
-                  color="$darkBlue"
-                >
-                  Recuperar senha
-                </Text>
-                <Text
-                  fontSize="$3"
-                  fontWeight="400"
-                  color="$mediumBlue"
-                  lineHeight="$4"
-                >
-                  Digite seu email para receber um link de recuperação de senha.
-                </Text>
-              </YStack>
-
+            <YStack gap="$4">
               <ForgotPasswordForm
                 email={email}
                 onEmailChange={(text) => {
@@ -91,6 +69,17 @@ export const ForgotPasswordScreen = () => {
                 isLoading={isLoading}
                 onSubmit={handleSubmitClick}
               />
+
+              <HapticButton
+                onPress={() => router.back()}
+                hapticType="light"
+                backgroundColor="transparent"
+                borderColor="$absolutePrimary"
+                borderWidth={2}
+                color="$absolutePrimary"
+              >
+                Voltar
+              </HapticButton>
             </YStack>
           </YStack>
         </YStack>

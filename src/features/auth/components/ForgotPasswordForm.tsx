@@ -36,13 +36,9 @@ export function ForgotPasswordForm({
         value={email}
         onChangeText={onEmailChange}
         onBlur={onBlurEmail}
-        backgroundColor="$baseBackground"
-        labelColor="$darkBlue"
-        borderWidth={1}
-        borderRadius="$4"
-        leftIcon={<Mail size={20} color="$mediumBlue"/>}
+        leftIcon={<Mail size={20} color="$absoluteTextSecondary"/>}
         showSuccessIcon
-        rightIcon={<CircleCheck size={25} color="$baseBackground" fill={COLORS.DARK}/>}
+        rightIcon={<CircleCheck size={25} color="$lightest" fill={COLORS.DARK}/>}
       />
 
       <YStack marginTop="$4">
@@ -50,9 +46,6 @@ export function ForgotPasswordForm({
           loading={isLoading}
           loadingText="Enviando..."
           onPress={onSubmit}
-          backgroundColor="$darkBlue"
-          color="$white"
-          borderRadius="$10"
           height={52}
           fontSize="$4"
           fontWeight="600"

@@ -40,13 +40,9 @@ export function SignInForm({
         value={email}
         onChangeText={onEmailChange}
         onBlur={onBlurEmail}
-        backgroundColor="$baseBackground"
-        labelColor="$darkBlue"
-        borderWidth={1}
-        borderRadius="$4"
-        leftIcon={<Mail size={20} color="$mediumBlue"/>}
+        leftIcon={<Mail size={20} color="$absoluteTextSecondary"/>}
         showSuccessIcon
-        rightIcon={<CircleCheck size={25} color="$baseBackground" fill={colors.dark}/>}
+        rightIcon={<CircleCheck size={25} color="$lightest" fill={colors.dark}/>}
       />
 
       <LabelPasswordInput
@@ -54,50 +50,48 @@ export function SignInForm({
         placeholder="••••••••"
         value={password}
         onChangeText={onPasswordChange}
+        color="$absoluteTextPrimary"
         onBlur={onBlurPassword}
-        backgroundColor="$baseBackground"
-        labelColor="$darkBlue"
-        leftIcon={<LockKeyhole size={20} color="$darkBlue"/>}
+        backgroundColor="$lightest"
+        placeholderTextColor="$absolutePlaceholder"
+        labelColor="$absoluteTextPrimary"
+        leftIcon={<LockKeyhole size={20} color="$absoluteTextSecondary"/>}
         borderWidth={1}
         borderRadius="$4"
       />
 
-      <Link href="/(auth)/forgot-password" asChild>
-        <XStack
-          justifyContent="flex-end"
-          alignItems="center"
-          paddingHorizontal="$2"
-          minHeight={40}
-          pressStyle={{opacity: 0.7}}
-        >
+      <XStack
+        justifyContent="flex-end"
+        alignItems="center"
+        paddingHorizontal="$2"
+        minHeight={40}
+        pressStyle={{opacity: 0.7}}
+      >
+        <Link href="/(auth)/forgot-password" asChild>
           <Text
             fontSize="$3"
-            color="$mediumBlue"
+            color="$light"
             textDecorationLine="underline"
             fontWeight="500"
           >
             Esqueceu sua senha?
           </Text>
-        </XStack>
-      </Link>
+        </Link>
+      </XStack>
 
-      <YStack>
-        <LoadingButton
-          loading={isLoading}
-          loadingText="Entrando..."
-          onPress={onSubmit}
-          disabled={!canSubmit}
-          backgroundColor="$darkBlue"
-          color="$white"
-          borderRadius="$10"
-          height={52}
-          fontSize="$4"
-          fontWeight="600"
-          hapticType="medium"
-        >
-          Entrar
-        </LoadingButton>
-      </YStack>
+      <LoadingButton
+        loading={isLoading}
+        loadingText="Entrando..."
+        onPress={onSubmit}
+        disabled={!canSubmit}
+        color="$white"
+        height={52}
+        fontSize="$4"
+        fontWeight="600"
+        hapticType="medium"
+      >
+        Entrar
+      </LoadingButton>
     </YStack>
   );
 }

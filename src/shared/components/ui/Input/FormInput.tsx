@@ -31,9 +31,6 @@ function BaseLabelInput(
     validationFn,
     height = 52,
     fontSize = '$4',
-    backgroundColor = '$white',
-    borderColor = 'transparent',
-    borderWidth = 0,
     onChangeText,
     keyboardType,
     ...inputProps
@@ -66,7 +63,7 @@ function BaseLabelInput(
   return (
     <YStack gap="$2" {...containerProps}>
       {label ? (
-        <Text fontSize={labelFontSize} color={labelColor} fontWeight="500">
+        <Text fontSize={labelFontSize} color="$absoluteTextPrimary" fontWeight="500">
           {label}
         </Text>
       ) : null}
@@ -89,15 +86,14 @@ function BaseLabelInput(
           ref={ref}
           height={height}
           fontSize={fontSize}
-          backgroundColor={backgroundColor}
-          borderColor={borderColor}
-          borderWidth={borderWidth}
+          backgroundColor="$lightest"
+          placeholderTextColor="$absolutePlaceholder"
+          color="$absoluteTextPrimary"
           borderRadius="$4"
+          borderColor="transparent"
           paddingLeft={paddingLeft}
           paddingRight={paddingRight}
-          placeholderTextColor="$grayBlue"
           keyboardType={keyboardType}
-          color="$darkBlue"
           focusStyle={{
             borderColor: '$medium',
             borderWidth: 1

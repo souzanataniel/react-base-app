@@ -1,9 +1,8 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {Text, View, XStack, YStack} from 'tamagui';
 import {BaseScreenWrapper} from '@/shared/components/layout';
 import {Link} from 'expo-router';
 import {useSignIn} from '@/features/auth/hooks/useSignIn';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {COLORS} from '@/shared/constants/colors';
 import {SignInForm} from '@/features/auth/components/SignInForm';
 import {useBaseAlert} from '@/shared/components/feedback/Alert/BaseAlertProvider';
@@ -21,10 +20,7 @@ export const SignInScreen = () => {
     clearError,
     errors,
   } = useSignIn();
-
-  const insets = useSafeAreaInsets();
   const alert = useBaseAlert();
-
   const handleSubmitClick = async () => {
     const result = await submit();
 
@@ -41,16 +37,17 @@ export const SignInScreen = () => {
     }
   };
 
-  return (
+  useEffect(() => {
+    updateEmail('souzanataniel@hotmail.com');
+    updatePassword('123456');
+  }, []);
 
+  return (
     <BaseScreenWrapper>
-      <View
-        flex={1}
-        justifyContent="center"
-      >
-        <YStack padding="$3">
+      <View flex={1} justifyContent="center">
+        <YStack padding="$2">
           <YStack
-            backgroundColor="$white"
+            backgroundColor="$absoluteWhite"
             borderRadius="$6"
             padding="$5"
             marginHorizontal="$2"
@@ -63,11 +60,11 @@ export const SignInScreen = () => {
               <LogoMediumDark/>
             </YStack>
 
-            <YStack gap="$1" marginBottom="$6" alignItems="center">
-              <Text fontSize="$6" fontWeight="600" color="$darkBlue" textAlign="center">
+            <YStack gap="$2" marginBottom="$6" alignItems="center">
+              <Text fontSize="$6" fontWeight="600" color="$absoluteTextPrimary" textAlign="center">
                 Entrar
               </Text>
-              <Text fontSize="$3" fontWeight="400" color="$mediumBlue" textAlign="center">
+              <Text fontSize="$3" fontWeight="400" color="$absoluteTextSecondary" textAlign="center">
                 Insira seus dados para continuar
               </Text>
             </YStack>
@@ -97,23 +94,23 @@ export const SignInScreen = () => {
 
             <YStack alignItems="center" gap="$4" paddingTop="$4">
               <XStack alignItems="center" width="100%" paddingHorizontal="$4">
-                <View flex={1} height={1} backgroundColor="$borderColor"/>
+                <View flex={1} height={1} backgroundColor="$absolutePlaceholder"/>
                 <Text
                   fontSize="$3"
-                  color="$mediumBlue"
+                  color="$absoluteTextTertiary"
                   paddingHorizontal="$3"
                   fontWeight="400"
                 >
                   ou
                 </Text>
-                <View flex={1} height={1} backgroundColor="$borderColor"/>
+                <View flex={1} height={1} backgroundColor="$absolutePlaceholder"/>
               </XStack>
 
               <Link href="/(auth)/sign-up" replace asChild>
                 <YStack alignItems="center" pressStyle={{opacity: 0.7}}>
-                  <Text fontSize="$3" color="$mediumBlue" fontWeight="400" textAlign="center">
+                  <Text fontSize="$3" color="$absoluteTextTertiary" fontWeight="400" textAlign="center">
                     Não possui conta?{' '}
-                    <Text fontWeight="600" textDecorationLine="underline" color="$darkBlue">
+                    <Text fontWeight="600" textDecorationLine="underline" color="$absoluteTextSecondary">
                       Cadastre-se
                     </Text>
                   </Text>
