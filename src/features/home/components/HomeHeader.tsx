@@ -1,10 +1,12 @@
 import React from 'react';
 import {StatusBar} from 'expo-status-bar';
 import {styled, Text, View, XStack, YStack} from 'tamagui';
-import {Bell, User} from '@tamagui/lucide-icons';
+import {BellIcon, UserIcon} from 'react-native-heroicons/outline';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {COLORS} from '@/shared/constants/colors';
 import {HapticButton} from '@/shared/components';
+import {PatternOverlay} from '@/shared/components/ui/GradientDotPattern/PatternOverlay';
+import {GradientDotPatternProps} from '@/shared/components/ui/GradientDotPattern/GradientDotPattern';
 
 const HeaderContainer = styled(View, {
   backgroundColor: COLORS.PRIMARY,
@@ -13,13 +15,15 @@ const HeaderContainer = styled(View, {
   paddingBottom: 20,
   borderBottomLeftRadius: 16,
   borderBottomRightRadius: 16,
-  shadowColor: 'black',
+  shadowColor: '#000',
   shadowOffset: {
     width: 0,
-    height: 2,
+    height: 8,
   },
-  shadowOpacity: 0.15,
+  shadowOpacity: 0.30,
   shadowRadius: 6,
+  position: 'relative',
+  overflow: 'hidden',
 });
 
 interface HomeHeaderProps {
@@ -27,13 +31,25 @@ interface HomeHeaderProps {
   text?: string;
   onNotification?: () => void;
   onUserPress?: () => void;
+  dotPattern?: {
+    enabled?: boolean;
+  } & Partial<GradientDotPatternProps>;
 }
 
 export const HomeHeader: React.FC<HomeHeaderProps> = ({
                                                         userName = 'User',
                                                         text = 'Sample Text Here !',
                                                         onNotification,
-                                                        onUserPress
+                                                        onUserPress,
+                                                        dotPattern = {
+                                                          enabled: true,
+                                                          spacing: 26,
+                                                          dotSize: 2.5,
+                                                          baseOpacity: 0.18,
+                                                          color: 'white',
+                                                          startX: 35,
+                                                          gradientIntensity: 1.2
+                                                        }
                                                       }) => {
   const insets = useSafeAreaInsets();
 
@@ -41,7 +57,24 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
     <>
       <StatusBar style="light"/>
       <HeaderContainer style={{paddingTop: insets.top + 20}}>
-        <XStack justifyContent="space-between" alignItems="center" marginBottom={20}>
+        <PatternOverlay
+          enabled={dotPattern.enabled}
+          spacing={dotPattern.spacing}
+          dotSize={dotPattern.dotSize}
+          baseOpacity={dotPattern.baseOpacity}
+          color={dotPattern.color}
+          startX={dotPattern.startX}
+          gradientIntensity={dotPattern.gradientIntensity}
+          containerWidth={500}
+          containerHeight={300}
+        />
+
+        <XStack
+          justifyContent="space-between"
+          alignItems="center"
+          marginBottom={20}
+          style={{zIndex: 10, position: 'relative'}}
+        >
           <XStack alignItems="center" flex={1}>
             <HapticButton
               onPress={onUserPress}
@@ -51,7 +84,7 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
               width={48}
               height={48}
               padding={0}
-              icon={<User size={24} color="$absoluteWhite"/>}
+              icon={<UserIcon size={24} color="white"/>}
               hapticType="light"
             />
             <YStack marginLeft={12}>
@@ -75,7 +108,7 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
             width={40}
             height={40}
             padding={0}
-            icon={<Bell size={20} color="$white"/>}
+            icon={<BellIcon size={20} color="white"/>}
             hapticType="light"
           />
         </XStack>

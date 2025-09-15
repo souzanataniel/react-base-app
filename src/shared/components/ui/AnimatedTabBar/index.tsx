@@ -11,7 +11,32 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import {Circle, styled, Text, View, XStack, YStack} from 'tamagui';
-import {MaterialIcons} from '@expo/vector-icons';
+import {
+  Bars3Icon,
+  BellIcon,
+  ChatBubbleLeftIcon,
+  Cog6ToothIcon,
+  HeartIcon,
+  HomeIcon,
+  MagnifyingGlassIcon,
+  PlusIcon,
+  ShoppingCartIcon,
+  UserIcon,
+} from 'react-native-heroicons/outline';
+
+import {
+  Bars3Icon as Bars3IconSolid,
+  BellIcon as BellIconSolid,
+  ChatBubbleLeftIcon as ChatBubbleLeftIconSolid,
+  Cog6ToothIcon as Cog6ToothIconSolid,
+  HeartIcon as HeartIconSolid,
+  HomeIcon as HomeIconSolid,
+  MagnifyingGlassIcon as MagnifyingGlassIconSolid,
+  PlusIcon as PlusIconSolid,
+  ShoppingCartIcon as ShoppingCartIconSolid,
+  UserIcon as UserIconSolid,
+} from 'react-native-heroicons/solid';
+
 import {COLORS} from '@/shared/constants/colors';
 
 interface TabRoute {
@@ -29,6 +54,14 @@ export interface TabBarProps {
   state: TabBarState;
   descriptors: Record<string, any>;
   navigation: any;
+  // NOVA PROP: lista das rotas que devem aparecer na tab bar
+  visibleTabs?: string[];
+  // OU usar uma prop de configuração mais detalhada
+  tabConfig?: {
+    routeName: string;
+    label?: string;
+    iconKey?: IconKey;
+  }[];
 }
 
 interface AnimatedTabButtonProps {
@@ -51,7 +84,7 @@ const TAB_THEME = {
     shadow: 'rgba(0,0,0,0.1)',
   },
   sizes: {
-    icon: 24, // Tamanho par para melhor renderização
+    icon: 24,
     circle: 44,
     fontSize: 11,
     maxWidth: 70,
@@ -87,9 +120,8 @@ const CustomTabBar = styled(View, {
   borderTopLeftRadius: TAB_THEME.spacing.borderRadius,
   borderTopRightRadius: TAB_THEME.spacing.borderRadius,
   shadowColor: TAB_THEME.colors.shadow,
-  shadowOffset: {width: 0, height: -2},
   shadowOpacity: 0.2,
-  shadowRadius: 8,
+  shadowRadius: 1
 });
 
 const TabContent = styled(XStack, {
@@ -109,20 +141,45 @@ const TabItemContainer = styled(YStack, {
   maxWidth: TAB_THEME.sizes.maxWidth,
 });
 
-const ICON_MAPPING = {
-  home: 'home',
-  favorites: 'favorite',
-  profile: 'person',
-  settings: 'settings',
-  search: 'search',
-  users: 'group',
-  community: 'home',
-  explore: 'search',
-  movement: 'person',
-  plan: 'settings',
+export type IconKey =
+  | 'home'
+  | 'profile'
+  | 'settings'
+  | 'notifications'
+  | 'chat'
+  | 'shop'
+  | 'favorites'
+  | 'search'
+  | 'add'
+  | 'menu';
+
+// Mapeamento dos ícones outline
+const ICON_MAPPING_OUTLINE = {
+  home: HomeIcon,
+  profile: UserIcon,
+  settings: Cog6ToothIcon,
+  notifications: BellIcon,
+  chat: ChatBubbleLeftIcon,
+  shop: ShoppingCartIcon,
+  favorites: HeartIcon,
+  search: MagnifyingGlassIcon,
+  add: PlusIcon,
+  menu: Bars3Icon,
 } as const;
 
-type IconKey = keyof typeof ICON_MAPPING;
+// Mapeamento dos ícones solid (para quando está focado)
+const ICON_MAPPING_SOLID = {
+  home: HomeIconSolid,
+  profile: UserIconSolid,
+  settings: Cog6ToothIconSolid,
+  notifications: BellIconSolid,
+  chat: ChatBubbleLeftIconSolid,
+  shop: ShoppingCartIconSolid,
+  favorites: HeartIconSolid,
+  search: MagnifyingGlassIconSolid,
+  add: PlusIconSolid,
+  menu: Bars3IconSolid,
+} as const;
 
 const TabIcon = React.memo<{
   iconKey: IconKey;
@@ -130,24 +187,14 @@ const TabIcon = React.memo<{
   size: number;
   isFocused: boolean;
 }>(({iconKey, color, size, isFocused}) => {
-  const iconName = ICON_MAPPING[iconKey] || ICON_MAPPING.home;
-
-  const iconStyle = {
-    textAlign: 'center' as const,
-    textAlignVertical: 'center' as const,
-    includeFontPadding: false,
-    textShadowOffset: {width: 0, height: 0},
-    textShadowRadius: 0,
-    lineHeight: size,
-  };
+  const IconComponent = isFocused
+    ? ICON_MAPPING_SOLID[iconKey] || ICON_MAPPING_SOLID.home
+    : ICON_MAPPING_OUTLINE[iconKey] || ICON_MAPPING_OUTLINE.home;
 
   return (
-    <MaterialIcons
-      name={iconName as any}
+    <IconComponent
       size={size}
       color={color}
-      style={iconStyle}
-      allowFontScaling={false}
     />
   );
 });
@@ -159,21 +206,21 @@ const getTabLabel = (options: any, routeName: string): string => {
 };
 
 const getTabIconKey = (options: any, routeName: string): IconKey => {
-  if (options?.tabBarIconKey && options.tabBarIconKey in ICON_MAPPING) {
+  if (options?.tabBarIconKey && options.tabBarIconKey in ICON_MAPPING_OUTLINE) {
     return options.tabBarIconKey as IconKey;
   }
 
-  if (routeName in ICON_MAPPING) {
+  if (routeName in ICON_MAPPING_OUTLINE) {
     return routeName as IconKey;
   }
 
   const label = (options?.tabBarLabel || '').toLowerCase().trim();
-  if (label in ICON_MAPPING) {
+  if (label in ICON_MAPPING_OUTLINE) {
     return label as IconKey;
   }
 
   const title = (options?.title || '').toLowerCase().trim();
-  if (title in ICON_MAPPING) {
+  if (title in ICON_MAPPING_OUTLINE) {
     return title as IconKey;
   }
 
@@ -353,15 +400,43 @@ AnimatedTabButton.displayName = 'AnimatedTabButton';
 const CustomTabBarComponent = React.memo<TabBarProps>(({
                                                          state,
                                                          descriptors,
-                                                         navigation
+                                                         navigation,
+                                                         visibleTabs,
+                                                         tabConfig
                                                        }) => {
   const insets = useSafeAreaInsets();
-  const activeIndex = state.index;
+
+  // FILTRAR AS ROTAS BASEADO NA CONFIGURAÇÃO
+  const filteredRoutes = useMemo(() => {
+    // Se tabConfig foi fornecido, usar ele
+    if (tabConfig && tabConfig.length > 0) {
+      return tabConfig.map(config => {
+        const route = state.routes.find(r => r.name === config.routeName);
+        return route;
+      }).filter(Boolean) as TabRoute[];
+    }
+
+    // Se visibleTabs foi fornecido, usar ele
+    if (visibleTabs && visibleTabs.length > 0) {
+      return state.routes.filter(route =>
+        visibleTabs.includes(route.name)
+      );
+    }
+
+    // Fallback: usar todas as rotas (comportamento original)
+    return state.routes;
+  }, [state.routes, visibleTabs, tabConfig]);
+
+  // CALCULAR O ÍNDICE ATIVO BASEADO NAS ROTAS FILTRADAS
+  const activeIndex = useMemo(() => {
+    const currentRoute = state.routes[state.index];
+    return filteredRoutes.findIndex(route => route.key === currentRoute.key);
+  }, [state.index, state.routes, filteredRoutes]);
 
   const tabBarHeight = 44 + 16 + Math.max(insets.bottom, 6);
 
   const handleTabPress = useCallback((route: TabRoute, index: number) => {
-    const isFocused = state.index === index;
+    const isFocused = state.index === state.routes.findIndex(r => r.key === route.key);
 
     const event = navigation.emit({
       type: 'tabPress',
@@ -372,11 +447,12 @@ const CustomTabBarComponent = React.memo<TabBarProps>(({
     if (!isFocused && !event.defaultPrevented) {
       navigation.navigate(route.name, route.params);
     }
-  }, [navigation, state.index]);
+  }, [navigation, state.index, state.routes]);
 
   const tabButtons = useMemo(() =>
-      state.routes.map((route, index) => {
-        const isFocused = state.index === index;
+      filteredRoutes.map((route, index) => {
+        const originalIndex = state.routes.findIndex(r => r.key === route.key);
+        const isFocused = state.index === originalIndex;
         const descriptor = descriptors[route.key];
 
         return (
@@ -391,11 +467,11 @@ const CustomTabBarComponent = React.memo<TabBarProps>(({
           />
         );
       }),
-    [state.routes, state.index, activeIndex, handleTabPress, descriptors]
+    [filteredRoutes, state.index, state.routes, activeIndex, handleTabPress, descriptors]
   );
 
   React.useEffect(() => {
-    state.routes.forEach((route) => {
+    filteredRoutes.forEach((route) => {
       const descriptor = descriptors[route.key];
       if (descriptor?.options?.tabBarStyle !== false) {
         descriptor.options = {
@@ -404,7 +480,12 @@ const CustomTabBarComponent = React.memo<TabBarProps>(({
         };
       }
     });
-  }, [state.routes, descriptors, tabBarHeight]);
+  }, [filteredRoutes, descriptors, tabBarHeight]);
+
+  // Se não há rotas para mostrar, não renderizar nada
+  if (filteredRoutes.length === 0) {
+    return null;
+  }
 
   return (
     <CustomTabBar>
@@ -420,7 +501,9 @@ CustomTabBarComponent.displayName = 'CustomTabBarComponent';
 export const AnimatedTabBar = React.memo<Partial<TabBarProps>>(({
                                                                   state,
                                                                   descriptors,
-                                                                  navigation
+                                                                  navigation,
+                                                                  visibleTabs,
+                                                                  tabConfig
                                                                 }) => {
   if (!state || !descriptors || !navigation) {
     console.warn('AnimatedTabBar: Missing required props');
@@ -432,6 +515,8 @@ export const AnimatedTabBar = React.memo<Partial<TabBarProps>>(({
       state={state}
       descriptors={descriptors}
       navigation={navigation}
+      visibleTabs={visibleTabs}
+      tabConfig={tabConfig}
     />
   );
 });

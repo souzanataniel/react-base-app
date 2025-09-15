@@ -1,24 +1,17 @@
 import React, {useEffect} from 'react';
-import * as authService from '../services/authService';
-import {useAuth} from '@/features/auth/hooks/useAuth';
+import {useAuthStore} from '@/features/auth/stores/authStore';
 
 interface AuthProviderProps {
   children: React.ReactNode;
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
-  const {initialize, setUser, user} = useAuth();
+  const cleanup = useAuthStore(state => state.cleanup);
 
   useEffect(() => {
-    initialize();
-
-    const {data: {subscription}} = authService.onAuthStateChange((newUser) => {
-      if (user?.id !== newUser?.id) {
-        setUser(newUser);
-      }
-    });
-
-    return () => subscription?.unsubscribe();
+    return () => {
+      cleanup();
+    };
   }, []);
 
   return <>{children}</>;

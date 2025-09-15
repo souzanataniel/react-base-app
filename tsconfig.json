@@ -18,7 +18,9 @@
       "@/utils/*": [
         "./shared/utils/*"
       ]
-    }
+    },
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true
   },
   "include": [
     "**/*.ts",

@@ -1,15 +1,13 @@
 import {BasicHeader} from '@/shared/components/ui/Header/BasicHeader';
 import {YStack} from 'tamagui';
 
-export default function FavoritesScreen() {
+export const NotificationsScreen = () => {
   return (
     <YStack flex={1}>
-
       <BasicHeader
-        title="Detalhes"
+        title="Notificações"
         showBackButton={true}
       />
-
     </YStack>
   );
 }

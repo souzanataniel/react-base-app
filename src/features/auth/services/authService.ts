@@ -288,6 +288,7 @@ export const onAuthStateChange = (callback: (user: User | null) => void) => {
     console.log('🔄 Auth state changed:', {event, hasSession: !!session, hasUser: !!session?.user});
 
     if (session?.user) {
+      console.log('🔄 Session User Found');
       const user = await getCurrentUser();
       callback(user);
     } else {

@@ -6,8 +6,7 @@ import {AuthGuard} from '@/features/auth/components/AuthGuard';
 export default function AppLayout() {
   return (
     <AuthGuard requireAuth={true}>
-
-      <Tabs tabBar={(props) => <AnimatedTabBar {...props} />}>
+      <Tabs tabBar={(props) => <AnimatedTabBar {...props} visibleTabs={['home', 'favorites', 'profile', 'settings']} />}>
         <Tabs.Screen
           name="home"
           options={{
@@ -16,25 +15,30 @@ export default function AppLayout() {
             tabBarLabel: 'Início',
           }}
         />
+
         <Tabs.Screen
           name="favorites"
           options={{
+            headerShown: false,
             title: 'Favoritos',
             tabBarLabel: 'Favoritos',
           }}
         />
-        <Tabs.Screen
-          name="profile"
-          options={{
-            title: 'Perfil',
-            tabBarLabel: 'Perfil',
-          }}
-        />
+
         <Tabs.Screen
           name="settings"
           options={{
             title: 'Ajustes',
             tabBarLabel: 'Ajustes',
+          }}
+        />
+
+        <Tabs.Screen
+          name="profile"
+          options={{
+            title: 'Perfil',
+            tabBarLabel: 'Perfil',
+            headerShown: false,
           }}
         />
       </Tabs>

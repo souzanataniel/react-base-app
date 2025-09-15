@@ -100,7 +100,7 @@ export const BaseScreenWrapper: React.FC<BaseScreenWrapperProps> = ({
 
   if (enableKeyboardAnimation) {
     return (
-      <YStack flex={1} backgroundColor="$background">
+      <YStack flex={1} backgroundColor="$baseBackgroundHover">
         <Animated.View
           style={{
             flex: 1,
@@ -134,7 +134,7 @@ export const BaseScreenWrapper: React.FC<BaseScreenWrapperProps> = ({
   }
 
   return (
-    <YStack flex={1} backgroundColor="$background">
+    <YStack flex={1} backgroundColor="$baseBackgroundHover">
       <KeyboardAvoidingView
         style={{flex: 1}}
         behavior={behavior}

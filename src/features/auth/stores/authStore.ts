@@ -5,15 +5,22 @@ import * as authService from '../services/authService';
 import {AuthState, SignInCredentials, SignUpCredentials, User} from '@/features/auth/types/auth.types';
 import {router} from 'expo-router';
 
+// Constantes
+const NAVIGATION_DELAY = 50;
+const ROUTES = {
+  APP_HOME: '/(app)/home',
+  AUTH_HOME: '/(auth)/home',
+} as const;
+
 interface AuthStore extends AuthState {
   signIn: (credentials: SignInCredentials) => Promise<{
     success: boolean;
-    error?: string,
+    error?: string;
     fieldErrors?: Record<string, string>;
   }>;
   signUp: (credentials: SignUpCredentials) => Promise<{
     success: boolean;
-    error?: string,
+    error?: string;
     fieldErrors?: Record<string, string>;
   }>;
   signOut: () => Promise<void>;
@@ -22,7 +29,24 @@ interface AuthStore extends AuthState {
   setError: (error: string | null) => void;
   setLoading: (loading: boolean) => void;
   clearError: () => void;
+  cleanup: () => void;
 }
+
+// Controle global de inicialização
+let isInitializing = false;
+let authStateUnsubscribe: (() => void) | null = null;
+
+// Função auxiliar de navegação
+const navigateToRoute = (route: string) => {
+  setTimeout(() => {
+    try {
+      router.replace(route as any);
+      console.log(`Navegando para ${route}`);
+    } catch (error) {
+      console.error(`Erro na navegação para ${route}:`, error);
+    }
+  }, NAVIGATION_DELAY);
+};
 
 export const useAuthStore = create<AuthStore>()(
   persist(
@@ -34,99 +58,86 @@ export const useAuthStore = create<AuthStore>()(
       error: null,
 
       initialize: async () => {
+        const currentState = get();
+
+        if (isInitializing) {
+          console.log('⚠️ Inicialização já em andamento - ignorando');
+          return;
+        }
+
+        if (currentState.isInitialized) {
+          console.log('✅ Já inicializado - ignorando');
+          return;
+        }
+
+        console.log('🚀 Iniciando autenticação (primeira vez)...');
+
+        isInitializing = true;
+        console.log('Iniciando autenticação...');
+
         try {
-          authService.onAuthStateChange((user) => {
-            console.log('🔄 Auth state changed in store:', {hasUser: !!user, email: user?.email});
-
-            const currentState = get();
-            const wasAuthenticated = currentState.isAuthenticated;
-            const isNowAuthenticated = !!user;
-
-            set({
-              user,
-              isAuthenticated: isNowAuthenticated,
-              error: null,
-            });
-
-            if (!wasAuthenticated && isNowAuthenticated && currentState.isInitialized) {
-              console.log('🏠 Redirecionamento automático: usuário autenticado');
-              setTimeout(() => {
-                try {
-                  router.replace('/(app)/home');
-                } catch (error) {
-                  console.error('❌ Erro no redirecionamento automático:', error);
-                }
-              }, 100);
-            } else if (wasAuthenticated && !isNowAuthenticated && currentState.isInitialized) {
-              console.log('🚪 Redirecionamento automático: usuário desautenticado');
-              setTimeout(() => {
-                try {
-                  router.replace('/(auth)/home');
-                } catch (error) {
-                  console.error('❌ Erro no redirecionamento automático:', error);
-                }
-              }, 100);
-            }
-          });
-
-          const persistedState = get();
-
-          if (persistedState.user) {
-            const session = await authService.getSession();
-
-            if (session?.user) {
-              const currentUser = await authService.getCurrentUser();
-              if (currentUser) {
-                set({
-                  user: currentUser,
-                  isAuthenticated: true,
-                  isInitialized: true,
-                  error: null,
-                });
-                return;
-              }
-            }
+          // Cleanup de listener anterior
+          if (authStateUnsubscribe) {
+            authStateUnsubscribe();
+            authStateUnsubscribe = null;
           }
 
-          const session = await authService.getSession();
-          if (session?.user) {
-            const user = await authService.getCurrentUser();
-            if (user) {
+          // Configurar listener que processará a inicialização
+          const authListener = authService.onAuthStateChange((user) => {
+            const state = get();
+
+            // Só processar se não estiver inicializado ainda
+            if (!state.isInitialized) {
+              console.log('Processando mudança inicial de auth:', {hasUser: !!user, email: user?.email});
+
               set({
                 user,
-                isAuthenticated: true,
+                isAuthenticated: !!user,
                 isInitialized: true,
                 error: null,
               });
-              return;
+            } else {
+              console.log('Auth mudou após inicialização:', {hasUser: !!user});
+              set({
+                user,
+                isAuthenticated: !!user,
+                error: null,
+              });
             }
+          });
+
+          // Configurar unsubscribe
+          if (typeof authListener === 'function') {
+            authStateUnsubscribe = authListener;
+          } else if (authListener?.data?.subscription) {
+            authStateUnsubscribe = () => authListener.data.subscription.unsubscribe();
           }
 
-          set({
-            user: null,
-            isAuthenticated: false,
-            isInitialized: true,
-            error: null,
-          });
+          // Aguardar o listener processar o INITIAL_SESSION automaticamente
+          // Isso evita duplicar getCurrentUser() - o Supabase já vai disparar INITIAL_SESSION
+          console.log('Aguardando processamento automático da sessão...');
+
         } catch (error) {
           console.error('Erro na inicialização:', error);
           set({
             user: null,
             isAuthenticated: false,
             isInitialized: true,
-            error: null,
+            error: error?.message || 'Erro na inicialização',
           });
+        } finally {
+          isInitializing = false;
         }
       },
 
       signIn: async (credentials: SignInCredentials) => {
         set({isLoading: true, error: null});
+
         try {
-          console.log('🔐 Executando signIn no store...');
+          console.log('Executando login...');
           const response = await authService.signIn(credentials);
 
           if (response.error) {
-            console.log('❌ Erro no signIn:', response.error);
             set({
               error: response.error,
               isLoading: false,
@@ -136,8 +147,6 @@ export const useAuthStore = create<AuthStore>()(
             return {success: false, error: response.error};
           }
 
-          console.log('✅ SignIn bem-sucedido, atualizando estado...');
-
           set({
             user: response.user,
             isAuthenticated: true,
@@ -145,26 +154,13 @@ export const useAuthStore = create<AuthStore>()(
             error: null,
           });
 
-          console.log('🏠 Executando redirecionamento pós-login...');
-
-          setTimeout(() => {
-            try {
-              router.replace('/(app)/home');
-              console.log('✅ Redirecionamento executado com sucesso');
-            } catch (redirectError) {
-              console.error('❌ Erro no redirecionamento:', redirectError);
-              try {
-                router.push('/(app)/home');
-              } catch (fallbackError) {
-                console.error('❌ Erro no redirecionamento fallback:', fallbackError);
-              }
-            }
-          }, 50);
-
+          console.log('Login realizado, redirecionando...');
+          navigateToRoute(ROUTES.APP_HOME);
           return {success: true};
+
         } catch (error) {
-          console.error('💥 Exceção no signIn:', error);
           const errorMessage = 'Erro inesperado ao fazer login';
+          console.error('Exceção no login:', error);
           set({
             error: errorMessage,
             isLoading: false,
@@ -179,6 +175,7 @@ export const useAuthStore = create<AuthStore>()(
         set({isLoading: true, error: null});
 
         try {
+          console.log('Executando cadastro...');
           const response = await authService.signUp(credentials);
 
           if (response.error) {
@@ -198,17 +195,13 @@ export const useAuthStore = create<AuthStore>()(
             error: null,
           });
 
-          setTimeout(() => {
-            try {
-              router.replace('/(app)/home');
-            } catch (error) {
-              console.error('❌ Erro no redirecionamento pós-signup:', error);
-            }
-          }, 50);
-
+          console.log('Cadastro realizado, redirecionando...');
+          navigateToRoute(ROUTES.APP_HOME);
           return {success: true};
+
         } catch (error) {
           const errorMessage = 'Erro inesperado ao criar conta';
+          console.error('Exceção no cadastro:', error);
           set({
             error: errorMessage,
             isLoading: false,
@@ -223,9 +216,11 @@ export const useAuthStore = create<AuthStore>()(
         set({isLoading: true});
 
         try {
+          console.log('Executando logout...');
           await authService.signOut();
+          console.log('Logout concluído');
         } catch (error) {
-          console.error('Erro ao fazer logout:', error);
+          console.error('Erro no logout:', error);
         } finally {
           set({
             user: null,
@@ -237,11 +232,9 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       setUser: (user: User | null) => {
-        const currentState = get();
         set({
           user,
           isAuthenticated: !!user,
-          error: user ? null : currentState.error
         });
       },
 
@@ -255,6 +248,14 @@ export const useAuthStore = create<AuthStore>()(
 
       clearError: () => {
         set({error: null});
+      },
+
+      cleanup: () => {
+        if (authStateUnsubscribe) {
+          authStateUnsubscribe();
+          authStateUnsubscribe = null;
+          console.log('Cleanup do listener realizado');
+        }
       },
     }),
     {
