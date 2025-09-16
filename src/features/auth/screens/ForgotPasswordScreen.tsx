@@ -7,6 +7,8 @@ import {useForgotPassword} from '@/features/auth/hooks/useForgotPassword';
 import {useBaseAlert} from '@/shared/components/feedback/Alert/BaseAlertProvider';
 import {HapticButton} from '@/shared/components';
 import {router} from 'expo-router';
+import {useGradient} from '@/shared/components/ui/GradientBox/GradientBox';
+import {LinearGradient} from 'expo-linear-gradient';
 
 export const ForgotPasswordScreen = () => {
   const {
@@ -18,6 +20,7 @@ export const ForgotPasswordScreen = () => {
     clearError,
   } = useForgotPassword();
   const alert = useBaseAlert();
+  const heroGradient = useGradient('medium');
 
   const handleSubmitClick = async () => {
     const result = await submit();
@@ -32,58 +35,60 @@ export const ForgotPasswordScreen = () => {
 
   return (
     <BaseScreenWrapper>
-      <View flex={1} justifyContent="center">
-        <YStack padding="$2">
-          <YStack
-            backgroundColor="$white"
-            borderRadius="$6"
-            padding="$5"
-            marginHorizontal="$2"
-            shadowColor="#000"
-            shadowOpacity={0.15}
-            shadowOffset={{width: 0, height: 1}}
-            shadowRadius={3}
-          >
-            <YStack alignItems="center" marginBottom="$4">
-              <LogoMediumDark/>
-            </YStack>
+      <LinearGradient colors={heroGradient} style={{flex: 1}}>
+        <View flex={1} justifyContent="center">
+          <YStack padding="$2">
+            <YStack
+              backgroundColor="$white"
+              borderRadius="$6"
+              padding="$5"
+              marginHorizontal="$2"
+              shadowColor="#000"
+              shadowOpacity={0.15}
+              shadowOffset={{width: 0, height: 1}}
+              shadowRadius={3}
+            >
+              <YStack alignItems="center" marginBottom="$4">
+                <LogoMediumDark/>
+              </YStack>
 
-            <YStack gap="$2" marginBottom="$6" alignItems="center">
-              <Text fontSize="$6" fontWeight="600" color="$absoluteTextPrimary" textAlign="center">
-                Recuperar senha
-              </Text>
-              <Text fontSize="$3" fontWeight="400" color="$absoluteTextSecondary" textAlign="center">
-                Digite seu email para receber um link de recuperação de senha.
-              </Text>
-            </YStack>
+              <YStack gap="$2" marginBottom="$6" alignItems="center">
+                <Text fontSize="$6" fontWeight="600" color="$absoluteTextPrimary" textAlign="center">
+                  Recuperar senha
+                </Text>
+                <Text fontSize="$3" fontWeight="400" color="$absoluteTextSecondary" textAlign="center">
+                  Digite seu email para receber um link de recuperação de senha.
+                </Text>
+              </YStack>
 
-            <YStack gap="$4">
-              <ForgotPasswordForm
-                email={email}
-                onEmailChange={(text) => {
-                  updateEmail(text);
-                  clearError();
-                }}
-                onBlurEmail={() => {}}
-                canSubmit={canSubmit}
-                isLoading={isLoading}
-                onSubmit={handleSubmitClick}
-              />
+              <YStack gap="$4">
+                <ForgotPasswordForm
+                  email={email}
+                  onEmailChange={(text) => {
+                    updateEmail(text);
+                    clearError();
+                  }}
+                  onBlurEmail={() => {}}
+                  canSubmit={canSubmit}
+                  isLoading={isLoading}
+                  onSubmit={handleSubmitClick}
+                />
 
-              <HapticButton
-                onPress={() => router.back()}
-                hapticType="light"
-                backgroundColor="transparent"
-                borderColor="$absolutePrimary"
-                borderWidth={2}
-                color="$absolutePrimary"
-              >
-                Voltar
-              </HapticButton>
+                <HapticButton
+                  onPress={() => router.back()}
+                  hapticType="light"
+                  backgroundColor="transparent"
+                  borderColor="$absolutePrimary"
+                  borderWidth={2}
+                  color="$absolutePrimary"
+                >
+                  Voltar
+                </HapticButton>
+              </YStack>
             </YStack>
           </YStack>
-        </YStack>
-      </View>
+        </View>
+      </LinearGradient>
     </BaseScreenWrapper>
   );
 };

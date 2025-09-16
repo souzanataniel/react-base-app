@@ -1,5 +1,5 @@
-import ProfileScreen from '@/features/profile/screens/ProfileScreen';
+import {ProfileScreen} from '@/features/profile';
 
-export default function HomeRoute() {
+export default function ProfileRoute() {
   return <ProfileScreen/>;
 }

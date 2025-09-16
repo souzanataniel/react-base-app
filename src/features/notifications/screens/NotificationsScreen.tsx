@@ -4,10 +4,7 @@ import {YStack} from 'tamagui';
 export const NotificationsScreen = () => {
   return (
     <YStack flex={1}>
-      <BasicHeader
-        title="Notificações"
-        showBackButton={true}
-      />
+      <BasicHeader title="Notificações"/>
     </YStack>
   );
 }

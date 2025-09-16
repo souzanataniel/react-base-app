@@ -1,16 +1,17 @@
 import {ProfileComponent} from '@/features/profile/components/ProfileComponent';
 import {useAuth} from '@/features/auth/hooks/useAuth';
+import {router} from 'expo-router';
 
-export default function ProfileScreen() {
-  const {user} = useAuth();
+export const ProfileScreen = () => {
+  const {user, signOut} = useAuth();
 
   return <ProfileComponent
     userName={user?.firstName + ' ' + user?.lastName}
     userImage="https://exemplo.com/foto.jpg"
-    onEditProfile={() => {/* navegar para edição */}}
-    onChangePassword={() => {/* alterar senha */}}
-    onChangeEmail={() => {/* alterar email */}}
-    onSettings={() => {/* abrir configurações */}}
-    onLogout={() => {/* fazer logout */}}
+    onEditProfile={() => router.push('/(app)/update-profile')}
+    onChangePassword={() => {}}
+    onChangeEmail={() => {}}
+    onSettings={() => {}}
+    onLogout={() => signOut()}
   />;
 }

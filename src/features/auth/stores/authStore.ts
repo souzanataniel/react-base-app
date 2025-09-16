@@ -106,15 +106,12 @@ export const useAuthStore = create<AuthStore>()(
             }
           });
 
-          // Configurar unsubscribe
           if (typeof authListener === 'function') {
             authStateUnsubscribe = authListener;
           } else if (authListener?.data?.subscription) {
             authStateUnsubscribe = () => authListener.data.subscription.unsubscribe();
           }
 
-          // Aguardar o listener processar o INITIAL_SESSION automaticamente
-          // Isso evita duplicar getCurrentUser() - o Supabase já vai disparar INITIAL_SESSION
           console.log('Aguardando processamento automático da sessão...');
 
         } catch (error) {

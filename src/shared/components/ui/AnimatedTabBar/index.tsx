@@ -10,7 +10,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import {Circle, styled, Text, View, XStack, YStack} from 'tamagui';
+import {styled, Text, View, XStack, YStack} from 'tamagui';
 import {
   Bars3Icon,
   BellIcon,
@@ -37,7 +37,7 @@ import {
   UserIcon as UserIconSolid,
 } from 'react-native-heroicons/solid';
 
-import {COLORS} from '@/shared/constants/colors';
+import {useTabBarHeight} from './hooks/useTabBarHeight';
 
 interface TabRoute {
   key: string;
@@ -54,9 +54,8 @@ export interface TabBarProps {
   state: TabBarState;
   descriptors: Record<string, any>;
   navigation: any;
-  // NOVA PROP: lista das rotas que devem aparecer na tab bar
   visibleTabs?: string[];
-  // OU usar uma prop de configuração mais detalhada
+  hiddenRoutes?: string[];
   tabConfig?: {
     routeName: string;
     label?: string;
@@ -72,73 +71,22 @@ interface AnimatedTabButtonProps {
   onPress: () => void;
   disabled?: boolean;
   descriptor: any;
+  config: any;
 }
 
-const TAB_THEME = {
-  colors: {
-    active: COLORS.PRIMARY,
-    inactive: COLORS.PRIMARY,
-    iconActive: 'white',
-    iconInactive: COLORS.PRIMARY,
-    background: 'white',
-    shadow: 'rgba(0,0,0,0.1)',
-  },
-  sizes: {
-    icon: 24,
-    circle: 44,
-    fontSize: 11,
-    maxWidth: 70,
-  },
-  spacing: {
-    borderRadius: '$6',
-    paddingHorizontal: '$3',
-    paddingTop: '$2',
-    paddingBottom: '$1',
-    gap: '$1',
-    paddingVertical: '$1',
-  }
-} as const;
-
-const ANIMATION_CONFIG = {
-  scale: {damping: 18, stiffness: 250},
-  press: {damping: 20, stiffness: 500},
-  bounce: {damping: 15, stiffness: 400},
-  return: {damping: 15, stiffness: 350},
-  timing: {duration: 200},
-} as const;
-
 const AnimatedView = Animated.createAnimatedComponent(View);
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 const AnimatedText = Animated.createAnimatedComponent(Text);
-
-const CustomTabBar = styled(View, {
-  position: 'absolute',
-  bottom: 0,
-  left: 0,
-  right: 0,
-  backgroundColor: TAB_THEME.colors.background,
-  borderTopLeftRadius: TAB_THEME.spacing.borderRadius,
-  borderTopRightRadius: TAB_THEME.spacing.borderRadius,
-  shadowColor: TAB_THEME.colors.shadow,
-  shadowOpacity: 0.2,
-  shadowRadius: 1
-});
 
 const TabContent = styled(XStack, {
   justifyContent: 'space-around',
   alignItems: 'center',
-  paddingHorizontal: TAB_THEME.spacing.paddingHorizontal,
-  paddingTop: TAB_THEME.spacing.paddingTop,
-  paddingBottom: TAB_THEME.spacing.paddingBottom,
 });
 
 const TabItemContainer = styled(YStack, {
   alignItems: 'center',
   justifyContent: 'center',
-  gap: TAB_THEME.spacing.gap,
-  paddingVertical: TAB_THEME.spacing.paddingVertical,
   flex: 1,
-  maxWidth: TAB_THEME.sizes.maxWidth,
+  position: 'relative',
 });
 
 export type IconKey =
@@ -153,7 +101,6 @@ export type IconKey =
   | 'add'
   | 'menu';
 
-// Mapeamento dos ícones outline
 const ICON_MAPPING_OUTLINE = {
   home: HomeIcon,
   profile: UserIcon,
@@ -167,7 +114,6 @@ const ICON_MAPPING_OUTLINE = {
   menu: Bars3Icon,
 } as const;
 
-// Mapeamento dos ícones solid (para quando está focado)
 const ICON_MAPPING_SOLID = {
   home: HomeIconSolid,
   profile: UserIconSolid,
@@ -227,7 +173,7 @@ const getTabIconKey = (options: any, routeName: string): IconKey => {
   return 'home';
 };
 
-const useTabAnimation = (index: number, activeIndex: number) => {
+const useTabAnimation = (index: number, activeIndex: number, config: any) => {
   const scale = useSharedValue(1);
   const translateY = useSharedValue(0);
 
@@ -237,7 +183,6 @@ const useTabAnimation = (index: number, activeIndex: number) => {
 
   const animatedContainerStyle = useAnimatedStyle(() => {
     const distance = animatedDistance.value;
-
     const targetOpacity = distance === 0 ? 1 : distance === 1 ? 0.8 : 0.65;
 
     return {
@@ -245,24 +190,7 @@ const useTabAnimation = (index: number, activeIndex: number) => {
         {scale: 1},
         {translateY: translateY.value}
       ],
-      opacity: withTiming(targetOpacity, ANIMATION_CONFIG.timing),
-    };
-  });
-
-  const animatedCircleStyle = useAnimatedStyle(() => {
-    const isActive = index === activeIndex;
-
-    return {
-      backgroundColor: withTiming(
-        isActive ? TAB_THEME.colors.active : 'transparent',
-        ANIMATION_CONFIG.timing
-      ),
-      transform: [{
-        scale: withSpring(
-          isActive ? 1 : 0.9,
-          ANIMATION_CONFIG.scale
-        )
-      }],
+      opacity: withTiming(targetOpacity, config.animation.timing),
     };
   });
 
@@ -271,13 +199,27 @@ const useTabAnimation = (index: number, activeIndex: number) => {
 
     return {
       color: withTiming(
-        TAB_THEME.colors.active,
-        ANIMATION_CONFIG.timing
+        isActive ? config.colors.active : config.colors.inactive,
+        config.animation.timing
       ),
       transform: [{
         translateY: withSpring(
-          isActive ? -1 : 0,
+          isActive ? -0.25 : 0,
           {damping: 15, stiffness: 250}
+        )
+      }],
+    };
+  });
+
+  const animatedBorderStyle = useAnimatedStyle(() => {
+    const isActive = index === activeIndex;
+
+    return {
+      opacity: withTiming(isActive ? 1 : 0, config.animation.timing),
+      transform: [{
+        scaleX: withSpring(
+          isActive ? 1 : 0.3,
+          config.animation.scale
         )
       }],
     };
@@ -287,8 +229,8 @@ const useTabAnimation = (index: number, activeIndex: number) => {
     scale,
     translateY,
     animatedContainerStyle,
-    animatedCircleStyle,
     animatedLabelStyle,
+    animatedBorderStyle,
   };
 };
 
@@ -300,6 +242,7 @@ const AnimatedTabButton = React.memo<AnimatedTabButtonProps>(({
                                                                 onPress,
                                                                 disabled = false,
                                                                 descriptor,
+                                                                config,
                                                               }) => {
   const options = descriptor?.options || {};
 
@@ -310,35 +253,35 @@ const AnimatedTabButton = React.memo<AnimatedTabButtonProps>(({
     scale,
     translateY,
     animatedContainerStyle,
-    animatedCircleStyle,
     animatedLabelStyle,
-  } = useTabAnimation(index, activeIndex);
+    animatedBorderStyle,
+  } = useTabAnimation(index, activeIndex, config);
 
-  const iconColor = isFocused ? TAB_THEME.colors.iconActive : TAB_THEME.colors.iconInactive;
+  const iconColor = isFocused ? config.colors.active : config.colors.inactive;
 
   const handlePressIn = useCallback(() => {
     if (disabled) return;
-    scale.value = withSpring(0.98, ANIMATION_CONFIG.press);
-    translateY.value = withSpring(0.5, ANIMATION_CONFIG.press);
-  }, [disabled, scale, translateY]);
+    scale.value = withSpring(0.98, config.animation.press);
+    translateY.value = withSpring(0.25, config.animation.press);
+  }, [disabled, scale, translateY, config.animation.press]);
 
   const handlePressOut = useCallback(() => {
     if (disabled) return;
-    scale.value = withSpring(1, ANIMATION_CONFIG.press);
-    translateY.value = withSpring(0, ANIMATION_CONFIG.press);
-  }, [disabled, scale, translateY]);
+    scale.value = withSpring(1, config.animation.press);
+    translateY.value = withSpring(0, config.animation.press);
+  }, [disabled, scale, translateY, config.animation.press]);
 
   const handlePress = useCallback(() => {
     if (disabled) return;
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-    translateY.value = withSpring(-2, ANIMATION_CONFIG.bounce, () => {
-      translateY.value = withSpring(0, ANIMATION_CONFIG.return);
+    translateY.value = withSpring(-0.5, config.animation.bounce, () => {
+      translateY.value = withSpring(0, config.animation.return);
     });
 
     runOnJS(onPress)();
-  }, [disabled, onPress, translateY]);
+  }, [disabled, onPress, translateY, config.animation.bounce, config.animation.return]);
 
   return (
     <Pressable
@@ -353,35 +296,47 @@ const AnimatedTabButton = React.memo<AnimatedTabButtonProps>(({
       accessibilityHint={`Navigate to ${label} screen`}
       style={{
         flex: 1,
-        maxWidth: TAB_THEME.sizes.maxWidth,
+        maxWidth: config.sizes.maxWidth,
         opacity: disabled ? 0.5 : 1
       }}
     >
       <AnimatedView style={animatedContainerStyle}>
-        <TabItemContainer>
-          <AnimatedCircle
-            size={TAB_THEME.sizes.circle}
-            alignItems="center"
-            justifyContent="center"
-            style={animatedCircleStyle}
-          >
-            <View style={{
-              width: TAB_THEME.sizes.icon + 4,
-              height: TAB_THEME.sizes.icon + 4,
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: 0,
-            }}>
-              <TabIcon
-                iconKey={iconKey}
-                color={iconColor}
-                size={TAB_THEME.sizes.icon}
-                isFocused={isFocused}
-              />
-            </View>
-          </AnimatedCircle>
+        <TabItemContainer
+          gap={config.spacing.gap}
+          paddingVertical={config.spacing.paddingVertical}
+        >
+          <AnimatedView
+            style={[
+              {
+                position: 'absolute',
+                top: config.sizes.activeBorderTopOffset,
+                left: '40%',
+                width: '80%',
+                height: config.sizes.activeBorderHeight,
+                backgroundColor: config.colors.activeBorder,
+                borderRadius: config.sizes.activeBorderHeight / 2,
+                marginLeft: '-30%',
+              },
+              animatedBorderStyle,
+            ]}
+          />
+
+          <View style={{
+            width: config.sizes.icon + 1,
+            height: config.sizes.icon + 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <TabIcon
+              iconKey={iconKey}
+              color={iconColor}
+              size={config.sizes.icon}
+              isFocused={isFocused}
+            />
+          </View>
+
           <AnimatedText
-            fontSize={TAB_THEME.sizes.fontSize}
+            fontSize={config.sizes.fontSize}
             fontWeight="500"
             textAlign="center"
             style={animatedLabelStyle}
@@ -402,13 +357,35 @@ const CustomTabBarComponent = React.memo<TabBarProps>(({
                                                          descriptors,
                                                          navigation,
                                                          visibleTabs,
-                                                         tabConfig
+                                                         tabConfig,
+                                                         hiddenRoutes = []
                                                        }) => {
   const insets = useSafeAreaInsets();
+  const {tabBarHeight, config} = useTabBarHeight();
 
-  // FILTRAR AS ROTAS BASEADO NA CONFIGURAÇÃO
+  const currentRoute = state.routes[state.index];
+  const currentDescriptor = descriptors[currentRoute.key];
+  const currentOptions = currentDescriptor?.options || {};
+
+  const shouldHideTabBar =
+    hiddenRoutes.includes(currentRoute.name) ||
+    currentOptions.tabBarStyle?.display === 'none' ||
+    currentOptions.hideTabBar === true;
+
+  const slideTranslateY = useSharedValue(0);
+
+  React.useEffect(() => {
+    slideTranslateY.value = withTiming(
+      shouldHideTabBar ? tabBarHeight : 0,
+      config.animation.hideShow
+    );
+  }, [shouldHideTabBar, tabBarHeight, slideTranslateY, config.animation.hideShow]);
+
+  const animatedTabBarStyle = useAnimatedStyle(() => ({
+    transform: [{translateY: slideTranslateY.value}],
+  }));
+
   const filteredRoutes = useMemo(() => {
-    // Se tabConfig foi fornecido, usar ele
     if (tabConfig && tabConfig.length > 0) {
       return tabConfig.map(config => {
         const route = state.routes.find(r => r.name === config.routeName);
@@ -416,24 +393,19 @@ const CustomTabBarComponent = React.memo<TabBarProps>(({
       }).filter(Boolean) as TabRoute[];
     }
 
-    // Se visibleTabs foi fornecido, usar ele
     if (visibleTabs && visibleTabs.length > 0) {
       return state.routes.filter(route =>
         visibleTabs.includes(route.name)
       );
     }
 
-    // Fallback: usar todas as rotas (comportamento original)
     return state.routes;
   }, [state.routes, visibleTabs, tabConfig]);
 
-  // CALCULAR O ÍNDICE ATIVO BASEADO NAS ROTAS FILTRADAS
   const activeIndex = useMemo(() => {
     const currentRoute = state.routes[state.index];
     return filteredRoutes.findIndex(route => route.key === currentRoute.key);
   }, [state.index, state.routes, filteredRoutes]);
-
-  const tabBarHeight = 44 + 16 + Math.max(insets.bottom, 6);
 
   const handleTabPress = useCallback((route: TabRoute, index: number) => {
     const isFocused = state.index === state.routes.findIndex(r => r.key === route.key);
@@ -464,10 +436,11 @@ const CustomTabBarComponent = React.memo<TabBarProps>(({
             activeIndex={activeIndex}
             onPress={() => handleTabPress(route, index)}
             descriptor={descriptor}
+            config={config}
           />
         );
       }),
-    [filteredRoutes, state.index, state.routes, activeIndex, handleTabPress, descriptors]
+    [filteredRoutes, state.index, state.routes, activeIndex, handleTabPress, descriptors, config]
   );
 
   React.useEffect(() => {
@@ -482,17 +455,31 @@ const CustomTabBarComponent = React.memo<TabBarProps>(({
     });
   }, [filteredRoutes, descriptors, tabBarHeight]);
 
-  // Se não há rotas para mostrar, não renderizar nada
   if (filteredRoutes.length === 0) {
     return null;
   }
 
   return (
-    <CustomTabBar>
-      <TabContent paddingBottom={Math.max(insets.bottom, 6)}>
+    <AnimatedView style={[{
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: config.colors.background,
+      borderTopLeftRadius: config.spacing.borderRadius,
+      borderTopRightRadius: config.spacing.borderRadius,
+      shadowColor: config.colors.shadow,
+      shadowOpacity: 0.2,
+      shadowRadius: 1
+    }, animatedTabBarStyle]}>
+      <TabContent
+        paddingHorizontal={config.spacing.paddingHorizontal}
+        paddingTop={config.spacing.paddingTop}
+        paddingBottom={Math.max(insets.bottom, 8)}
+      >
         {tabButtons}
       </TabContent>
-    </CustomTabBar>
+    </AnimatedView>
   );
 });
 
@@ -503,7 +490,8 @@ export const AnimatedTabBar = React.memo<Partial<TabBarProps>>(({
                                                                   descriptors,
                                                                   navigation,
                                                                   visibleTabs,
-                                                                  tabConfig
+                                                                  tabConfig,
+                                                                  hiddenRoutes
                                                                 }) => {
   if (!state || !descriptors || !navigation) {
     console.warn('AnimatedTabBar: Missing required props');
@@ -517,6 +505,7 @@ export const AnimatedTabBar = React.memo<Partial<TabBarProps>>(({
       navigation={navigation}
       visibleTabs={visibleTabs}
       tabConfig={tabConfig}
+      hiddenRoutes={hiddenRoutes}
     />
   );
 });

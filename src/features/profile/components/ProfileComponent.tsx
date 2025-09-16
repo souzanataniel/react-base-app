@@ -80,22 +80,22 @@ export const ProfileComponent: React.FC<ProfileComponentProps> = ({
   const profileOptions = [
     {
       icon: <Edit3 size={24} color="$absoluteTextTertiary"/>,
-      title: 'Edit Profile Name',
+      title: 'Alterar Dados Pessoais',
       onPress: onEditProfile || (() => {})
     },
     {
       icon: <Lock size={24} color="$absoluteTextTertiary"/>,
-      title: 'Change Password',
+      title: 'Alterar Senha',
       onPress: onChangePassword || (() => {})
     },
     {
       icon: <Mail size={24} color="$absoluteTextTertiary"/>,
-      title: 'Change Email Address',
+      title: 'Alterar Email Cadastrado',
       onPress: onChangeEmail || (() => {})
     },
     {
       icon: <Settings size={24} color="$absoluteTextTertiary"/>,
-      title: 'Settings',
+      title: 'Configurações',
       onPress: onSettings || (() => {})
     },
   ];
@@ -177,7 +177,7 @@ export const ProfileComponent: React.FC<ProfileComponentProps> = ({
 
           <ProfileOption
             icon={<LogOut size={24} color="$absoluteTextTertiary"/>}
-            title="Log out"
+            title="Sair do App"
             onPress={onLogout || (() => {})}
           />
         </ScrollView>

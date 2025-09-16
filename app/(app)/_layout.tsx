@@ -4,9 +4,14 @@ import {AnimatedTabBar} from '@/shared/components/ui/AnimatedTabBar';
 import {AuthGuard} from '@/features/auth/components/AuthGuard';
 
 export default function AppLayout() {
+  const visibleTabs = ['home', 'favorites', 'profile', 'settings'];
+  const hiddenTabs = ['notifications', 'update-profile'];
   return (
     <AuthGuard requireAuth={true}>
-      <Tabs tabBar={(props) => <AnimatedTabBar {...props} visibleTabs={['home', 'favorites', 'profile', 'settings']} />}>
+      <Tabs
+        tabBar={(props) =>
+          <AnimatedTabBar {...props} visibleTabs={visibleTabs} hiddenRoutes={hiddenTabs}/>}>
+
         <Tabs.Screen
           name="home"
           options={{
@@ -41,6 +46,25 @@ export default function AppLayout() {
             headerShown: false,
           }}
         />
+
+        <Tabs.Screen
+          name="update-profile"
+          options={{
+            title: 'Atualizar Perfil',
+            tabBarLabel: 'Atualizar Perfil',
+            headerShown: false,
+          }}
+        />
+
+        <Tabs.Screen
+          name="notifications"
+          options={{
+            title: 'Notificações',
+            tabBarLabel: 'Notificações',
+            headerShown: false,
+          }}
+        />
+
       </Tabs>
     </AuthGuard>
   );

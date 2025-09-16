@@ -7,6 +7,8 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {SignUpForm} from '@/features/auth/components/SignUpForm';
 import {LogoMediumDark} from '@/shared/components/ui/Background/Logo';
 import {useBaseAlert} from '@/shared/components/feedback/Alert/BaseAlertProvider';
+import {LinearGradient} from 'expo-linear-gradient';
+import {useGradient} from '@/shared/components/ui/GradientBox/GradientBox';
 
 export const SignUpScreen = () => {
   const {
@@ -32,6 +34,7 @@ export const SignUpScreen = () => {
 
   const insets = useSafeAreaInsets();
   const alert = useBaseAlert();
+  const heroGradient = useGradient('medium');
 
   const handleSubmitClick = async () => {
     const result = await submit();
@@ -51,103 +54,105 @@ export const SignUpScreen = () => {
 
   return (
     <BaseScreenWrapper>
-      <View flex={1} paddingTop={insets.top + 10} justifyContent="center">
-        <YStack padding="$2" gap="$2">
-          <YStack
-            backgroundColor="$white"
-            borderRadius="$6"
-            padding="$5"
-            marginHorizontal="$2"
-            shadowColor="#000"
-            shadowOpacity={0.15}
-            shadowOffset={{width: 0, height: 1}}
-            shadowRadius={3}
-            gap="$2"
-          >
-            {/* Logo centralizada */}
-            <YStack alignItems="center" marginBottom="$2">
-              <LogoMediumDark/>
-            </YStack>
+      <LinearGradient colors={heroGradient} style={{flex: 1}}>
+        <View flex={1} paddingTop={insets.top + 10} justifyContent="center">
+          <YStack padding="$2" gap="$2">
+            <YStack
+              backgroundColor="$white"
+              borderRadius="$6"
+              padding="$5"
+              marginHorizontal="$2"
+              shadowColor="#000"
+              shadowOpacity={0.15}
+              shadowOffset={{width: 0, height: 1}}
+              shadowRadius={3}
+              gap="$2"
+            >
+              {/* Logo centralizada */}
+              <YStack alignItems="center" marginBottom="$2">
+                <LogoMediumDark/>
+              </YStack>
 
-            <YStack gap="$2" alignItems="center">
-              <Text fontSize="$6" fontWeight="600" color="$absoluteTextPrimary" textAlign="center">
-                Cadastrar
-              </Text>
-              <Text fontSize="$3" fontWeight="400" color="$absoluteTextSecondary" textAlign="center">
-                Preencha os dados para criar sua conta
-              </Text>
-            </YStack>
-
-            <SignUpForm
-              firstName={firstName}
-              lastName={lastName}
-              email={email}
-              phone={phone}
-              password={password}
-              acceptTerms={acceptTerms}
-              onFirstNameChange={(value) => {
-                updateFirstName(value);
-                clearError();
-              }}
-              onLastNameChange={(value) => {
-                updateLastName(value);
-                clearError();
-              }}
-              onEmailChange={(value) => {
-                updateEmail(value);
-                clearError();
-              }}
-              onPhoneChange={(value) => {
-                updatePhone(value);
-                clearError();
-              }}
-              onPasswordChange={(value) => {
-                updatePassword(value);
-                clearError();
-              }}
-              onAcceptTermsChange={(value) => {
-                updateAcceptTerms(value);
-                clearError();
-              }}
-              onBlurFirstName={() => {}}
-              onBlurLastName={() => {}}
-              onBlurEmail={() => {}}
-              onBlurPhone={() => {}}
-              onBlurPassword={() => {}}
-              canSubmit={canSubmit}
-              isLoading={isLoading}
-              onSubmit={handleSubmitClick}
-              passwordStrength={getPasswordStrength()}
-            />
-
-            <YStack alignItems="center" gap="$2" marginTop="$2">
-              <XStack alignItems="center" width="100%" paddingHorizontal="$4">
-                <View flex={1} height={1} backgroundColor="$absolutePlaceholder"/>
-                <Text
-                  fontSize="$3"
-                  color="$absoluteTextTertiary"
-                  paddingHorizontal="$3"
-                  fontWeight="400"
-                >
-                  ou
+              <YStack gap="$2" alignItems="center">
+                <Text fontSize="$6" fontWeight="600" color="$absoluteTextPrimary" textAlign="center">
+                  Cadastrar
                 </Text>
-                <View flex={1} height={1} backgroundColor="$absolutePlaceholder"/>
-              </XStack>
+                <Text fontSize="$3" fontWeight="400" color="$absoluteTextSecondary" textAlign="center">
+                  Preencha os dados para criar sua conta
+                </Text>
+              </YStack>
 
-              <Link href="/(auth)/sign-in" replace asChild>
-                <YStack alignItems="center" pressStyle={{opacity: 0.7}}>
-                  <Text fontSize="$3" color="$absoluteTextTertiary" fontWeight="400" textAlign="center">
-                    Já possui conta?{' '}
-                    <Text fontWeight="600" textDecorationLine="underline" color="$absoluteTextSecondary">
-                      Fazer login
-                    </Text>
+              <SignUpForm
+                firstName={firstName}
+                lastName={lastName}
+                email={email}
+                phone={phone}
+                password={password}
+                acceptTerms={acceptTerms}
+                onFirstNameChange={(value) => {
+                  updateFirstName(value);
+                  clearError();
+                }}
+                onLastNameChange={(value) => {
+                  updateLastName(value);
+                  clearError();
+                }}
+                onEmailChange={(value) => {
+                  updateEmail(value);
+                  clearError();
+                }}
+                onPhoneChange={(value) => {
+                  updatePhone(value);
+                  clearError();
+                }}
+                onPasswordChange={(value) => {
+                  updatePassword(value);
+                  clearError();
+                }}
+                onAcceptTermsChange={(value) => {
+                  updateAcceptTerms(value);
+                  clearError();
+                }}
+                onBlurFirstName={() => {}}
+                onBlurLastName={() => {}}
+                onBlurEmail={() => {}}
+                onBlurPhone={() => {}}
+                onBlurPassword={() => {}}
+                canSubmit={canSubmit}
+                isLoading={isLoading}
+                onSubmit={handleSubmitClick}
+                passwordStrength={getPasswordStrength()}
+              />
+
+              <YStack alignItems="center" gap="$2" marginTop="$2">
+                <XStack alignItems="center" width="100%" paddingHorizontal="$4">
+                  <View flex={1} height={1} backgroundColor="$absolutePlaceholder"/>
+                  <Text
+                    fontSize="$3"
+                    color="$absoluteTextTertiary"
+                    paddingHorizontal="$3"
+                    fontWeight="400"
+                  >
+                    ou
                   </Text>
-                </YStack>
-              </Link>
+                  <View flex={1} height={1} backgroundColor="$absolutePlaceholder"/>
+                </XStack>
+
+                <Link href="/(auth)/sign-in" replace asChild>
+                  <YStack alignItems="center" pressStyle={{opacity: 0.7}}>
+                    <Text fontSize="$3" color="$absoluteTextTertiary" fontWeight="400" textAlign="center">
+                      Já possui conta?{' '}
+                      <Text fontWeight="600" textDecorationLine="underline" color="$absoluteTextSecondary">
+                        Fazer login
+                      </Text>
+                    </Text>
+                  </YStack>
+                </Link>
+              </YStack>
             </YStack>
           </YStack>
-        </YStack>
-      </View>
+        </View>
+      </LinearGradient>
     </BaseScreenWrapper>
   );
 };
