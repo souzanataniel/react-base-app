@@ -54,9 +54,15 @@ export function UpdateProfileForm(props: UpdateProfileFormProps) {
   return (
     <YStack gap="$4">
       <YStack gap="$2">
-        <Text fontSize="$6" fontWeight="600" color="$absolutePrimary" marginBottom="$2">
-          Atualizar Dados Pessoais
-        </Text>
+
+        <YStack gap="$1" marginBottom="$6" alignItems="center">
+          <Text fontSize="$6" fontWeight="500" color="$absoluteTextSecondary" textAlign="center">
+            Dados Pessoais
+          </Text>
+          <Text fontSize="$3" fontWeight="400" color="$absoluteTextTertiary" textAlign="center">
+            Atualizar Dados Básicos do Usuário.
+          </Text>
+        </YStack>
 
         <LabelInput
           label="Nome"

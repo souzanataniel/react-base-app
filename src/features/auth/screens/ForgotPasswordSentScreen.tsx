@@ -1,13 +1,14 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {Text, View, XStack, YStack} from 'tamagui';
 import {BaseScreenWrapper} from '@/shared/components/layout';
 import {HapticButton} from '@/shared/components';
-import {router} from 'expo-router';
+import {router, useFocusEffect} from 'expo-router';
 import {Mail} from '@tamagui/lucide-icons';
 import {LogoSmallDark} from '@/shared/components/ui/Background/Logo';
 import LottieView from 'lottie-react-native';
 import {useGradient} from '@/shared/components/ui/GradientBox/GradientBox';
 import {LinearGradient} from 'expo-linear-gradient';
+import {useStatusBar} from '@/shared/components/ui/StatusBarContext/StatusBarContext';
 
 interface Props {
   email?: string;
@@ -15,6 +16,14 @@ interface Props {
 
 export const ForgotPasswordSentScreen = ({email = 'seu email !'}: Props) => {
   const heroGradient = useGradient('medium');
+  const {setStatusBar, resetStatusBar} = useStatusBar();
+
+  useFocusEffect(
+    useCallback(() => {
+      setStatusBar('#F3F4F6', 'dark');
+      return () => resetStatusBar();
+    }, [setStatusBar, resetStatusBar])
+  );
 
   return (
     <BaseScreenWrapper>

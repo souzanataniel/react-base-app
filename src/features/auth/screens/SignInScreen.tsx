@@ -1,7 +1,7 @@
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {Text, View, XStack, YStack} from 'tamagui';
 import {BaseScreenWrapper} from '@/shared/components/layout';
-import {Link} from 'expo-router';
+import {Link, useFocusEffect} from 'expo-router';
 import {useSignIn} from '@/features/auth/hooks/useSignIn';
 import {COLORS} from '@/shared/constants/colors';
 import {SignInForm} from '@/features/auth/components/SignInForm';
@@ -9,6 +9,7 @@ import {useBaseAlert} from '@/shared/components/feedback/Alert/BaseAlertProvider
 import {LogoMediumDark} from '@/shared/components/ui/Background/Logo';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useGradient} from '@/shared/components/ui/GradientBox/GradientBox';
+import {useStatusBar} from '@/shared/components/ui/StatusBarContext/StatusBarContext';
 
 export const SignInScreen = () => {
   const {
@@ -24,6 +25,7 @@ export const SignInScreen = () => {
   } = useSignIn();
   const alert = useBaseAlert();
   const heroGradient = useGradient('medium');
+  const {setStatusBar, resetStatusBar} = useStatusBar();
 
   const handleSubmitClick = async () => {
     const result = await submit();
@@ -45,6 +47,13 @@ export const SignInScreen = () => {
     updateEmail('souzanataniel@hotmail.com');
     updatePassword('123456');
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      setStatusBar('#F3F4F6', 'dark');
+      return () => resetStatusBar();
+    }, [setStatusBar, resetStatusBar])
+  );
 
   return (
     <BaseScreenWrapper>

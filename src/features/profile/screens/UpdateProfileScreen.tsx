@@ -16,26 +16,34 @@ export const UpdateProfileScreen = () => {
   const [isNavigating, setIsNavigating] = useState(false);
 
   const [formData, setFormData] = useState({
-    firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
-    displayName: user?.displayName || '',
-    phone: user?.phone || '',
-    dateOfBirth: user?.dateOfBirth || '',
+    firstName: '',
+    lastName: '',
+    displayName: '',
+    phone: '',
+    dateOfBirth: '',
   });
 
   useFocusEffect(
     useCallback(() => {
+      setFormData({
+        firstName: user?.firstName || '',
+        lastName: user?.lastName || '',
+        displayName: user?.displayName || '',
+        phone: user?.phone || '',
+        dateOfBirth: user?.dateOfBirth || '',
+      });
+
       setIsNavigating(false);
       setFooterVisible(false);
 
       const timer = setTimeout(() => {
         setFooterVisible(true);
-      }, 150);
+      }, 50);
 
       return () => {
         clearTimeout(timer);
       };
-    }, [])
+    }, [user])
   );
 
   const hasChanges = useMemo(() => {
@@ -78,7 +86,7 @@ export const UpdateProfileScreen = () => {
     <BaseScreenWrapper>
       <View flex={1}>
         <BasicHeader
-          title="Dados Pessoais"
+          title="Meu Perfil"
           onBack={handleBack}
         />
 
@@ -86,7 +94,7 @@ export const UpdateProfileScreen = () => {
           flex={1}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
-            paddingBottom: tabBarHeight + 20,
+            paddingBottom: tabBarHeight,
           }}
         >
           <YStack padding="$2" gap="$2">

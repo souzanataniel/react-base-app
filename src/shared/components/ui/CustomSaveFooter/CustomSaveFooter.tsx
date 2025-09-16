@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {Pressable} from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import Animated, {
   cancelAnimation,
@@ -11,9 +11,12 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import { styled, Text, View, XStack } from 'tamagui';
-import { CheckIcon } from 'react-native-heroicons/outline';
-import { useTabBarHeight } from '@/shared/components/ui/AnimatedTabBar/hooks/useTabBarHeight';
+import {styled, Text, View, XStack} from 'tamagui';
+import {CheckIcon} from 'react-native-heroicons/outline';
+import {useTabBarHeight} from '@/shared/components/ui/AnimatedTabBar/hooks/useTabBarHeight';
+
+// Tipos melhorados
+type HapticType = 'press' | 'error' | 'success';
 
 interface ButtonStyleConfig {
   height: number;
@@ -23,6 +26,8 @@ interface ButtonStyleConfig {
   paddingVertical: number;
   borderRadius: number;
   iconSize: number;
+  IconComponent?: React.ComponentType<any>;
+  successIcon?: React.ComponentType<any>;
 }
 
 interface FooterConfig {
@@ -30,6 +35,11 @@ interface FooterConfig {
   showLoadingSpinner: boolean;
   enableErrorShake: boolean;
   buttonStyle: ButtonStyleConfig;
+  animation?: {
+    hideShow?: {
+      duration?: number;
+    };
+  };
 }
 
 interface CustomSaveFooterProps {
@@ -40,7 +50,15 @@ interface CustomSaveFooterProps {
   saveText?: string;
   visible?: boolean;
   config?: Partial<FooterConfig>;
+  onError?: (error: Error) => void;
+  showSuccessFeedback?: boolean;
 }
+
+type ButtonAnimationState = {
+  scale: number;
+  translateY: number;
+  translateX: number;
+};
 
 const AnimatedView = Animated.createAnimatedComponent(View);
 const AnimatedText = Animated.createAnimatedComponent(Text);
@@ -77,11 +95,15 @@ const useFooterAnimation = (visible: boolean, tabBarHeight: number, config: any)
 
   useEffect(() => {
     if (visible) {
-      slideTranslateY.value = withTiming(0, { duration: config.animation.hideShow.duration });
+      slideTranslateY.value = withTiming(0, {
+        duration: config.animation?.hideShow?.duration || 300
+      });
     } else {
-      slideTranslateY.value = withTiming(tabBarHeight, { duration: config.animation.hideShow.duration });
+      slideTranslateY.value = withTiming(tabBarHeight, {
+        duration: config.animation?.hideShow?.duration || 300
+      });
     }
-  }, [visible, tabBarHeight, slideTranslateY, config.animation.hideShow]);
+  }, [visible, tabBarHeight, slideTranslateY, config]);
 
   useEffect(() => {
     return () => {
@@ -90,19 +112,22 @@ const useFooterAnimation = (visible: boolean, tabBarHeight: number, config: any)
   }, [slideTranslateY]);
 
   const animatedFooterStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: slideTranslateY.value }],
+    transform: [{translateY: slideTranslateY.value}],
   }));
 
-  return { animatedFooterStyle };
+  return {animatedFooterStyle};
 };
 
 const useSaveButton = (
   onSave: () => Promise<void> | void,
   isLoading: boolean,
   disabled: boolean,
-  footerConfig: FooterConfig
+  footerConfig: FooterConfig,
+  onError?: (error: Error) => void,
+  showSuccessFeedback?: boolean
 ) => {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
   const buttonAnimations = useSharedValue({
     scale: 1,
@@ -110,69 +135,86 @@ const useSaveButton = (
     translateX: 0,
   });
 
-  const triggerHapticFeedback = useCallback((type: 'press' | 'error') => {
+  const triggerHapticFeedback = useCallback((type: HapticType) => {
     if (!footerConfig.hapticFeedback) return;
 
-    if (type === 'press') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    } else {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    switch (type) {
+      case 'press':
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        break;
+      case 'error':
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        break;
+      case 'success':
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        break;
     }
   }, [footerConfig.hapticFeedback]);
+
+  const updateAnimation = useCallback((updates: Partial<ButtonAnimationState>) => {
+    'worklet';
+    buttonAnimations.value = {...buttonAnimations.value, ...updates};
+  }, [buttonAnimations]);
 
   const handlePress = useCallback(async () => {
     if (disabled || isLoading || isProcessing) return;
 
     setIsProcessing(true);
+    setError(null);
     triggerHapticFeedback('press');
 
-    buttonAnimations.value = {
-      ...buttonAnimations.value,
-      translateY: withSpring(-1, { damping: 15, stiffness: 400 }, () => {
-        buttonAnimations.value = {
-          ...buttonAnimations.value,
-          translateY: withSpring(0, { damping: 15, stiffness: 350 })
-        };
+    updateAnimation({
+      translateY: withSpring(-1, {damping: 15, stiffness: 400}, () => {
+        updateAnimation({
+          translateY: withSpring(0, {damping: 15, stiffness: 350})
+        });
       })
-    };
+    });
 
     try {
       await onSave();
-    } catch (error) {
+      if (showSuccessFeedback) {
+        triggerHapticFeedback('success');
+      }
+    } catch (err) {
+      const error = err as Error;
+      setError(error);
+      onError?.(error);
       triggerHapticFeedback('error');
 
       if (footerConfig.enableErrorShake) {
-        buttonAnimations.value = {
-          ...buttonAnimations.value,
+        updateAnimation({
           translateX: withSequence(
-            withTiming(-8, { duration: 80 }),
-            withRepeat(withTiming(8, { duration: 80 }), 3, true),
-            withTiming(0, { duration: 80 })
+            withTiming(-8, {duration: 80}),
+            withRepeat(withTiming(8, {duration: 80}), 3, true),
+            withTiming(0, {duration: 80})
           )
-        };
+        });
       }
     } finally {
       setIsProcessing(false);
     }
-  }, [disabled, isLoading, isProcessing, onSave, triggerHapticFeedback, buttonAnimations, footerConfig.enableErrorShake]);
+  }, [
+    disabled,
+    isLoading,
+    isProcessing,
+    onSave,
+    triggerHapticFeedback,
+    updateAnimation,
+    footerConfig.enableErrorShake,
+    onError,
+    showSuccessFeedback
+  ]);
 
   const handlePressIn = useCallback(() => {
     if (disabled || isLoading || isProcessing) return;
-
-    buttonAnimations.value = {
-      ...buttonAnimations.value,
-      scale: withSpring(0.96, { damping: 20, stiffness: 500 })
-    };
-  }, [disabled, isLoading, isProcessing, buttonAnimations]);
+    updateAnimation({scale: withSpring(0.96, {damping: 20, stiffness: 500})});
+  }, [disabled, isLoading, isProcessing, updateAnimation]);
 
   const handlePressOut = useCallback(() => {
     if (disabled || isLoading || isProcessing) return;
-
-    buttonAnimations.value = {
-      ...buttonAnimations.value,
-      scale: withSpring(1, { damping: 20, stiffness: 500 })
-    };
-  }, [disabled, isLoading, isProcessing, buttonAnimations]);
+    updateAnimation({scale: withSpring(1, {damping: 20, stiffness: 500})});
+  }, [disabled, isLoading, isProcessing, updateAnimation]);
 
   return {
     handlePress,
@@ -180,15 +222,16 @@ const useSaveButton = (
     handlePressOut,
     buttonAnimations,
     isProcessing,
+    error,
   };
 };
 
-const LoadingSpinner = React.memo<{ size: number }>(({ size }) => {
+const LoadingSpinner = React.memo<{ size: number; color?: string }>(({size, color = 'white'}) => {
   const rotation = useSharedValue(0);
 
   useEffect(() => {
     rotation.value = withRepeat(
-      withTiming(360, { duration: 1000 }),
+      withTiming(360, {duration: 1000}),
       -1,
       false
     );
@@ -197,7 +240,7 @@ const LoadingSpinner = React.memo<{ size: number }>(({ size }) => {
   }, [rotation]);
 
   const animatedSpinnerStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${rotation.value}deg` }],
+    transform: [{rotate: `${rotation.value}deg`}],
   }));
 
   return (
@@ -208,7 +251,7 @@ const LoadingSpinner = React.memo<{ size: number }>(({ size }) => {
           height: size,
           borderRadius: size / 2,
           borderWidth: 2,
-          borderColor: 'white',
+          borderColor: color,
           borderTopColor: 'transparent',
         },
         animatedSpinnerStyle,
@@ -227,6 +270,8 @@ const SaveButton = React.memo<{
   saveText: string;
   config: any;
   footerConfig: FooterConfig;
+  onError?: (error: Error) => void;
+  showSuccessFeedback?: boolean;
 }>(({
       onPress,
       isLoading,
@@ -235,6 +280,8 @@ const SaveButton = React.memo<{
       saveText,
       config,
       footerConfig,
+      onError,
+      showSuccessFeedback,
     }) => {
   const {
     handlePress,
@@ -242,33 +289,46 @@ const SaveButton = React.memo<{
     handlePressOut,
     buttonAnimations,
     isProcessing,
-  } = useSaveButton(onPress, isLoading, disabled, footerConfig);
+    error,
+  } = useSaveButton(onPress, isLoading, disabled, footerConfig, onError, showSuccessFeedback);
 
-  const { buttonStyle } = footerConfig;
-  const isButtonDisabled = disabled || isLoading || isProcessing;
+  const {buttonStyle} = footerConfig;
+  const isButtonDisabled = useMemo(() =>
+      disabled || isLoading || isProcessing,
+    [disabled, isLoading, isProcessing]
+  );
 
-  const animatedContainerStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: buttonAnimations.value.scale },
-      { translateY: buttonAnimations.value.translateY },
-      { translateX: buttonAnimations.value.translateX },
-    ],
-  }));
+  const SuccessIcon = footerConfig.buttonStyle.successIcon || CheckIcon;
+  const IconComponent = footerConfig.buttonStyle.IconComponent || CheckIcon;
 
-  const animatedButtonStyle = useAnimatedStyle(() => ({
-    backgroundColor: withTiming(
-      isButtonDisabled ? config.colors.inactive : config.colors.active,
-      { duration: 200 }
-    ),
-    borderRadius: buttonStyle.borderRadius,
-    paddingHorizontal: buttonStyle.paddingHorizontal,
-    paddingVertical: buttonStyle.paddingVertical,
-    height: buttonStyle.height,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 6,
-  }));
+  const animatedContainerStyle = useAnimatedStyle(() => {
+    'worklet';
+    return {
+      transform: [
+        {scale: buttonAnimations.value.scale},
+        {translateY: buttonAnimations.value.translateY},
+        {translateX: buttonAnimations.value.translateX},
+      ],
+    };
+  });
+
+  const animatedButtonStyle = useAnimatedStyle(() => {
+    'worklet';
+    return {
+      backgroundColor: withTiming(
+        isButtonDisabled ? config.colors.inactive : config.colors.active,
+        {duration: 200}
+      ),
+      borderRadius: buttonStyle.borderRadius,
+      paddingHorizontal: buttonStyle.paddingHorizontal,
+      paddingVertical: buttonStyle.paddingVertical,
+      height: buttonStyle.height,
+      justifyContent: 'center',
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: 6,
+    };
+  });
 
   const buttonText = isLoading || isProcessing ? loadingText : saveText;
 
@@ -280,6 +340,7 @@ const SaveButton = React.memo<{
       disabled={isButtonDisabled}
       accessibilityRole="button"
       accessibilityLabel={buttonText}
+      accessibilityHint={isLoading ? 'Saving in progress' : 'Save changes'}
       accessibilityState={{
         busy: isLoading || isProcessing,
         disabled: isButtonDisabled,
@@ -292,9 +353,9 @@ const SaveButton = React.memo<{
       <AnimatedView style={animatedContainerStyle}>
         <AnimatedView style={animatedButtonStyle}>
           {(isLoading || isProcessing) && footerConfig.showLoadingSpinner ? (
-            <LoadingSpinner size={buttonStyle.iconSize} />
+            <LoadingSpinner size={buttonStyle.iconSize}/>
           ) : (
-            <CheckIcon size={buttonStyle.iconSize} color="white" />
+            <IconComponent size={buttonStyle.iconSize} color="white"/>
           )}
 
           <AnimatedText
@@ -322,9 +383,11 @@ export const CustomSaveFooter = React.memo<CustomSaveFooterProps>(({
                                                                      saveText = 'Salvar alterações',
                                                                      visible = true,
                                                                      config: userConfig = {},
+                                                                     onError,
+                                                                     showSuccessFeedback = true,
                                                                    }) => {
   const insets = useSafeAreaInsets();
-  const { tabBarHeight, config } = useTabBarHeight();
+  const {tabBarHeight, config} = useTabBarHeight();
 
   const footerConfig = useMemo(() => ({
     ...defaultFooterConfig,
@@ -335,7 +398,7 @@ export const CustomSaveFooter = React.memo<CustomSaveFooterProps>(({
     },
   }), [userConfig]);
 
-  const { animatedFooterStyle } = useFooterAnimation(visible, tabBarHeight, config);
+  const {animatedFooterStyle} = useFooterAnimation(visible, tabBarHeight, config);
 
   const handleSave = useCallback(async () => {
     await onSave();
@@ -374,6 +437,8 @@ export const CustomSaveFooter = React.memo<CustomSaveFooterProps>(({
             saveText={saveText}
             config={config}
             footerConfig={footerConfig}
+            onError={onError}
+            showSuccessFeedback={showSuccessFeedback}
           />
         </SaveButtonContainer>
       </FooterContent>

@@ -1,7 +1,7 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {Text, View, XStack, YStack} from 'tamagui';
 import {BaseScreenWrapper} from '@/shared/components/layout';
-import {Link} from 'expo-router';
+import {Link, useFocusEffect} from 'expo-router';
 import {useSignUp} from '@/features/auth/hooks/useSignUp';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {SignUpForm} from '@/features/auth/components/SignUpForm';
@@ -9,6 +9,7 @@ import {LogoMediumDark} from '@/shared/components/ui/Background/Logo';
 import {useBaseAlert} from '@/shared/components/feedback/Alert/BaseAlertProvider';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useGradient} from '@/shared/components/ui/GradientBox/GradientBox';
+import {useStatusBar} from '@/shared/components/ui/StatusBarContext/StatusBarContext';
 
 export const SignUpScreen = () => {
   const {
@@ -35,6 +36,7 @@ export const SignUpScreen = () => {
   const insets = useSafeAreaInsets();
   const alert = useBaseAlert();
   const heroGradient = useGradient('medium');
+  const {setStatusBar, resetStatusBar} = useStatusBar();
 
   const handleSubmitClick = async () => {
     const result = await submit();
@@ -51,6 +53,13 @@ export const SignUpScreen = () => {
       alert.showError('Corrija os campos', msgs || 'Há erros no formulário.');
     }
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      setStatusBar('#F3F4F6', 'dark');
+      return () => resetStatusBar();
+    }, [setStatusBar, resetStatusBar])
+  );
 
   return (
     <BaseScreenWrapper>

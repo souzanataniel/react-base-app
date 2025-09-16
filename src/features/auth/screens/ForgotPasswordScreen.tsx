@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {Text, View, YStack} from 'tamagui';
 import {BaseScreenWrapper} from '@/shared/components/layout';
 import {LogoMediumDark} from '@/shared/components/ui/Background/Logo';
@@ -6,9 +6,10 @@ import {ForgotPasswordForm} from '@/features/auth/components/ForgotPasswordForm'
 import {useForgotPassword} from '@/features/auth/hooks/useForgotPassword';
 import {useBaseAlert} from '@/shared/components/feedback/Alert/BaseAlertProvider';
 import {HapticButton} from '@/shared/components';
-import {router} from 'expo-router';
+import {router, useFocusEffect} from 'expo-router';
 import {useGradient} from '@/shared/components/ui/GradientBox/GradientBox';
 import {LinearGradient} from 'expo-linear-gradient';
+import {useStatusBar} from '@/shared/components/ui/StatusBarContext/StatusBarContext';
 
 export const ForgotPasswordScreen = () => {
   const {
@@ -21,6 +22,7 @@ export const ForgotPasswordScreen = () => {
   } = useForgotPassword();
   const alert = useBaseAlert();
   const heroGradient = useGradient('medium');
+  const {setStatusBar, resetStatusBar} = useStatusBar();
 
   const handleSubmitClick = async () => {
     const result = await submit();
@@ -32,6 +34,13 @@ export const ForgotPasswordScreen = () => {
       alert.showError('Erro', result.message);
     }
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      setStatusBar('#F3F4F6', 'dark');
+      return () => resetStatusBar();
+    }, [setStatusBar, resetStatusBar])
+  );
 
   return (
     <BaseScreenWrapper>

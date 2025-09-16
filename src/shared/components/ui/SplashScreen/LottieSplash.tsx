@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {Animated, StyleSheet, Text, View} from 'react-native';
+import {Animated, Dimensions, StyleSheet, Text, View} from 'react-native';
 import LottieView from 'lottie-react-native';
 
 interface LottieSplashProps {
@@ -11,35 +11,75 @@ interface LottieSplashProps {
   text?: string;
   textColor?: string;
   textSize?: number;
-  animationSize?: { width: number; height: number };
+  animationSize?: { width: number; height: number } | 'fullscreen';
   spacing?: number;
+  fillMode?: 'contain' | 'cover' | 'stretch'; // Novo prop para controlar como a animação preenche
 }
 
 export const LottieSplash: React.FC<LottieSplashProps> = ({
                                                             onComplete,
                                                             animationSource,
                                                             duration = 3000,
-                                                            backgroundColor = '#FFFFFF',
+                                                            backgroundColor = '#2873FF',
                                                             loop = false,
                                                             text = 'Carregando...',
-                                                            textColor = '#666666',
+                                                            textColor = '#FFFFFF',
                                                             textSize = 16,
-                                                            animationSize = {width: 200, height: 200},
-                                                            spacing = 24
+                                                            animationSize = 'fullscreen',
+                                                            spacing = 24,
+                                                            fillMode = 'contain'
                                                           }) => {
   const animationRef = useRef<LottieView>(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const textFadeAnim = useRef(new Animated.Value(0)).current;
   const [animationCompleted, setAnimationCompleted] = useState(false);
 
+  // Obter dimensões da tela
+  const screenDimensions = Dimensions.get('window');
+  const screenWidth = screenDimensions.width;
+  const screenHeight = screenDimensions.height;
+
+  // Calcular tamanho da animação
+  const getAnimationSize = () => {
+    if (animationSize === 'fullscreen') {
+      switch (fillMode) {
+        case 'contain':
+          return {
+            width: screenWidth,
+            height: screenHeight,
+          };
+        case 'cover':
+          return {
+            width: screenWidth,
+            height: screenHeight,
+          };
+        case 'stretch':
+          return {
+            width: screenWidth,
+            height: screenHeight,
+          };
+        default:
+          return {
+            width: screenWidth,
+            height: screenHeight,
+          };
+      }
+    }
+    return animationSize;
+  };
+
+  const calculatedAnimationSize = getAnimationSize();
+
   useEffect(() => {
     console.log('🎬 Lottie splash iniciado');
+    console.log(`📱 Dimensões da tela: ${screenWidth}x${screenHeight}`);
+    console.log(`🎭 Tamanho da animação: ${calculatedAnimationSize.width}x${calculatedAnimationSize.height}`);
 
     animationRef.current?.play();
     console.log('▶️ Animação Lottie iniciada');
 
     setTimeout(() => {
-      console.log('📝 Fade in do texto iniciado');
+      console.log('🔤 Fade in do texto iniciado');
       Animated.timing(textFadeAnim, {
         toValue: 1,
         duration: 500,
@@ -85,6 +125,20 @@ export const LottieSplash: React.FC<LottieSplashProps> = ({
     });
   };
 
+  // Determinar o resizeMode baseado no fillMode
+  const getResizeMode = (): 'contain' | 'cover' | 'center' => {
+    switch (fillMode) {
+      case 'contain':
+        return 'contain';
+      case 'cover':
+        return 'cover';
+      case 'stretch':
+        return 'cover'; // LottieView não tem stretch, usa cover
+      default:
+        return 'contain';
+    }
+  };
+
   return (
     <Animated.View
       style={[
@@ -92,14 +146,21 @@ export const LottieSplash: React.FC<LottieSplashProps> = ({
         {backgroundColor, opacity: fadeAnim}
       ]}
     >
-      <View style={styles.content}>
+      <View style={[
+        styles.content,
+        animationSize === 'fullscreen' && styles.fullscreenContent
+      ]}>
         <LottieView
           ref={animationRef}
           source={animationSource}
-          style={[styles.animation, animationSize]}
+          style={[
+            styles.animation,
+            calculatedAnimationSize,
+            animationSize === 'fullscreen' && styles.fullscreenAnimation
+          ]}
           autoPlay={true}
           loop={loop}
-          resizeMode="contain"
+          resizeMode={getResizeMode()}
           onAnimationFinish={() => {
             console.log('🎬 Lottie animation finished naturalmente');
             handleComplete();
@@ -111,9 +172,10 @@ export const LottieSplash: React.FC<LottieSplashProps> = ({
             style={[
               styles.textContainer,
               {
-                marginTop: spacing,
+                marginTop: animationSize === 'fullscreen' ? 0 : spacing,
                 opacity: textFadeAnim
-              }
+              },
+              animationSize === 'fullscreen' && styles.fullscreenTextContainer
             ]}
           >
             <Text
@@ -144,11 +206,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  fullscreenContent: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    position: 'relative',
+  },
   animation: {
     width: 250,
     height: 250,
   },
+  fullscreenAnimation: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
   textContainer: {
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  fullscreenTextContainer: {
+    position: 'absolute',
+    bottom: 100,
+    left: 0,
+    right: 0,
     alignItems: 'center',
     paddingHorizontal: 32,
   },

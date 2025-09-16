@@ -3,7 +3,7 @@ import {Button, Text, View, XStack, YStack} from 'tamagui';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {BackgroundImage} from '@/shared/components/ui/Background/BackgroundImage';
 import {Link} from 'expo-router';
-import {LogoLarge, LogoLargeLight} from '@/shared/components/ui/Background/Logo';
+import {LogoLargeLight} from '@/shared/components/ui/Background/Logo';
 
 export const HomeAuthScreen = () => {
   const insets = useSafeAreaInsets()

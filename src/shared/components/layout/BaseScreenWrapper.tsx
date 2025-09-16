@@ -11,12 +11,17 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 interface BaseScreenWrapperProps {
   children: React.ReactNode;
   behavior?: 'padding' | 'height' | 'position';
   keyboardVerticalOffset?: number;
   enableKeyboardAnimation?: boolean;
+  useKeyboardAware?: boolean;
+  extraScrollHeight?: number;
+  keyboardOpeningTime?: number;
+  enableAutomaticScroll?: boolean;
 }
 
 export const BaseScreenWrapper: React.FC<BaseScreenWrapperProps> = ({
@@ -24,6 +29,10 @@ export const BaseScreenWrapper: React.FC<BaseScreenWrapperProps> = ({
                                                                       behavior = Platform.OS === 'ios' ? 'padding' : 'height',
                                                                       keyboardVerticalOffset,
                                                                       enableKeyboardAnimation = true,
+                                                                      useKeyboardAware = true,
+                                                                      extraScrollHeight = 0,
+                                                                      keyboardOpeningTime = 250,
+                                                                      enableAutomaticScroll = true,
                                                                     }) => {
   const insets = useSafeAreaInsets();
   const keyboardHeight = useRef(new Animated.Value(0)).current;
@@ -36,7 +45,7 @@ export const BaseScreenWrapper: React.FC<BaseScreenWrapperProps> = ({
   const finalOffset = keyboardVerticalOffset ?? defaultOffset;
 
   useEffect(() => {
-    if (!enableKeyboardAnimation) return;
+    if (!enableKeyboardAnimation || useKeyboardAware) return;
 
     const keyboardWillShow = (event: KeyboardEvent) => {
       const duration = Platform.OS === 'ios' ? event.duration || 250 : 250;
@@ -96,8 +105,42 @@ export const BaseScreenWrapper: React.FC<BaseScreenWrapperProps> = ({
     return () => {
       listeners.forEach(listener => listener?.remove());
     };
-  }, [keyboardHeight, enableKeyboardAnimation]);
+  }, [keyboardHeight, enableKeyboardAnimation, useKeyboardAware]);
 
+  // Nova implementação com KeyboardAwareScrollView
+  if (useKeyboardAware) {
+    return (
+      <YStack flex={1} backgroundColor="$baseBackgroundHover">
+        <KeyboardAwareScrollView
+          contentContainerStyle={{flexGrow: 1}}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          scrollEnabled={true}
+          bounces={false}
+          bouncesZoom={false}
+          alwaysBounceVertical={false}
+          alwaysBounceHorizontal={false}
+          overScrollMode="never"
+          decelerationRate="fast"
+          scrollEventThrottle={16}
+          automaticallyAdjustContentInsets={false}
+          contentInsetAdjustmentBehavior="never"
+          extraScrollHeight={extraScrollHeight}
+          enableOnAndroid={true}
+          keyboardOpeningTime={keyboardOpeningTime}
+          enableAutomaticScroll={enableAutomaticScroll}
+          enableResetScrollToCoords={false}
+          viewIsInsideTabBar={false}
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            {children}
+          </TouchableWithoutFeedback>
+        </KeyboardAwareScrollView>
+      </YStack>
+    );
+  }
+
+  // Implementação original com animação customizada
   if (enableKeyboardAnimation) {
     return (
       <YStack flex={1} backgroundColor="$baseBackgroundHover">
@@ -133,6 +176,7 @@ export const BaseScreenWrapper: React.FC<BaseScreenWrapperProps> = ({
     );
   }
 
+  // Fallback com KeyboardAvoidingView nativo
   return (
     <YStack flex={1} backgroundColor="$baseBackgroundHover">
       <KeyboardAvoidingView

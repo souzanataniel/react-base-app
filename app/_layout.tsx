@@ -126,12 +126,9 @@ export default function RootLayout() {
             animationSource={splashAnimation}
             onComplete={handleSplashComplete}
             duration={5000}
-            backgroundColor="#2873FF"
-            loop={false}
             text="Preparando sua experiência..."
-            textColor="#FFFFFF"
             textSize={16}
-            animationSize={{width: 250, height: 250}}
+            animationSize='fullscreen'
             spacing={32}
           />
         </View>
