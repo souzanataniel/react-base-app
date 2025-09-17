@@ -1,9 +1,31 @@
 import React from 'react';
-import {Pressable} from 'react-native';
+import {Platform, Pressable} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useRouter} from 'expo-router';
-import {Separator, Text, Theme, XStack, YStack} from 'tamagui';
+import {Text, Theme, XStack, YStack} from 'tamagui';
 import {ArrowLeft} from '@tamagui/lucide-icons';
+
+const DEFAULT_HEADER_HEIGHT = Platform.select({
+  ios: 44,
+  android: 56,
+  default: 56,
+})
+
+const headerShadow = Platform.select({
+  ios: {
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 0.5,
+    },
+    shadowOpacity: 0.22,
+    shadowRadius: 0.22,
+  },
+  android: {
+    elevation: 1,
+  },
+  default: {},
+});
 
 type BasicHeaderProps = {
   title: string;
@@ -50,10 +72,9 @@ export function BasicHeader({
                               rightIcon,
                               onRightPress,
                               showRight = !!rightIcon,
-                              barHeight = 56,
+                              barHeight = DEFAULT_HEADER_HEIGHT,
                               titleSizeToken = '$5',
-                              showBottomBorder = false,
-                              backgroundColor = '$absolutePrimary',
+                              backgroundColor = '$white',
                             }: BasicHeaderProps) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -65,25 +86,26 @@ export function BasicHeader({
 
   return (
     <Theme>
-      <YStack backgroundColor={backgroundColor}>
+      <YStack backgroundColor={backgroundColor} {...headerShadow}>
         <YStack height={insets.top} backgroundColor={backgroundColor}/>
 
         <XStack height={barHeight} alignItems="center" backgroundColor={backgroundColor} position="relative">
 
-          <XStack position="absolute" left={0} zIndex={1} width={56} alignItems="center" justifyContent="flex-start"
+          <XStack position="absolute" left={0} zIndex={1} alignItems="center" justifyContent="flex-start"
                   paddingHorizontal="$2">
             <IconButton onPress={handleBack} a11yLabel="Voltar">
-              <ArrowLeft size={22} color="white"/>
+              <ArrowLeft size={22} color="$absoluteTextPrimary"/>
             </IconButton>
           </XStack>
 
           <XStack flex={1} alignItems="center" justifyContent="center">
-            <Text fontSize={titleSizeToken} fontWeight="600" numberOfLines={1} ellipsizeMode="tail" color="white">
+            <Text fontSize={titleSizeToken} fontWeight="500" numberOfLines={1} ellipsizeMode="tail"
+                  color="$absoluteTextPrimary">
               {title}
             </Text>
           </XStack>
 
-          <XStack position="absolute" right={0} zIndex={1} width={56} alignItems="center" justifyContent="flex-end"
+          <XStack position="absolute" right={0} zIndex={1} alignItems="center" justifyContent="flex-end"
                   paddingHorizontal="$2">
             {showRight && rightIcon ? (
               <IconButton onPress={onRightPress} a11yLabel="Ação do header">
@@ -92,7 +114,6 @@ export function BasicHeader({
             ) : null}
           </XStack>
         </XStack>
-        {showBottomBorder && <Separator/>}
       </YStack>
     </Theme>
   );

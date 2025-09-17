@@ -1,211 +1,132 @@
 import React, {useEffect, useRef} from 'react';
 import {YStack} from 'tamagui';
-import {
-  Animated,
-  Easing,
-  Keyboard,
-  KeyboardAvoidingView,
-  KeyboardEvent,
-  Platform,
-  ScrollView,
-  TouchableWithoutFeedback,
-} from 'react-native';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {Animated, Easing, Keyboard, Platform, TouchableWithoutFeedback,} from 'react-native';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 interface BaseScreenWrapperProps {
   children: React.ReactNode;
-  behavior?: 'padding' | 'height' | 'position';
-  keyboardVerticalOffset?: number;
-  enableKeyboardAnimation?: boolean;
-  useKeyboardAware?: boolean;
   extraScrollHeight?: number;
   keyboardOpeningTime?: number;
   enableAutomaticScroll?: boolean;
+  scrollEnabled?: boolean;
+  contentContainerStyle?: object;
+  keyboardShouldPersistTaps?: 'always' | 'never' | 'handled';
+  enableKeyboardAnimation?: boolean;
+  animationDuration?: number;
 }
 
 export const BaseScreenWrapper: React.FC<BaseScreenWrapperProps> = ({
                                                                       children,
-                                                                      behavior = Platform.OS === 'ios' ? 'padding' : 'height',
-                                                                      keyboardVerticalOffset,
-                                                                      enableKeyboardAnimation = true,
-                                                                      useKeyboardAware = true,
-                                                                      extraScrollHeight = 0,
+                                                                      extraScrollHeight = 20,
                                                                       keyboardOpeningTime = 250,
                                                                       enableAutomaticScroll = true,
+                                                                      scrollEnabled = true,
+                                                                      contentContainerStyle,
+                                                                      keyboardShouldPersistTaps = 'handled',
+                                                                      enableKeyboardAnimation = true,
+                                                                      animationDuration = 300,
                                                                     }) => {
-  const insets = useSafeAreaInsets();
-  const keyboardHeight = useRef(new Animated.Value(0)).current;
-  const scrollViewRef = useRef<ScrollView>(null);
-
-  const defaultOffset = Platform.OS === 'ios'
-    ? insets.top + 20
-    : 0;
-
-  const finalOffset = keyboardVerticalOffset ?? defaultOffset;
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    if (!enableKeyboardAnimation || useKeyboardAware) return;
+    if (!enableKeyboardAnimation) return;
 
-    const keyboardWillShow = (event: KeyboardEvent) => {
-      const duration = Platform.OS === 'ios' ? event.duration || 250 : 250;
-
-      Animated.timing(keyboardHeight, {
-        duration,
-        toValue: event.endCoordinates.height,
-        easing: Easing.bezier(0.17, 0.59, 0.4, 0.77),
-        useNativeDriver: false,
-      }).start();
+    const keyboardWillShow = () => {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 0.95,
+          duration: keyboardOpeningTime,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 0.98,
+          duration: keyboardOpeningTime,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]).start();
     };
 
-    const keyboardWillHide = (event: KeyboardEvent) => {
-      const duration = Platform.OS === 'ios' ? event.duration || 250 : 250;
-
-      Animated.timing(keyboardHeight, {
-        duration,
-        toValue: 0,
-        easing: Easing.bezier(0.17, 0.59, 0.4, 0.77),
-        useNativeDriver: false,
-      }).start();
-    };
-
-    const keyboardDidShow = (event: KeyboardEvent) => {
-      if (Platform.OS === 'android') {
-        Animated.timing(keyboardHeight, {
-          duration: 250,
-          toValue: event.endCoordinates.height,
-          easing: Easing.bezier(0.17, 0.59, 0.4, 0.77),
-          useNativeDriver: false,
-        }).start();
-      }
-    };
-
-    const keyboardDidHide = () => {
-      if (Platform.OS === 'android') {
-        Animated.timing(keyboardHeight, {
-          duration: 250,
-          toValue: 0,
-          easing: Easing.bezier(0.17, 0.59, 0.4, 0.77),
-          useNativeDriver: false,
-        }).start();
-      }
+    const keyboardWillHide = () => {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: animationDuration,
+          easing: Easing.out(Easing.back(1.1)),
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 1,
+          duration: animationDuration,
+          easing: Easing.out(Easing.back(1.1)),
+          useNativeDriver: true,
+        }),
+      ]).start();
     };
 
     const listeners = [
       Keyboard.addListener(
         Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-        Platform.OS === 'ios' ? keyboardWillShow : keyboardDidShow
+        Platform.OS === 'ios' ? keyboardWillShow : keyboardWillShow
       ),
       Keyboard.addListener(
         Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-        Platform.OS === 'ios' ? keyboardWillHide : keyboardDidHide
+        Platform.OS === 'ios' ? keyboardWillHide : keyboardWillHide
       ),
     ];
 
     return () => {
       listeners.forEach(listener => listener?.remove());
     };
-  }, [keyboardHeight, enableKeyboardAnimation, useKeyboardAware]);
+  }, [fadeAnim, scaleAnim, keyboardOpeningTime, animationDuration, enableKeyboardAnimation]);
 
-  // Nova implementação com KeyboardAwareScrollView
-  if (useKeyboardAware) {
-    return (
-      <YStack flex={1} backgroundColor="$baseBackgroundHover">
+  return (
+    <YStack flex={1} backgroundColor="$baseBackground">
+      <Animated.View
+        style={{
+          flex: 1,
+          opacity: enableKeyboardAnimation ? fadeAnim : 1,
+          transform: enableKeyboardAnimation
+            ? [{scale: scaleAnim}]
+            : undefined,
+        }}
+      >
         <KeyboardAwareScrollView
-          contentContainerStyle={{flexGrow: 1}}
-          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={[
+            {flexGrow: 1},
+            contentContainerStyle,
+          ]}
+
+          extraScrollHeight={extraScrollHeight}
+          keyboardOpeningTime={keyboardOpeningTime}
+          enableAutomaticScroll={enableAutomaticScroll}
+          enableOnAndroid={true}
+          enableResetScrollToCoords={false}
+          keyboardShouldPersistTaps={keyboardShouldPersistTaps}
+
+          scrollEnabled={scrollEnabled}
           showsVerticalScrollIndicator={false}
-          scrollEnabled={true}
-          bounces={false}
+          bounces={Platform.OS === 'ios'}
           bouncesZoom={false}
           alwaysBounceVertical={false}
           alwaysBounceHorizontal={false}
           overScrollMode="never"
           decelerationRate="fast"
           scrollEventThrottle={16}
+
           automaticallyAdjustContentInsets={false}
           contentInsetAdjustmentBehavior="never"
-          extraScrollHeight={extraScrollHeight}
-          enableOnAndroid={true}
-          keyboardOpeningTime={keyboardOpeningTime}
-          enableAutomaticScroll={enableAutomaticScroll}
-          enableResetScrollToCoords={false}
           viewIsInsideTabBar={false}
         >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            {children}
+            <YStack flex={1}>
+              {children}
+            </YStack>
           </TouchableWithoutFeedback>
         </KeyboardAwareScrollView>
-      </YStack>
-    );
-  }
-
-  // Implementação original com animação customizada
-  if (enableKeyboardAnimation) {
-    return (
-      <YStack flex={1} backgroundColor="$baseBackgroundHover">
-        <Animated.View
-          style={{
-            flex: 1,
-            paddingBottom: keyboardHeight,
-          }}
-        >
-          <ScrollView
-            ref={scrollViewRef}
-            style={{flex: 1}}
-            contentContainerStyle={{flexGrow: 1}}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-            scrollEnabled={true}
-            bounces={false}
-            bouncesZoom={false}
-            alwaysBounceVertical={false}
-            alwaysBounceHorizontal={false}
-            overScrollMode="never"
-            decelerationRate="fast"
-            scrollEventThrottle={16}
-            automaticallyAdjustContentInsets={false}
-            contentInsetAdjustmentBehavior="never"
-          >
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-              {children}
-            </TouchableWithoutFeedback>
-          </ScrollView>
-        </Animated.View>
-      </YStack>
-    );
-  }
-
-  // Fallback com KeyboardAvoidingView nativo
-  return (
-    <YStack flex={1} backgroundColor="$baseBackgroundHover">
-      <KeyboardAvoidingView
-        style={{flex: 1}}
-        behavior={behavior}
-        keyboardVerticalOffset={finalOffset}
-      >
-        <ScrollView
-          ref={scrollViewRef}
-          style={{flex: 1}}
-          contentContainerStyle={{flexGrow: 1}}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-          scrollEnabled={true}
-          bounces={false}
-          bouncesZoom={false}
-          alwaysBounceVertical={false}
-          alwaysBounceHorizontal={false}
-          overScrollMode="never"
-          decelerationRate="fast"
-          scrollEventThrottle={16}
-          automaticallyAdjustContentInsets={false}
-          contentInsetAdjustmentBehavior="never"
-        >
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            {children}
-          </TouchableWithoutFeedback>
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </Animated.View>
     </YStack>
   );
 };

@@ -42,7 +42,7 @@ export default function RootLayout() {
     async function prepare() {
       try {
         if (!fontsLoaded) return;
-        if (initializeCalled) return; // Guard adicional
+        if (initializeCalled) return;
 
         console.log('📱 Layout: primeira e única inicialização');
         setInitializeCalled(true);
@@ -55,17 +55,15 @@ export default function RootLayout() {
       }
     }
 
-    prepare();
+    prepare().then();
   }, [fontsLoaded]);
 
   const handleSplashComplete = () => {
     console.log('📱 handleSplashComplete chamado', {appIsReady, isInitialized});
 
-    // Aguardar um pouco mais se auth ainda está processando
     if (appIsReady && (isInitialized || isAuthenticated)) {
       console.log('🚀 Iniciando transição seamless');
 
-      // Fade in do app ANTES de esconder o splash
       Animated.timing(appOpacity, {
         toValue: 1,
         duration: 300,
@@ -76,7 +74,6 @@ export default function RootLayout() {
       });
     } else {
       console.log('⏳ App não está pronto ainda - aguardando...');
-      // Tentar novamente em 500ms
       setTimeout(() => {
         if (isInitialized) {
           handleSplashComplete();
@@ -128,7 +125,7 @@ export default function RootLayout() {
             duration={5000}
             text="Preparando sua experiência..."
             textSize={16}
-            animationSize='fullscreen'
+            animationSize="fullscreen"
             spacing={32}
           />
         </View>

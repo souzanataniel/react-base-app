@@ -26,6 +26,14 @@ type UpdateProfileFormProps = {
   isLoading: boolean;
   onSubmit: () => void;
   showSaveButton?: boolean;
+  // Props para mostrar sucesso na validação
+  validFields?: {
+    firstName?: boolean;
+    lastName?: boolean;
+    displayName?: boolean;
+    phone?: boolean;
+    dateOfBirth?: boolean;
+  };
 };
 
 export function UpdateProfileForm(props: UpdateProfileFormProps) {
@@ -49,6 +57,7 @@ export function UpdateProfileForm(props: UpdateProfileFormProps) {
     isLoading,
     onSubmit,
     showSaveButton = true,
+    validFields = {},
   } = props;
 
   return (
@@ -72,7 +81,7 @@ export function UpdateProfileForm(props: UpdateProfileFormProps) {
           onBlur={onBlurFirstName}
           leftIcon={<User size={20} color="$absoluteTextSecondary"/>}
           autoCapitalize="words"
-          showSuccessIcon
+          showSuccessIcon={validFields.firstName}
           rightIcon={<CircleCheck size={25} color="$lightest" fill={COLORS.DARK}/>}
         />
 
@@ -84,7 +93,7 @@ export function UpdateProfileForm(props: UpdateProfileFormProps) {
           onBlur={onBlurLastName}
           leftIcon={<User size={20} color="$absoluteTextSecondary"/>}
           autoCapitalize="words"
-          showSuccessIcon
+          showSuccessIcon={validFields.lastName}
           rightIcon={<CircleCheck size={25} color="$lightest" fill={COLORS.DARK}/>}
         />
 
@@ -96,14 +105,14 @@ export function UpdateProfileForm(props: UpdateProfileFormProps) {
           onBlur={onBlurDisplayName}
           leftIcon={<Type size={20} color="$absoluteTextSecondary"/>}
           autoCapitalize="words"
-          showSuccessIcon
+          showSuccessIcon={validFields.displayName}
           rightIcon={<CircleCheck size={25} color="$lightest" fill={COLORS.DARK}/>}
         />
 
         <PhoneInput
           label="Celular"
           leftIcon={<Phone size={20} color="$absoluteTextSecondary"/>}
-          showSuccessIcon={true}
+          showSuccessIcon={validFields.phone}
           successIcon={<CircleCheck size={25} color="$lightest" fill={COLORS.DARK}/>}
           onChangeText={onPhoneChange}
           onBlur={onBlurPhone}
@@ -118,7 +127,7 @@ export function UpdateProfileForm(props: UpdateProfileFormProps) {
           onBlur={onBlurDateOfBirth}
           leftIcon={<Calendar size={20} color="$absoluteTextSecondary"/>}
           keyboardType="numeric"
-          showSuccessIcon
+          showSuccessIcon={validFields.dateOfBirth}
           rightIcon={<CircleCheck size={25} color="$lightest" fill={COLORS.DARK}/>}
           maxLength={10}
         />

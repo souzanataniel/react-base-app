@@ -12,7 +12,6 @@ import {
   Shield,
   Trash2
 } from '@tamagui/lucide-icons';
-import {BaseScreen} from '@/shared/components/layout';
 
 export const SettingsScreen = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -156,14 +155,67 @@ export const SettingsScreen = () => {
   ];
 
   return (
-    <BaseScreen>
-      <ScrollView flex={1} backgroundColor="$background">
-        <YStack padding="$4" gap="$4">
+    <ScrollView flex={1} backgroundColor="$baseBackground">
+      <YStack padding="$4" gap="$4">
 
-          {/* General Settings */}
+        {/* General Settings */}
+        <YStack gap="$3">
+          <Text fontSize="$5" fontWeight="600" color="$color12">
+            Geral
+          </Text>
+
+          <Card
+            backgroundColor="$baseBackground"
+            borderColor="$borderColor"
+            borderWidth={1}
+            padding="$3"
+          >
+            <YStack gap="$3">
+              {generalSettings.map((setting, index) => (
+                <React.Fragment key={setting.label}>
+                  <XStack alignItems="center" justifyContent="space-between">
+                    <XStack alignItems="center" gap="$3" flex={1}>
+                      <setting.icon size={20} color="$color10"/>
+                      <YStack flex={1}>
+                        <Text fontSize="$4" color="$color12" fontWeight="500">
+                          {setting.label}
+                        </Text>
+                        <Text fontSize="$3" color="$color10">
+                          {setting.description}
+                        </Text>
+                      </YStack>
+                    </XStack>
+
+                    {setting.type === 'switch' ? (
+                      <Switch
+                        checked={setting.value}
+                        onCheckedChange={setting.onValueChange}
+                        backgroundColor={setting.value ? '$oceanDark' : '$color5'}
+                      />
+                    ) : (
+                      <XStack
+                        alignItems="center"
+                        pressStyle={{opacity: 0.7}}
+                        onPress={setting.action}
+                      >
+                        <Text fontSize="$4" color="$color8">→</Text>
+                      </XStack>
+                    )}
+                  </XStack>
+                  {index < generalSettings.length - 1 && (
+                    <Separator borderColor="$borderColor"/>
+                  )}
+                </React.Fragment>
+              ))}
+            </YStack>
+          </Card>
+        </YStack>
+
+        {/* Notification Settings */}
+        {notificationsEnabled && (
           <YStack gap="$3">
             <Text fontSize="$5" fontWeight="600" color="$color12">
-              Geral
+              Configurações de Notificação
             </Text>
 
             <Card
@@ -173,38 +225,25 @@ export const SettingsScreen = () => {
               padding="$3"
             >
               <YStack gap="$3">
-                {generalSettings.map((setting, index) => (
+                {notificationSettings.map((setting, index) => (
                   <React.Fragment key={setting.label}>
                     <XStack alignItems="center" justifyContent="space-between">
-                      <XStack alignItems="center" gap="$3" flex={1}>
-                        <setting.icon size={20} color="$color10"/>
-                        <YStack flex={1}>
-                          <Text fontSize="$4" color="$color12" fontWeight="500">
-                            {setting.label}
-                          </Text>
-                          <Text fontSize="$3" color="$color10">
-                            {setting.description}
-                          </Text>
-                        </YStack>
-                      </XStack>
+                      <YStack flex={1}>
+                        <Text fontSize="$4" color="$color12" fontWeight="500">
+                          {setting.label}
+                        </Text>
+                        <Text fontSize="$3" color="$color10">
+                          {setting.description}
+                        </Text>
+                      </YStack>
 
-                      {setting.type === 'switch' ? (
-                        <Switch
-                          checked={setting.value}
-                          onCheckedChange={setting.onValueChange}
-                          backgroundColor={setting.value ? '$oceanDark' : '$color5'}
-                        />
-                      ) : (
-                        <XStack
-                          alignItems="center"
-                          pressStyle={{opacity: 0.7}}
-                          onPress={setting.action}
-                        >
-                          <Text fontSize="$4" color="$color8">→</Text>
-                        </XStack>
-                      )}
+                      <Switch
+                        checked={setting.value}
+                        onCheckedChange={setting.onValueChange}
+                        backgroundColor={setting.value ? '$oceanDark' : '$color5'}
+                      />
                     </XStack>
-                    {index < generalSettings.length - 1 && (
+                    {index < notificationSettings.length - 1 && (
                       <Separator borderColor="$borderColor"/>
                     )}
                   </React.Fragment>
@@ -212,235 +251,193 @@ export const SettingsScreen = () => {
               </YStack>
             </Card>
           </YStack>
+        )}
 
-          {/* Notification Settings */}
-          {notificationsEnabled && (
-            <YStack gap="$3">
-              <Text fontSize="$5" fontWeight="600" color="$color12">
-                Configurações de Notificação
-              </Text>
+        {/* Security Settings */}
+        <YStack gap="$3">
+          <Text fontSize="$5" fontWeight="600" color="$color12">
+            Segurança e Privacidade
+          </Text>
 
-              <Card
-                backgroundColor="$background"
-                borderColor="$borderColor"
-                borderWidth={1}
-                padding="$3"
-              >
-                <YStack gap="$3">
-                  {notificationSettings.map((setting, index) => (
-                    <React.Fragment key={setting.label}>
-                      <XStack alignItems="center" justifyContent="space-between">
-                        <YStack flex={1}>
-                          <Text fontSize="$4" color="$color12" fontWeight="500">
-                            {setting.label}
-                          </Text>
-                          <Text fontSize="$3" color="$color10">
-                            {setting.description}
-                          </Text>
-                        </YStack>
-
-                        <Switch
-                          checked={setting.value}
-                          onCheckedChange={setting.onValueChange}
-                          backgroundColor={setting.value ? '$oceanDark' : '$color5'}
-                        />
-                      </XStack>
-                      {index < notificationSettings.length - 1 && (
-                        <Separator borderColor="$borderColor"/>
-                      )}
-                    </React.Fragment>
-                  ))}
-                </YStack>
-              </Card>
-            </YStack>
-          )}
-
-          {/* Security Settings */}
-          <YStack gap="$3">
-            <Text fontSize="$5" fontWeight="600" color="$color12">
-              Segurança e Privacidade
-            </Text>
-
-            <Card
-              backgroundColor="$background"
-              borderColor="$borderColor"
-              borderWidth={1}
-              padding="$3"
-            >
-              <YStack gap="$3">
-                {securitySettings.map((setting, index) => (
-                  <React.Fragment key={setting.label}>
-                    <XStack
-                      alignItems="center"
-                      justifyContent="space-between"
-                      pressStyle={{opacity: 0.7}}
-                      onPress={setting.action}
-                    >
-                      <XStack alignItems="center" gap="$3" flex={1}>
-                        <setting.icon size={20} color="$color10"/>
-                        <YStack flex={1}>
-                          <Text fontSize="$4" color="$color12" fontWeight="500">
-                            {setting.label}
-                          </Text>
-                          <Text fontSize="$3" color="$color10">
-                            {setting.description}
-                          </Text>
-                        </YStack>
-                      </XStack>
-                      <Text fontSize="$4" color="$color8">→</Text>
-                    </XStack>
-                    {index < securitySettings.length - 1 && (
-                      <Separator borderColor="$borderColor"/>
-                    )}
-                  </React.Fragment>
-                ))}
-              </YStack>
-            </Card>
-          </YStack>
-
-          {/* Support and Help */}
-          <YStack gap="$3">
-            <Text fontSize="$5" fontWeight="600" color="$color12">
-              Suporte e Ajuda
-            </Text>
-
-            <Card
-              backgroundColor="$background"
-              borderColor="$borderColor"
-              borderWidth={1}
-              padding="$3"
-            >
-              <YStack gap="$3">
-                {supportSettings.map((setting, index) => (
-                  <React.Fragment key={setting.label}>
-                    <XStack
-                      alignItems="center"
-                      justifyContent="space-between"
-                      pressStyle={{opacity: 0.7}}
-                      onPress={setting.action}
-                    >
-                      <XStack alignItems="center" gap="$3" flex={1}>
-                        <setting.icon size={20} color="$color10"/>
-                        <YStack flex={1}>
-                          <Text fontSize="$4" color="$color12" fontWeight="500">
-                            {setting.label}
-                          </Text>
-                          <Text fontSize="$3" color="$color10">
-                            {setting.description}
-                          </Text>
-                        </YStack>
-                      </XStack>
-                      <Text fontSize="$4" color="$color8">→</Text>
-                    </XStack>
-                    {index < supportSettings.length - 1 && (
-                      <Separator borderColor="$borderColor"/>
-                    )}
-                  </React.Fragment>
-                ))}
-              </YStack>
-            </Card>
-          </YStack>
-
-          {/* Data Management */}
-          <YStack gap="$3">
-            <Text fontSize="$5" fontWeight="600" color="$color12">
-              Gerenciamento de Dados
-            </Text>
-
-            <Card
-              backgroundColor="$background"
-              borderColor="$borderColor"
-              borderWidth={1}
-              padding="$3"
-            >
-              <YStack gap="$3">
-                {dataSettings.map((setting, index) => (
-                  <React.Fragment key={setting.label}>
-                    <XStack
-                      alignItems="center"
-                      justifyContent="space-between"
-                      pressStyle={{opacity: 0.7}}
-                      onPress={setting.action}
-                    >
-                      <XStack alignItems="center" gap="$3" flex={1}>
-                        <setting.icon size={20} color={setting.color || '$color10'}/>
-                        <YStack flex={1}>
-                          <Text fontSize="$4" color="$color12" fontWeight="500">
-                            {setting.label}
-                          </Text>
-                          <Text fontSize="$3" color="$color10">
-                            {setting.description}
-                          </Text>
-                        </YStack>
-                      </XStack>
-                      <Text fontSize="$4" color="$color8">→</Text>
-                    </XStack>
-                    {index < dataSettings.length - 1 && (
-                      <Separator borderColor="$borderColor"/>
-                    )}
-                  </React.Fragment>
-                ))}
-              </YStack>
-            </Card>
-          </YStack>
-
-          {/* App Info */}
           <Card
-            backgroundColor="$gray2"
-            borderColor="$gray7"
+            backgroundColor="$background"
+            borderColor="$borderColor"
+            borderWidth={1}
+            padding="$3"
+          >
+            <YStack gap="$3">
+              {securitySettings.map((setting, index) => (
+                <React.Fragment key={setting.label}>
+                  <XStack
+                    alignItems="center"
+                    justifyContent="space-between"
+                    pressStyle={{opacity: 0.7}}
+                    onPress={setting.action}
+                  >
+                    <XStack alignItems="center" gap="$3" flex={1}>
+                      <setting.icon size={20} color="$color10"/>
+                      <YStack flex={1}>
+                        <Text fontSize="$4" color="$color12" fontWeight="500">
+                          {setting.label}
+                        </Text>
+                        <Text fontSize="$3" color="$color10">
+                          {setting.description}
+                        </Text>
+                      </YStack>
+                    </XStack>
+                    <Text fontSize="$4" color="$color8">→</Text>
+                  </XStack>
+                  {index < securitySettings.length - 1 && (
+                    <Separator borderColor="$borderColor"/>
+                  )}
+                </React.Fragment>
+              ))}
+            </YStack>
+          </Card>
+        </YStack>
+
+        {/* Support and Help */}
+        <YStack gap="$3">
+          <Text fontSize="$5" fontWeight="600" color="$color12">
+            Suporte e Ajuda
+          </Text>
+
+          <Card
+            backgroundColor="$background"
+            borderColor="$borderColor"
+            borderWidth={1}
+            padding="$3"
+          >
+            <YStack gap="$3">
+              {supportSettings.map((setting, index) => (
+                <React.Fragment key={setting.label}>
+                  <XStack
+                    alignItems="center"
+                    justifyContent="space-between"
+                    pressStyle={{opacity: 0.7}}
+                    onPress={setting.action}
+                  >
+                    <XStack alignItems="center" gap="$3" flex={1}>
+                      <setting.icon size={20} color="$color10"/>
+                      <YStack flex={1}>
+                        <Text fontSize="$4" color="$color12" fontWeight="500">
+                          {setting.label}
+                        </Text>
+                        <Text fontSize="$3" color="$color10">
+                          {setting.description}
+                        </Text>
+                      </YStack>
+                    </XStack>
+                    <Text fontSize="$4" color="$color8">→</Text>
+                  </XStack>
+                  {index < supportSettings.length - 1 && (
+                    <Separator borderColor="$borderColor"/>
+                  )}
+                </React.Fragment>
+              ))}
+            </YStack>
+          </Card>
+        </YStack>
+
+        {/* Data Management */}
+        <YStack gap="$3">
+          <Text fontSize="$5" fontWeight="600" color="$color12">
+            Gerenciamento de Dados
+          </Text>
+
+          <Card
+            backgroundColor="$background"
+            borderColor="$borderColor"
+            borderWidth={1}
+            padding="$3"
+          >
+            <YStack gap="$3">
+              {dataSettings.map((setting, index) => (
+                <React.Fragment key={setting.label}>
+                  <XStack
+                    alignItems="center"
+                    justifyContent="space-between"
+                    pressStyle={{opacity: 0.7}}
+                    onPress={setting.action}
+                  >
+                    <XStack alignItems="center" gap="$3" flex={1}>
+                      <setting.icon size={20} color={setting.color || '$color10'}/>
+                      <YStack flex={1}>
+                        <Text fontSize="$4" color="$color12" fontWeight="500">
+                          {setting.label}
+                        </Text>
+                        <Text fontSize="$3" color="$color10">
+                          {setting.description}
+                        </Text>
+                      </YStack>
+                    </XStack>
+                    <Text fontSize="$4" color="$color8">→</Text>
+                  </XStack>
+                  {index < dataSettings.length - 1 && (
+                    <Separator borderColor="$borderColor"/>
+                  )}
+                </React.Fragment>
+              ))}
+            </YStack>
+          </Card>
+        </YStack>
+
+        {/* App Info */}
+        <Card
+          backgroundColor="$gray2"
+          borderColor="$gray7"
+          borderWidth={1}
+          padding="$4"
+        >
+          <YStack alignItems="center" gap="$2">
+            <Text fontSize="$4" color="$gray12" fontWeight="600">
+              App Version
+            </Text>
+            <Text fontSize="$3" color="$gray11">
+              1.0.0 (Build 1)
+            </Text>
+            <Text fontSize="$2" color="$gray10" textAlign="center">
+              © 2024 Seu App. Todos os direitos reservados.
+            </Text>
+          </YStack>
+        </Card>
+
+        {/* Developer Options */}
+        {__DEV__ && (
+          <Card
+            backgroundColor="$yellow2"
+            borderColor="$yellow7"
             borderWidth={1}
             padding="$4"
           >
-            <YStack alignItems="center" gap="$2">
-              <Text fontSize="$4" color="$gray12" fontWeight="600">
-                App Version
+            <YStack gap="$3">
+              <Text fontSize="$4" color="$yellow12" fontWeight="600">
+                Opções de Desenvolvedor
               </Text>
-              <Text fontSize="$3" color="$gray11">
-                1.0.0 (Build 1)
-              </Text>
-              <Text fontSize="$2" color="$gray10" textAlign="center">
-                © 2024 Seu App. Todos os direitos reservados.
-              </Text>
+
+              <XStack justifyContent="space-between">
+                <Button
+                  size="$3"
+                  backgroundColor="$yellow9"
+                  color="$white"
+                  onPress={handleClearStoragePress}
+                >
+                  <Text color="$white" fontSize="$3">Limpar Storage</Text>
+                </Button>
+
+                <Button
+                  size="$3"
+                  backgroundColor="$yellow9"
+                  color="$white"
+                  onPress={handleViewLogsPress}
+                >
+                  <Text color="$white" fontSize="$3">Ver Logs</Text>
+                </Button>
+              </XStack>
             </YStack>
           </Card>
-
-          {/* Developer Options */}
-          {__DEV__ && (
-            <Card
-              backgroundColor="$yellow2"
-              borderColor="$yellow7"
-              borderWidth={1}
-              padding="$4"
-            >
-              <YStack gap="$3">
-                <Text fontSize="$4" color="$yellow12" fontWeight="600">
-                  Opções de Desenvolvedor
-                </Text>
-
-                <XStack justifyContent="space-between">
-                  <Button
-                    size="$3"
-                    backgroundColor="$yellow9"
-                    color="$white"
-                    onPress={handleClearStoragePress}
-                  >
-                    <Text color="$white" fontSize="$3">Limpar Storage</Text>
-                  </Button>
-
-                  <Button
-                    size="$3"
-                    backgroundColor="$yellow9"
-                    color="$white"
-                    onPress={handleViewLogsPress}
-                  >
-                    <Text color="$white" fontSize="$3">Ver Logs</Text>
-                  </Button>
-                </XStack>
-              </YStack>
-            </Card>
-          )}
-        </YStack>
-      </ScrollView>
-    </BaseScreen>
+        )}
+      </YStack>
+    </ScrollView>
   );
 }

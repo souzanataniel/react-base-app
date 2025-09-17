@@ -33,7 +33,7 @@ export default function AppLayout() {
         <Tabs.Screen
           name="settings"
           options={{
-            title: 'Ajustes',
+            title: 'Detalhes',
             tabBarLabel: 'Ajustes',
           }}
         />

@@ -102,7 +102,6 @@ export const ProfileComponent: React.FC<ProfileComponentProps> = ({
 
   return (
     <YStack flex={1} backgroundColor="$lightest">
-      {/* Header Verde */}
       <YStack
         backgroundColor="$absolutePrimary"
         paddingTop={insets.top}
@@ -122,7 +121,6 @@ export const ProfileComponent: React.FC<ProfileComponentProps> = ({
           zIndex={-1}
         />
 
-        {/* Área do perfil */}
         <YStack alignItems="center" paddingHorizontal="$4" marginTop="$10">
           <EditableAvatar
             imageUri="https://www.gravatar.com/avatar/2c7d99fe281ecd3bcd65ab915bac6dd5?s=250"
@@ -136,7 +134,6 @@ export const ProfileComponent: React.FC<ProfileComponentProps> = ({
         </YStack>
       </YStack>
 
-      {/* Card de opções sobrepondo o header */}
       <YStack
         backgroundColor="$absoluteWhite"
         marginHorizontal="$4"
@@ -156,9 +153,9 @@ export const ProfileComponent: React.FC<ProfileComponentProps> = ({
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{flexGrow: 1}}
           scrollEnabled={true}
-          bounces={false} // Desabilita bounce sempre
-          overScrollMode="never" // Android: remove efeito glow
-          alwaysBounceVertical={false} // iOS: desabilita bounce vertical
+          bounces={false}
+          overScrollMode="never"
+          alwaysBounceVertical={false}
         >
           {profileOptions.map((option, index) => (
             <YStack key={index}>

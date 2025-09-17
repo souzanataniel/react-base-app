@@ -27,7 +27,7 @@ const poppinsFont = createFont({
 const customTokens = createTokens({
   ...defaultConfig.tokens,
   color: {
-    baseBackground: '#FAFBFC',
+    baseBackground: '#F3F4F6',
     baseBackgroundHover: '#F3F4F6',
 
     // Cores base
@@ -99,7 +99,7 @@ export const config = createTamagui({
   themes: {
     light: {
       // BACKGROUNDS
-      background: '#FAFBFC',
+      background: '#F3F4F6',
       backgroundHover: '#F3F4F6',
       backgroundPress: '#E5E7EB',
       backgroundFocus: '#E6F0FF',

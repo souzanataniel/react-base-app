@@ -1,5 +1,4 @@
 import React from 'react';
-import {StatusBar} from 'expo-status-bar';
 import {styled, Text, View, XStack, YStack} from 'tamagui';
 import {BellIcon, UserIcon} from 'react-native-heroicons/outline';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -54,65 +53,62 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
   const insets = useSafeAreaInsets();
 
   return (
-    <>
-      <StatusBar style="light"/>
-      <HeaderContainer style={{paddingTop: insets.top + 20}}>
-        <PatternOverlay
-          enabled={dotPattern.enabled}
-          spacing={dotPattern.spacing}
-          dotSize={dotPattern.dotSize}
-          baseOpacity={dotPattern.baseOpacity}
-          color={dotPattern.color}
-          startX={dotPattern.startX}
-          gradientIntensity={dotPattern.gradientIntensity}
-          containerWidth={500}
-          containerHeight={300}
-        />
+    <HeaderContainer style={{paddingTop: insets.top + 20}}>
+      <PatternOverlay
+        enabled={dotPattern.enabled}
+        spacing={dotPattern.spacing}
+        dotSize={dotPattern.dotSize}
+        baseOpacity={dotPattern.baseOpacity}
+        color={dotPattern.color}
+        startX={dotPattern.startX}
+        gradientIntensity={dotPattern.gradientIntensity}
+        containerWidth={500}
+        containerHeight={300}
+      />
 
-        <XStack
-          justifyContent="space-between"
-          alignItems="center"
-          marginBottom={20}
-          style={{zIndex: 10, position: 'relative'}}
-        >
-          <XStack alignItems="center" flex={1}>
-            <HapticButton
-              onPress={onUserPress}
-              chromeless
-              backgroundColor="rgba(255, 255, 255, 0.2)"
-              borderRadius={24}
-              width={48}
-              height={48}
-              padding={0}
-              icon={<UserIcon size={24} color="white"/>}
-              hapticType="light"
-            />
-            <YStack marginLeft={12}>
-              <Text color="$absoluteBorderLight" fontSize={13} fontWeight="400">
-                Bem Vindo,
-              </Text>
-              <Text color="$white" fontSize={17} fontWeight="600">
-                {userName}
-              </Text>
-              <Text color="$white" fontSize={13} fontWeight="400">
-                {text}
-              </Text>
-            </YStack>
-          </XStack>
-
+      <XStack
+        justifyContent="space-between"
+        alignItems="center"
+        marginBottom={20}
+        style={{zIndex: 10, position: 'relative'}}
+      >
+        <XStack alignItems="center" flex={1}>
           <HapticButton
-            onPress={onNotification}
+            onPress={onUserPress}
             chromeless
             backgroundColor="rgba(255, 255, 255, 0.2)"
-            borderRadius={8}
-            width={40}
-            height={40}
+            borderRadius={24}
+            width={48}
+            height={48}
             padding={0}
-            icon={<BellIcon size={20} color="white"/>}
+            icon={<UserIcon size={24} color="white"/>}
             hapticType="light"
           />
+          <YStack marginLeft={12}>
+            <Text color="$absoluteBorderLight" fontSize={13} fontWeight="400">
+              Bem Vindo,
+            </Text>
+            <Text color="$white" fontSize={17} fontWeight="600">
+              {userName}
+            </Text>
+            <Text color="$white" fontSize={13} fontWeight="400">
+              {text}
+            </Text>
+          </YStack>
         </XStack>
-      </HeaderContainer>
-    </>
+
+        <HapticButton
+          onPress={onNotification}
+          chromeless
+          backgroundColor="rgba(255, 255, 255, 0.2)"
+          borderRadius={8}
+          width={40}
+          height={40}
+          padding={0}
+          icon={<BellIcon size={20} color="white"/>}
+          hapticType="light"
+        />
+      </XStack>
+    </HeaderContainer>
   );
 };

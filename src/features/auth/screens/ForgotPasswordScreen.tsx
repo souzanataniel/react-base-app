@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {Text, View, YStack} from 'tamagui';
 import {BaseScreenWrapper} from '@/shared/components/layout';
 import {LogoMediumDark} from '@/shared/components/ui/Background/Logo';
@@ -6,10 +6,7 @@ import {ForgotPasswordForm} from '@/features/auth/components/ForgotPasswordForm'
 import {useForgotPassword} from '@/features/auth/hooks/useForgotPassword';
 import {useBaseAlert} from '@/shared/components/feedback/Alert/BaseAlertProvider';
 import {HapticButton} from '@/shared/components';
-import {router, useFocusEffect} from 'expo-router';
-import {useGradient} from '@/shared/components/ui/GradientBox/GradientBox';
-import {LinearGradient} from 'expo-linear-gradient';
-import {useStatusBar} from '@/shared/components/ui/StatusBarContext/StatusBarContext';
+import {router} from 'expo-router';
 
 export const ForgotPasswordScreen = () => {
   const {
@@ -21,8 +18,6 @@ export const ForgotPasswordScreen = () => {
     clearError,
   } = useForgotPassword();
   const alert = useBaseAlert();
-  const heroGradient = useGradient('medium');
-  const {setStatusBar, resetStatusBar} = useStatusBar();
 
   const handleSubmitClick = async () => {
     const result = await submit();
@@ -35,69 +30,60 @@ export const ForgotPasswordScreen = () => {
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      setStatusBar('#F3F4F6', 'dark');
-      return () => resetStatusBar();
-    }, [setStatusBar, resetStatusBar])
-  );
-
   return (
-    <BaseScreenWrapper>
-      <LinearGradient colors={heroGradient} style={{flex: 1}}>
-        <View flex={1} justifyContent="center">
-          <YStack padding="$2">
-            <YStack
-              backgroundColor="$white"
-              borderRadius="$6"
-              padding="$5"
-              marginHorizontal="$2"
-              shadowColor="#000"
-              shadowOpacity={0.15}
-              shadowOffset={{width: 0, height: 1}}
-              shadowRadius={3}
-            >
-              <YStack alignItems="center" marginBottom="$4">
-                <LogoMediumDark/>
-              </YStack>
+    <BaseScreenWrapper extraScrollHeight={100} keyboardOpeningTime={300}>
+      <View flex={1} justifyContent="center">
+        <YStack padding="$2">
+          <YStack
+            backgroundColor="$white"
+            borderRadius="$6"
+            padding="$5"
+            marginHorizontal="$2"
+            shadowColor="#000"
+            shadowOpacity={0.15}
+            shadowOffset={{width: 0, height: 1}}
+            shadowRadius={3}
+          >
+            <YStack alignItems="center" marginBottom="$4">
+              <LogoMediumDark/>
+            </YStack>
 
-              <YStack gap="$2" marginBottom="$6" alignItems="center">
-                <Text fontSize="$6" fontWeight="600" color="$absoluteTextPrimary" textAlign="center">
-                  Recuperar senha
-                </Text>
-                <Text fontSize="$3" fontWeight="400" color="$absoluteTextSecondary" textAlign="center">
-                  Digite seu email para receber um link de recuperação de senha.
-                </Text>
-              </YStack>
+            <YStack gap="$2" marginBottom="$6" alignItems="center">
+              <Text fontSize="$6" fontWeight="600" color="$absoluteTextPrimary" textAlign="center">
+                Recuperar senha
+              </Text>
+              <Text fontSize="$3" fontWeight="400" color="$absoluteTextSecondary" textAlign="center">
+                Digite seu email para receber um link de recuperação de senha.
+              </Text>
+            </YStack>
 
-              <YStack gap="$4">
-                <ForgotPasswordForm
-                  email={email}
-                  onEmailChange={(text) => {
-                    updateEmail(text);
-                    clearError();
-                  }}
-                  onBlurEmail={() => {}}
-                  canSubmit={canSubmit}
-                  isLoading={isLoading}
-                  onSubmit={handleSubmitClick}
-                />
+            <YStack gap="$4">
+              <ForgotPasswordForm
+                email={email}
+                onEmailChange={(text) => {
+                  updateEmail(text);
+                  clearError();
+                }}
+                onBlurEmail={() => {}}
+                canSubmit={canSubmit}
+                isLoading={isLoading}
+                onSubmit={handleSubmitClick}
+              />
 
-                <HapticButton
-                  onPress={() => router.back()}
-                  hapticType="light"
-                  backgroundColor="transparent"
-                  borderColor="$absolutePrimary"
-                  borderWidth={2}
-                  color="$absolutePrimary"
-                >
-                  Voltar
-                </HapticButton>
-              </YStack>
+              <HapticButton
+                onPress={() => router.back()}
+                hapticType="light"
+                backgroundColor="transparent"
+                borderColor="$absolutePrimary"
+                borderWidth={2}
+                color="$absolutePrimary"
+              >
+                Voltar
+              </HapticButton>
             </YStack>
           </YStack>
-        </View>
-      </LinearGradient>
+        </YStack>
+      </View>
     </BaseScreenWrapper>
   );
 };
