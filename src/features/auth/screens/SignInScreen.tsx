@@ -3,7 +3,6 @@ import {Text, View, XStack, YStack} from 'tamagui';
 import {BaseScreenWrapper} from '@/shared/components/layout';
 import {Link} from 'expo-router';
 import {useSignIn} from '@/features/auth/hooks/useSignIn';
-import {COLORS} from '@/shared/constants/colors';
 import {SignInForm} from '@/features/auth/components/SignInForm';
 import {useBaseAlert} from '@/shared/components/feedback/Alert/BaseAlertProvider';
 import {LogoMediumDark} from '@/shared/components/ui/Background/Logo';
@@ -48,7 +47,7 @@ export const SignInScreen = () => {
       <View flex={1} justifyContent="center">
         <YStack padding="$2">
           <YStack
-            backgroundColor="$absoluteWhite"
+            backgroundColor="$defaultWhite"
             borderRadius="$6"
             padding="$5"
             marginHorizontal="$2"
@@ -62,10 +61,10 @@ export const SignInScreen = () => {
             </YStack>
 
             <YStack gap="$2" marginBottom="$6" alignItems="center">
-              <Text fontSize="$6" fontWeight="600" color="$absoluteTextPrimary" textAlign="center">
+              <Text fontSize="$6" fontWeight="600" color="$defaultLabel" textAlign="center">
                 Entrar
               </Text>
-              <Text fontSize="$3" fontWeight="400" color="$absoluteTextSecondary" textAlign="center">
+              <Text fontSize="$3" fontWeight="400" color="$defaultLabel" textAlign="center">
                 Insira seus dados para continuar
               </Text>
             </YStack>
@@ -86,32 +85,27 @@ export const SignInScreen = () => {
               canSubmit={canSubmit}
               isLoading={isLoading}
               onSubmit={handleSubmitClick}
-              colors={{
-                dark: COLORS.DARK,
-                medium: '$medium' as any,
-                white: '$white' as any,
-              }}
             />
 
             <YStack alignItems="center" gap="$4" paddingTop="$4">
               <XStack alignItems="center" width="100%" paddingHorizontal="$4">
-                <View flex={1} height={1} backgroundColor="$absolutePlaceholder"/>
+                <View flex={1} height={1} backgroundColor="$defaultPlaceholderText"/>
                 <Text
                   fontSize="$3"
-                  color="$absoluteTextTertiary"
+                  color="$defaultSecondaryLabel"
                   paddingHorizontal="$3"
                   fontWeight="400"
                 >
                   ou
                 </Text>
-                <View flex={1} height={1} backgroundColor="$absolutePlaceholder"/>
+                <View flex={1} height={1} backgroundColor="$defaultPlaceholderText"/>
               </XStack>
 
               <Link href="/(auth)/sign-up" replace asChild>
                 <YStack alignItems="center" pressStyle={{opacity: 0.7}}>
-                  <Text fontSize="$3" color="$absoluteTextTertiary" fontWeight="400" textAlign="center">
+                  <Text fontSize="$3" color="$defaultSecondaryLabel" fontWeight="400" textAlign="center">
                     Não possui conta?{' '}
-                    <Text fontWeight="600" textDecorationLine="underline" color="$absoluteTextSecondary">
+                    <Text fontWeight="600" textDecorationLine="underline" color="$defaultLabel">
                       Cadastre-se
                     </Text>
                   </Text>

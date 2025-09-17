@@ -6,11 +6,7 @@ type LabelPasswordInputProps = InputProps & {
   label?: ReactNode;
   containerProps?: StackProps;
   labelFontSize?: InputProps['fontSize'];
-  labelColor?: string;
   leftIcon?: ReactNode;
-  showSuccessIcon?: boolean;
-  successIcon?: ReactNode;
-  validationFn?: (value: string) => boolean;
 };
 
 function BaseLabelPasswordInput(
@@ -18,16 +14,9 @@ function BaseLabelPasswordInput(
     label,
     containerProps,
     labelFontSize = '$4',
-    labelColor = '$medium',
     leftIcon,
-    showSuccessIcon = false,
-    successIcon,
-    validationFn,
     height = 52,
     fontSize = '$4',
-    backgroundColor = '$white',
-    borderColor = 'transparent',
-    borderWidth = 0,
     onChangeText,
     ...inputProps
   }: LabelPasswordInputProps,
@@ -45,13 +34,13 @@ function BaseLabelPasswordInput(
   };
 
   const paddingLeft = leftIcon ? 45 : 16;
-  const paddingRight = 50; // Espaço fixo para o ícone de visibilidade
+  const paddingRight = 50;
 
   return (
     <YStack gap="$2" {...containerProps}>
       {label ? (
         <Text fontSize={labelFontSize}
-              color="$absoluteTextPrimary"
+              color="$defaultLabel"
               fontWeight="500">
           {label}
         </Text>
@@ -76,19 +65,16 @@ function BaseLabelPasswordInput(
           ref={ref}
           height={height}
           fontSize={fontSize}
-          borderColor={borderColor}
-          borderWidth={borderWidth}
-
-          backgroundColor="$lightest"
-          placeholderTextColor="$absolutePlaceholder"
-
+          borderColor="transparent"
+          backgroundColor="$defaultBackgroundInput"
+          placeholderTextColor="$defaultPlaceholderText"
+          color="$defaultLabel"
           borderRadius="$4"
           paddingLeft={paddingLeft}
           paddingRight={paddingRight}
-          color="$darkBlue"
           secureTextEntry={!visible}
           focusStyle={{
-            borderColor: '$medium',
+            borderColor: '$defaultQuaternaryLabel',
             borderWidth: 1
           }}
           onChangeText={handleChangeText}
@@ -110,14 +96,14 @@ function BaseLabelPasswordInput(
             height={32}
             borderRadius="$4"
             pressStyle={{opacity: 0.6}}
-            hoverStyle={{backgroundColor: '$lighter'}}
+            hoverStyle={{backgroundColor: '$defaultSecondaryLabel'}}
             onPress={() => setVisible(v => !v)}
             cursor="pointer"
           >
             {visible ? (
-              <EyeOff size={18} color="$darkBlue"/>
+              <EyeOff size={18} color="$defaultSecondaryLabel"/>
             ) : (
-              <Eye size={18} color="$darkBlue"/>
+              <Eye size={18} color="$defaultSecondaryLabel"/>
             )}
           </XStack>
         </XStack>

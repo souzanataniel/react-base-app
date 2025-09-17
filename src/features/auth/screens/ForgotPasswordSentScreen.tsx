@@ -17,7 +17,7 @@ export const ForgotPasswordSentScreen = ({email = 'seu email !'}: Props) => {
       <View flex={1} justifyContent="center">
         <YStack padding="$2">
           <YStack
-            backgroundColor="$white"
+            backgroundColor="$defaultWhite"
             borderRadius="$6"
             padding="$5"
             marginHorizontal="$2"
@@ -45,7 +45,7 @@ export const ForgotPasswordSentScreen = ({email = 'seu email !'}: Props) => {
             <Text
               fontSize="$6"
               fontWeight="600"
-              color="$absoluteTextPrimary"
+              color="$defaultLabel"
               textAlign="center"
               marginBottom="$3"
             >
@@ -55,20 +55,20 @@ export const ForgotPasswordSentScreen = ({email = 'seu email !'}: Props) => {
             <Text
               fontSize="$4"
               fontWeight="400"
-              color="$absoluteTextSecondary"
+              color="$defaultSecondaryLabel"
               textAlign="center"
               lineHeight="$3"
               marginBottom="$5"
               maxWidth="280px"
             >
               Enviamos um link de recuperação de senha para{' '}
-              <Text fontWeight="600" color="$absoluteTextPrimary">
+              <Text fontWeight="600" color="$defaultLabel">
                 {email}
               </Text>
             </Text>
 
             <XStack
-              backgroundColor="$absoluteBorderDark"
+              backgroundColor="$defaultSecondaryLabelDark"
               borderRadius="$4"
               padding="$3"
               alignItems="center"

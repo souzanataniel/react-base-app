@@ -7,12 +7,10 @@ type LabelInputProps = InputProps & {
   label?: ReactNode;
   containerProps?: StackProps;
   labelFontSize?: InputProps['fontSize'];
-  labelColor?: string;
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
   showSuccessIcon?: boolean;
   successIcon?: ReactNode;
-  validationFn?: (value: string) => boolean;
   mask?: Mask;
   useMask?: boolean;
 };
@@ -48,12 +46,10 @@ function BaseLabelInput(
     label,
     containerProps,
     labelFontSize = '$4',
-    labelColor = '$medium',
     leftIcon,
     rightIcon,
     showSuccessIcon = false,
     successIcon,
-    validationFn,
     height = 52,
     fontSize = '$4',
     onChangeText,
@@ -74,9 +70,7 @@ function BaseLabelInput(
       setInputValue(value);
 
       let validation = false;
-      if (validationFn) {
-        validation = validationFn(value);
-      } else if (keyboardType === 'email-address') {
+      if (keyboardType === 'email-address') {
         validation = isValidEmail(value);
       } else if (useMask && placeholder === 'DD/MM/AAAA') {
         validation = isValidDate(value);
@@ -86,15 +80,13 @@ function BaseLabelInput(
 
       setIsValid(validation);
     }
-  }, [value, keyboardType, validationFn, showSuccessIcon, useMask, placeholder]);
+  }, [value, keyboardType, showSuccessIcon, useMask, placeholder]);
 
   const handleChangeText = (text: string) => {
     setInputValue(text);
 
     let validation = false;
-    if (validationFn) {
-      validation = validationFn(text);
-    } else if (keyboardType === 'email-address') {
+    if (keyboardType === 'email-address') {
       validation = isValidEmail(text);
     } else if (useMask && placeholder === 'DD/MM/AAAA') {
       validation = isValidDate(text);
@@ -113,9 +105,7 @@ function BaseLabelInput(
     setInputValue(masked);
 
     let validation = false;
-    if (validationFn) {
-      validation = validationFn(masked);
-    } else if (placeholder === 'DD/MM/AAAA') {
+    if (placeholder === 'DD/MM/AAAA') {
       validation = isValidDate(masked);
     } else if (showSuccessIcon) {
       validation = masked.trim().length > 0;
@@ -151,7 +141,7 @@ function BaseLabelInput(
   return (
     <YStack gap="$2" {...containerProps}>
       {label ? (
-        <Text fontSize={labelFontSize} color="$absoluteTextPrimary" fontWeight="500">
+        <Text fontSize={labelFontSize} color="$defaultLabel" fontWeight="500">
           {label}
         </Text>
       ) : null}
@@ -185,9 +175,9 @@ function BaseLabelInput(
             ref={ref}
             height={height}
             fontSize={fontSize}
-            backgroundColor="$lightest"
-            placeholderTextColor="$absolutePlaceholder"
-            color="$absoluteTextPrimary"
+            backgroundColor="$defaultBackgroundInput"
+            placeholderTextColor="$defaultPlaceholderText"
+            color="$defaultLabel"
             borderRadius="$4"
             borderColor="transparent"
             paddingLeft={paddingLeft}
@@ -196,7 +186,7 @@ function BaseLabelInput(
             value={inputValue}
             placeholder={placeholder}
             focusStyle={{
-              borderColor: '$medium',
+              borderColor: '$defaultQuaternaryLabel',
               borderWidth: 1
             }}
             onChangeText={handleChangeText}

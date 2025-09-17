@@ -30,27 +30,26 @@ export function BaseAlert({
     onOpenChange(false);
   };
 
-  // Configurações por variante
   const variantConfig = {
     success: {
       icon: CheckCircle,
       iconColor: theme.success?.get(),
-      confirmButtonColor: '$absolutePrimary',
+      confirmButtonColor: '$defaultPrimary',
     },
     error: {
       icon: XCircle,
       iconColor: theme.error?.get(),
-      confirmButtonColor: '$absolutePrimary',
+      confirmButtonColor: '$defaultPrimary',
     },
     warning: {
       icon: AlertTriangle,
       iconColor: theme.warning?.get(),
-      confirmButtonColor: '$absolutePrimary',
+      confirmButtonColor: '$defaultPrimary',
     },
     info: {
       icon: Info,
       iconColor: theme.color?.get(),
-      confirmButtonColor: '$absolutePrimary',
+      confirmButtonColor: '$defaultPrimary',
     },
   };
 
@@ -118,7 +117,7 @@ export function BaseAlert({
 
               {/* Título */}
               <AlertDialog.Title
-                fontSize="$5"
+                fontSize="$6"
                 fontWeight="600"
                 color="$color"
                 textAlign="center"
@@ -131,7 +130,7 @@ export function BaseAlert({
               {/* Descrição */}
               {description && (
                 <AlertDialog.Description
-                  fontSize="$3"
+                  fontSize="$4"
                   color="$colorHover"
                   lineHeight="$2"
                   textAlign="center"
@@ -152,7 +151,7 @@ export function BaseAlert({
                 <AlertDialog.Action asChild>
                   <Button
                     backgroundColor={config.confirmButtonColor}
-                    color="$absoluteWhite"
+                    color="$defaultWhite"
                     onPress={handleConfirm}
                     borderRadius="$4"
                     height={48}
@@ -161,8 +160,8 @@ export function BaseAlert({
                     flex={showCancel ? 1 : undefined}
                     width={showCancel ? undefined : '100%'}
                     pressStyle={{
-                      borderColor: '$absolutePrimary',
-                      backgroundColor: '$absolutePrimary',
+                      borderColor: '$defaultPrimary',
+                      backgroundColor: '$defaultPrimary',
                       scale: 0.98,
                       opacity: 0.9,
                     }}
@@ -194,7 +193,6 @@ export function BaseAlert({
                   </AlertDialog.Cancel>
                 )}
               </XStack>
-
             </YStack>
           </AlertDialog.Content>
         </AlertDialog.Portal>

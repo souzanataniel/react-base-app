@@ -3,7 +3,6 @@ import {Animated, useColorScheme, View} from 'react-native'
 import {DarkTheme, DefaultTheme, ThemeProvider} from '@react-navigation/native'
 import {useFonts} from 'expo-font'
 import {SplashScreen, Stack} from 'expo-router'
-import {Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold, Poppins_700Bold} from '@expo-google-fonts/poppins'
 import {useEffect, useRef, useState} from 'react'
 import Toast from 'react-native-toast-message';
 import {AppProvider} from '@/shared/providers/AppProvider';
@@ -12,6 +11,7 @@ import LottieSplash from '@/shared/components/ui/SplashScreen/LottieSplash';
 import {useAuthStore} from '@/features/auth/stores/authStore';
 
 import splashAnimation from '@/assets/animations/loader.json';
+import {Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold} from '@expo-google-fonts/inter';
 
 export {
   ErrorBoundary,
@@ -20,11 +20,11 @@ export {
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
-    'Poppins': Poppins_400Regular,
-    'Poppins-Medium': Poppins_500Medium,
-    'Poppins-SemiBold': Poppins_600SemiBold,
-    'Poppins-Bold': Poppins_700Bold,
+  let [fontsLoaded] = useFonts({
+    'Inter': Inter_400Regular,
+    'Inter-Medium': Inter_500Medium,
+    'Inter-SemiBold': Inter_600SemiBold,
+    'Inter-Bold': Inter_700Bold,
   });
 
   const [appIsReady, setAppIsReady] = useState(false);

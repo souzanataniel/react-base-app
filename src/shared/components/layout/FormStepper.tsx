@@ -19,7 +19,7 @@ export function FormStepper({currentStep, totalSteps}: FormStepperProps) {
               key={stepNumber}
               flex={1}
               height={4}
-              backgroundColor={isActive || isCompleted ? '$absoluteTextSecondary' : '$absoluteBorderDark'}
+              backgroundColor={isActive || isCompleted ? '$defaultPrimary' : '$defaultPlaceholderText'}
               borderRadius="$1"
               animation="quick"
               animateOnly={['backgroundColor']}

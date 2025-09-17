@@ -35,7 +35,7 @@ export const ForgotPasswordScreen = () => {
       <View flex={1} justifyContent="center">
         <YStack padding="$2">
           <YStack
-            backgroundColor="$white"
+            backgroundColor="$defaultWhite"
             borderRadius="$6"
             padding="$5"
             marginHorizontal="$2"
@@ -49,10 +49,10 @@ export const ForgotPasswordScreen = () => {
             </YStack>
 
             <YStack gap="$2" marginBottom="$6" alignItems="center">
-              <Text fontSize="$6" fontWeight="600" color="$absoluteTextPrimary" textAlign="center">
+              <Text fontSize="$6" fontWeight="600" color="$defaultLabel" textAlign="center">
                 Recuperar senha
               </Text>
-              <Text fontSize="$3" fontWeight="400" color="$absoluteTextSecondary" textAlign="center">
+              <Text fontSize="$3" fontWeight="400" color="$defaultLabel" textAlign="center">
                 Digite seu email para receber um link de recuperação de senha.
               </Text>
             </YStack>
@@ -71,12 +71,12 @@ export const ForgotPasswordScreen = () => {
               />
 
               <HapticButton
-                onPress={() => router.back()}
+                onPress={() => router.push('/(auth)/forgot-password-sent')}
                 hapticType="light"
                 backgroundColor="transparent"
-                borderColor="$absolutePrimary"
+                borderColor="$defaultPrimary"
                 borderWidth={2}
-                color="$absolutePrimary"
+                color="$defaultPrimary"
               >
                 Voltar
               </HapticButton>

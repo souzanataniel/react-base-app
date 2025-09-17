@@ -7,7 +7,6 @@ type PhoneInputProps = Omit<InputProps, 'keyboardType' | 'maxLength'> & {
   label?: ReactNode;
   containerProps?: StackProps;
   labelFontSize?: InputProps['fontSize'];
-  labelColor?: string;
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
   showSuccessIcon?: boolean;
@@ -36,7 +35,6 @@ function BasePhoneInput(
     label,
     containerProps,
     labelFontSize = '$4',
-    labelColor = '$medium',
     leftIcon,
     rightIcon,
     showSuccessIcon = false,
@@ -44,13 +42,9 @@ function BasePhoneInput(
     validationFn,
     height = 52,
     fontSize = '$4',
-    backgroundColor = '#F3F4F6',
-    borderColor = 'transparent',
-    borderWidth = 0,
     onChangeText,
     placeholder = '(11) 9 1234-5678',
     value,
-    style,
     ...inputProps
   }: PhoneInputProps,
   ref: React.Ref<any>
@@ -66,7 +60,7 @@ function BasePhoneInput(
       const validation = validationFn ? validationFn(value) : isValidPhone(value);
       setIsValid(validation);
     }
-  }, [value, validationFn]);
+  }, [value, validationFn, inputValue]);
 
   const handleChangeText = (masked: string, unmasked: string) => {
     setInputValue(masked);
@@ -85,20 +79,20 @@ function BasePhoneInput(
 
   const inputStyle: TextStyle = {
     height: numericHeight,
-    fontSize: 16,
+    fontSize: 14,
     paddingLeft,
     paddingRight,
-    backgroundColor: '#F3F4F6',
-    color: '#1A1A1A',
+    backgroundColor: '#F9F9F9',
+    color: '#000000',
     borderRadius: 12,
     borderWidth: isFocused ? 1 : 0,
-    borderColor: isFocused ? '#364954' : 'transparent',
+    borderColor: isFocused ? '#3C3C432D' : 'transparent',
   };
 
   return (
     <YStack gap="$2" {...containerProps}>
       {label ? (
-        <Text fontSize={labelFontSize} color={labelColor} fontWeight="500">
+        <Text fontSize={labelFontSize} color="$defaultLabel" fontWeight="500">
           {label}
         </Text>
       ) : null}
@@ -124,8 +118,8 @@ function BasePhoneInput(
           mask={PHONE_MASK}
           keyboardType="phone-pad"
           placeholder={placeholder}
-          placeholderTextColor="#9CA3AF"
-          style={[inputStyle, style]}
+          placeholderTextColor="$defaultPlaceholderText"
+          style={[inputStyle, inputProps.style]}
           onFocus={(e) => {
             setIsFocused(true);
             inputProps.onFocus?.(e);

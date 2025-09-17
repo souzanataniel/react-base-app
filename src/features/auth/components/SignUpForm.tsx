@@ -5,7 +5,6 @@ import {LabelInput} from '@/shared/components/ui/Input/FormInput';
 import {LabelPasswordInput} from '@/shared/components/ui/Input/FormPasswordInput';
 import {CheckboxLabel, HapticButton, LoadingButton} from '@/shared/components';
 import {PhoneInput} from '@/shared/components/ui/Input/BasePhoneInput';
-import {COLORS} from '@/shared/constants/colors';
 import {FormStepper} from '@/shared/components/layout/FormStepper';
 
 type StepperSignUpFormProps = {
@@ -90,10 +89,10 @@ export function SignUpForm(props: StepperSignUpFormProps) {
               value={firstName}
               onChangeText={onFirstNameChange}
               onBlur={onBlurFirstName}
-              leftIcon={<User size={20} color="$absoluteTextSecondary"/>}
+              leftIcon={<User size={20} color="$defaultSecondaryLabel"/>}
               autoCapitalize="words"
               showSuccessIcon
-              rightIcon={<CircleCheck size={25} color="$lightest" fill={COLORS.DARK}/>}
+              rightIcon={<CircleCheck size={25} color="$defaultPrimary"/>}
             />
 
             <LabelInput
@@ -102,17 +101,17 @@ export function SignUpForm(props: StepperSignUpFormProps) {
               value={lastName}
               onChangeText={onLastNameChange}
               onBlur={onBlurLastName}
-              leftIcon={<User size={20} color="$absoluteTextSecondary"/>}
+              leftIcon={<User size={20} color="$defaultSecondaryLabel"/>}
               autoCapitalize="words"
-              showSuccessIcon
-              rightIcon={<CircleCheck size={25} color="$lightest" fill={COLORS.DARK}/>}
+              showSuccessIcon={true}
+              rightIcon={<CircleCheck size={25} color="$defaultPrimary"/>}
             />
 
             <PhoneInput
               label="Celular"
-              leftIcon={<Phone size={20} color="$absoluteTextSecondary"/>}
+              leftIcon={<Phone size={20} color="$defaultSecondaryLabel"/>}
               showSuccessIcon={true}
-              successIcon={<CircleCheck size={25} color="$lightest" fill={COLORS.DARK}/>}
+              successIcon={<CircleCheck size={25} color="$defaultPrimary" />}
               onChangeText={onPhoneChange}
               onBlur={onBlurPhone}
               value={phone}
@@ -130,14 +129,14 @@ export function SignUpForm(props: StepperSignUpFormProps) {
               value={email}
               onChangeText={onEmailChange}
               onBlur={onBlurEmail}
-              leftIcon={<Mail size={20} color="$absoluteTextSecondary"/>}
+              leftIcon={<Mail size={20} color="$defaultSecondaryLabel"/>}
               autoCapitalize="none"
               autoCorrect={false}
               spellCheck={false}
               textContentType="emailAddress"
               autoComplete="email"
               showSuccessIcon
-              rightIcon={<CircleCheck size={25} color="$lightest" fill={COLORS.DARK}/>}
+              rightIcon={<CircleCheck size={25} color="$defaultPrimary"/>}
             />
 
             <LabelPasswordInput
@@ -146,7 +145,7 @@ export function SignUpForm(props: StepperSignUpFormProps) {
               value={password}
               onChangeText={onPasswordChange}
               onBlur={onBlurPassword}
-              leftIcon={<LockKeyhole size={20} color="$absoluteTextSecondary"/>}
+              leftIcon={<LockKeyhole size={20} color="$defaultSecondaryLabel"/>}
             />
 
             {password.length > 0 && (
@@ -225,9 +224,9 @@ export function SignUpForm(props: StepperSignUpFormProps) {
             onPress={handlePrevious}
             hapticType="light"
             backgroundColor="transparent"
-            borderColor="$absolutePrimary"
+            borderColor="$defaultPrimary"
             borderWidth={2}
-            color="$absolutePrimary"
+            color="$defaultPrimary"
           >
             Voltar
           </HapticButton>

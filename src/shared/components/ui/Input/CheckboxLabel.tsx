@@ -20,7 +20,7 @@ export function CheckboxLabel({
         checked={checked}
         onCheckedChange={onCheckedChange}
         backgroundColor={checked ? '$primary' : 'transparent'}
-        borderColor={checked ? '$primary' : '$absoluteTextTertiary'}
+        borderColor={checked ? '$primary' : '$defaultTertiaryLabel'}
         borderWidth={2}
         borderRadius={4}
       >

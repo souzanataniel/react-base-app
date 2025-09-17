@@ -54,7 +54,7 @@ export const SignUpScreen = () => {
       <View flex={1} paddingTop={insets.top + 10} justifyContent="center">
         <YStack padding="$2" gap="$2">
           <YStack
-            backgroundColor="$white"
+            backgroundColor="$defaultWhite"
             borderRadius="$6"
             padding="$5"
             marginHorizontal="$2"
@@ -64,16 +64,15 @@ export const SignUpScreen = () => {
             shadowRadius={3}
             gap="$2"
           >
-            {/* Logo centralizada */}
             <YStack alignItems="center" marginBottom="$2">
               <LogoMediumDark/>
             </YStack>
 
             <YStack gap="$2" alignItems="center">
-              <Text fontSize="$6" fontWeight="600" color="$absoluteTextPrimary" textAlign="center">
+              <Text fontSize="$6" fontWeight="600" color="$defaultLabel" textAlign="center">
                 Cadastrar
               </Text>
-              <Text fontSize="$3" fontWeight="400" color="$absoluteTextSecondary" textAlign="center">
+              <Text fontSize="$3" fontWeight="400" color="$defaultLabel" textAlign="center">
                 Preencha os dados para criar sua conta
               </Text>
             </YStack>
@@ -122,23 +121,23 @@ export const SignUpScreen = () => {
 
             <YStack alignItems="center" gap="$2" marginTop="$2">
               <XStack alignItems="center" width="100%" paddingHorizontal="$4">
-                <View flex={1} height={1} backgroundColor="$absolutePlaceholder"/>
+                <View flex={1} height={1} backgroundColor="$defaultPlaceholderText"/>
                 <Text
                   fontSize="$3"
-                  color="$absoluteTextTertiary"
+                  color="$defaultSecondaryLabel"
                   paddingHorizontal="$3"
                   fontWeight="400"
                 >
                   ou
                 </Text>
-                <View flex={1} height={1} backgroundColor="$absolutePlaceholder"/>
+                <View flex={1} height={1} backgroundColor="$defaultPlaceholderText"/>
               </XStack>
 
               <Link href="/(auth)/sign-in" replace asChild>
                 <YStack alignItems="center" pressStyle={{opacity: 0.7}}>
-                  <Text fontSize="$3" color="$absoluteTextTertiary" fontWeight="400" textAlign="center">
+                  <Text fontSize="$3" color="$defaultSecondaryLabel" fontWeight="400" textAlign="center">
                     Já possui conta?{' '}
-                    <Text fontWeight="600" textDecorationLine="underline" color="$absoluteTextSecondary">
+                    <Text fontWeight="600" textDecorationLine="underline" color="$defaultLabel">
                       Fazer login
                     </Text>
                   </Text>

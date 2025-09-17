@@ -5,6 +5,7 @@ import {LabelInput} from '@/shared/components/ui/Input/FormInput';
 import {LabelPasswordInput} from '@/shared/components/ui/Input/FormPasswordInput';
 import {LoadingButton} from '@/shared/components';
 import {Link} from 'expo-router';
+import {COLORS} from '@/shared/constants/colors';
 
 type Props = {
   email: string;
@@ -16,7 +17,6 @@ type Props = {
   canSubmit: boolean;
   isLoading: boolean;
   onSubmit: () => void;
-  colors: { dark: string; medium: string; white: string };
 };
 
 export function SignInForm({
@@ -24,7 +24,6 @@ export function SignInForm({
                              onEmailChange, onPasswordChange,
                              onBlurEmail, onBlurPassword,
                              canSubmit, isLoading, onSubmit,
-                             colors
                            }: Props) {
   return (
     <YStack gap="$2">
@@ -40,9 +39,9 @@ export function SignInForm({
         value={email}
         onChangeText={onEmailChange}
         onBlur={onBlurEmail}
-        leftIcon={<Mail size={20} color="$absoluteTextSecondary"/>}
+        leftIcon={<Mail size={20} color="$defaultSecondaryLabel"/>}
         showSuccessIcon
-        rightIcon={<CircleCheck size={25} color="$lightest" fill={colors.dark}/>}
+        rightIcon={<CircleCheck size={25} color="$defaultPrimary"/>}
       />
 
       <LabelPasswordInput
@@ -50,12 +49,8 @@ export function SignInForm({
         placeholder="••••••••"
         value={password}
         onChangeText={onPasswordChange}
-        color="$absoluteTextPrimary"
         onBlur={onBlurPassword}
-        backgroundColor="$lightest"
-        placeholderTextColor="$absolutePlaceholder"
-        labelColor="$absoluteTextPrimary"
-        leftIcon={<LockKeyhole size={20} color="$absoluteTextSecondary"/>}
+        leftIcon={<LockKeyhole size={20} color="$defaultSecondaryLabel"/>}
         borderWidth={1}
         borderRadius="$4"
       />
@@ -70,7 +65,7 @@ export function SignInForm({
         <Link href="/(auth)/forgot-password" asChild>
           <Text
             fontSize="$3"
-            color="$light"
+            color="$defaultSecondaryLabel"
             textDecorationLine="underline"
             fontWeight="500"
           >
@@ -84,7 +79,7 @@ export function SignInForm({
         loadingText="Entrando..."
         onPress={onSubmit}
         disabled={!canSubmit}
-        color="$white"
+        color="$defaultWhite"
         height={52}
         fontSize="$4"
         fontWeight="600"

@@ -17,7 +17,7 @@ export const LoadingButton = ({
                                 loading = false,
                                 children,
                                 loadingText,
-                                loadingColor = '$white',
+                                loadingColor = '$defaultWhite',
                                 spinnerSize = 'small',
                                 disabled,
                                 backgroundColor = '$primary',
@@ -32,7 +32,6 @@ export const LoadingButton = ({
                               }: LoadingButtonProps) => {
 
   const handlePress = async (event: any) => {
-    // Feedback tátil ao clicar
     if (hapticFeedback && !disabled && !loading) {
       try {
         switch (hapticType) {

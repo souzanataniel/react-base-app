@@ -15,7 +15,7 @@ export const HapticButton = ({
                                disabled,
                                onPress,
                                backgroundColor = '$primary',
-                               color = '$white',
+                               color = '$defaultWhite',
                                borderRadius = '$4',
                                height = 48,
                                width = '100%',
@@ -71,7 +71,7 @@ export const HapticButton = ({
       onPress={handlePress}
       {...props}
       pressStyle={{
-        scale: 0.90,
+        scale: 0.98,
         backgroundColor: backgroundColor,
         borderColor: COLORS.PRIMARY
       }}
