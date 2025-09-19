@@ -15,9 +15,8 @@ export const useTabBarHeight = () => {
     },
     colors: {
       active: '#007AFF',
-      inactive: COLORS.ABSOLUTE_TEXT_TERTIARY,
+      inactive: COLORS.SECONDARY_LABEL,
       background: 'white',
-      shadow: 'rgba(0,0,0,0.1)',
       activeBorder: '#007AFF',
     },
     spacing: {

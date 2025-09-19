@@ -84,14 +84,14 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
             icon={<UserIcon size={24} color="white"/>}
             hapticType="light"
           />
-          <YStack marginLeft={12}>
-            <Text color="$absoluteBorderLight" fontSize={13} fontWeight="400">
-              Bem Vindo,
+          <YStack marginLeft={12} gap="$1">
+            <Text color="$defaultWhite" fontSize={13} fontWeight="400">
+              Bem vindo,
             </Text>
-            <Text color="$white" fontSize={17} fontWeight="600">
+            <Text color="$defaultWhite" fontSize={17} fontWeight="600">
               {userName}
             </Text>
-            <Text color="$white" fontSize={13} fontWeight="400">
+            <Text color="$defaultWhite" fontSize={13} fontWeight="400">
               {text}
             </Text>
           </YStack>

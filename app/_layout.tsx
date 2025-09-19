@@ -1,6 +1,5 @@
 import '../tamagui-web.css'
-import {Animated, useColorScheme, View} from 'react-native'
-import {DarkTheme, DefaultTheme, ThemeProvider} from '@react-navigation/native'
+import {Animated, View} from 'react-native'
 import {useFonts} from 'expo-font'
 import {SplashScreen, Stack} from 'expo-router'
 import {useEffect, useRef, useState} from 'react'
@@ -139,37 +138,34 @@ const Providers = ({children}: { children: React.ReactNode }) => {
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme()
   return (
     <SafeAreaProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack screenOptions={{
-          headerShown: false,
-          animation: 'none',
-        }}>
-          <Stack.Screen
-            name="index"
-            options={{
-              headerShown: false,
-              animation: 'none',
-            }}
-          />
-          <Stack.Screen
-            name="(auth)"
-            options={{
-              headerShown: false,
-              animation: 'none',
-            }}
-          />
-          <Stack.Screen
-            name="(app)"
-            options={{
-              headerShown: false,
-              animation: 'none',
-            }}
-          />
-        </Stack>
-      </ThemeProvider>
+      <Stack screenOptions={{
+        headerShown: false,
+        animation: 'none',
+      }}>
+        <Stack.Screen
+          name="index"
+          options={{
+            headerShown: false,
+            animation: 'none',
+          }}
+        />
+        <Stack.Screen
+          name="(auth)"
+          options={{
+            headerShown: false,
+            animation: 'none',
+          }}
+        />
+        <Stack.Screen
+          name="(app)"
+          options={{
+            headerShown: false,
+            animation: 'none',
+          }}
+        />
+      </Stack>
     </SafeAreaProvider>
   )
 }

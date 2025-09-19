@@ -1,6 +1,6 @@
 import React, {forwardRef, memo, ReactNode, useEffect, useState} from 'react';
-import {InputProps, StackProps, Text, XStack, YStack} from 'tamagui';
-import MaskInput, {Mask} from 'react-native-mask-input';
+import {InputProps, StackProps, Text, useTheme, XStack, YStack} from 'tamagui';
+import MaskInput from 'react-native-mask-input';
 import {TextStyle} from 'react-native';
 
 type PhoneInputProps = Omit<InputProps, 'keyboardType' | 'maxLength'> & {
@@ -14,17 +14,31 @@ type PhoneInputProps = Omit<InputProps, 'keyboardType' | 'maxLength'> & {
   validationFn?: (value: string) => boolean;
 };
 
-const PHONE_MASK: Mask = [
-  '(', /\d/, /\d/, ')', ' ', /\d/, ' ', /\d/, /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/
+// Máscara para telefone brasileiro: (XX) X XXXX-XXXX
+const PHONE_MASK = [
+  '(',
+  /\d/,
+  /\d/,
+  ')',
+  ' ',
+  /\d/,
+  ' ',
+  /\d/,
+  /\d/,
+  /\d/,
+  /\d/,
+  '-',
+  /\d/,
+  /\d/,
+  /\d/,
+  /\d/,
 ];
 
 const isValidPhone = (phone: string): boolean => {
   const numbers = phone.replace(/\D/g, '');
 
   if (numbers.length < 10 || numbers.length > 11) return false;
-
   if (numbers.length === 11 && numbers[2] !== '9') return false;
-
   if (new Set(numbers).size === 1) return false;
 
   return true;
@@ -49,6 +63,7 @@ function BasePhoneInput(
   }: PhoneInputProps,
   ref: React.Ref<any>
 ) {
+  const theme = useTheme();
   const [inputValue, setInputValue] = useState('');
   const [isValid, setIsValid] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -56,7 +71,6 @@ function BasePhoneInput(
   useEffect(() => {
     if (value !== undefined && value !== inputValue) {
       setInputValue(value);
-
       const validation = validationFn ? validationFn(value) : isValidPhone(value);
       setIsValid(validation);
     }
@@ -64,10 +78,8 @@ function BasePhoneInput(
 
   const handleChangeText = (masked: string, unmasked: string) => {
     setInputValue(masked);
-
     const validation = validationFn ? validationFn(masked) : isValidPhone(masked);
     setIsValid(validation);
-
     onChangeText?.(masked);
   };
 
@@ -75,24 +87,22 @@ function BasePhoneInput(
   const paddingLeft = leftIcon ? 45 : 16;
   const paddingRight = (rightIcon || shouldShowSuccessIcon) ? 45 : 16;
 
-  const numericHeight = typeof height === 'number' ? height : 52;
-
   const inputStyle: TextStyle = {
-    height: numericHeight,
+    height: typeof height === 'number' ? height : 52,
     fontSize: 14,
     paddingLeft,
     paddingRight,
-    backgroundColor: '#F9F9F9',
-    color: '#000000',
+    backgroundColor: theme.backgroundInput?.get() || '#F9F9F9',
+    color: theme.color?.get() || '#000000',
     borderRadius: 12,
     borderWidth: isFocused ? 1 : 0,
-    borderColor: isFocused ? '#3C3C432D' : 'transparent',
+    borderColor: isFocused ? (theme.borderColor?.get() || 'rgba(60, 60, 67, 0.18)') : 'transparent',
   };
 
   return (
     <YStack gap="$2" {...containerProps}>
       {label ? (
-        <Text fontSize={labelFontSize} color="$defaultLabel" fontWeight="500">
+        <Text fontSize={labelFontSize} color="$color" fontWeight="500">
           {label}
         </Text>
       ) : null}
@@ -106,7 +116,8 @@ function BasePhoneInput(
             bottom={0}
             alignItems="center"
             zIndex={1}
-            pointerEvents="none">
+            pointerEvents="none"
+          >
             {leftIcon}
           </XStack>
         )}
@@ -118,8 +129,8 @@ function BasePhoneInput(
           mask={PHONE_MASK}
           keyboardType="phone-pad"
           placeholder={placeholder}
-          placeholderTextColor="$defaultPlaceholderText"
-          style={[inputStyle, inputProps.style]}
+          placeholderTextColor={theme.placeholderTex?.get() || '#999999'}
+          style={inputStyle}
           onFocus={(e) => {
             setIsFocused(true);
             inputProps.onFocus?.(e);

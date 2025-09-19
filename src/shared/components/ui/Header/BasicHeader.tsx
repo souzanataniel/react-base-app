@@ -1,120 +1,158 @@
-import React from 'react';
-import {Platform, Pressable} from 'react-native';
+import React, {useCallback, useMemo} from 'react';
+import {Platform, Pressable, StyleSheet} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useRouter} from 'expo-router';
-import {Text, Theme, XStack, YStack} from 'tamagui';
 import {ArrowLeft} from '@tamagui/lucide-icons';
+import {BlurView} from 'expo-blur';
+import {getToken, Text, Token, useTheme, XStack, YStack} from 'tamagui';
 
-const DEFAULT_HEADER_HEIGHT = Platform.select({
-  ios: 44,
-  android: 56,
-  default: 56,
-})
-
-const headerShadow = Platform.select({
-  ios: {
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 0.5,
-    },
-    shadowOpacity: 0.22,
-    shadowRadius: 0.22,
-  },
-  android: {
-    elevation: 1,
-  },
-  default: {},
-});
+const DEFAULT_HEADER_HEIGHT = Platform.select({ios: 44, android: 56, default: 56});
+const SIDE_WIDTH = 56;
+const HIT_SLOP = {top: 8, bottom: 8, left: 8, right: 8};
 
 type BasicHeaderProps = {
   title: string;
+  leftIcon?: React.ReactNode;
+  onLeftPress?: () => void;
   onBack?: () => void;
   rightIcon?: React.ReactNode;
   onRightPress?: () => void;
   showRight?: boolean;
-  barHeight?: number;
-  titleSizeToken?: `$${number}`;
-  showBottomBorder?: boolean;
   backgroundColor?: string;
+  enableBlur?: boolean;
+  blurIntensity?: number;
+  blurTint?: 'light' | 'dark' | 'default';
+  statusBarTranslucent?: boolean;
+  statusBarStyle?: 'light' | 'dark';
+  testID?: string;
 };
 
-const IconButton = ({
-                      onPress,
-                      children,
-                      a11yLabel,
-                    }: {
+const IconButton = React.memo(function IconButton({
+                                                    onPress,
+                                                    children,
+                                                    a11yLabel,
+                                                  }: {
   onPress?: () => void;
   children: React.ReactNode;
   a11yLabel: string;
-}) => {
+}) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={a11yLabel}
-      hitSlop={12}
+      hitSlop={HIT_SLOP}
       onPress={onPress}
-      style={({pressed}) => ({
-        opacity: pressed ? 0.6 : 1,
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-        borderRadius: 9999,
-      })}
+      style={({pressed}) => [
+        styles.iconButton,
+        pressed && {opacity: 0.6},
+      ]}
     >
       {children}
     </Pressable>
   );
-};
+});
 
-export function BasicHeader({
-                              title,
-                              onBack,
-                              rightIcon,
-                              onRightPress,
-                              showRight = !!rightIcon,
-                              barHeight = DEFAULT_HEADER_HEIGHT,
-                              titleSizeToken = '$5',
-                              backgroundColor = '$white',
-                            }: BasicHeaderProps) {
+export const BasicHeader = React.memo(function BasicHeader({
+                                                             title,
+                                                             leftIcon,
+                                                             onLeftPress,
+                                                             onBack,
+                                                             rightIcon,
+                                                             onRightPress,
+                                                             showRight = !!rightIcon,
+                                                             backgroundColor,
+                                                             enableBlur = true,
+                                                             blurIntensity = 80,
+                                                             blurTint = 'default',
+                                                             testID,
+                                                           }: BasicHeaderProps) {
   const insets = useSafeAreaInsets();
+  const theme = useTheme();
   const router = useRouter();
 
-  const handleBack = () => {
+  const resolvedBg = useMemo(() => {
+    if (!backgroundColor) return theme.background?.val || '#ffffff';
+    if (backgroundColor.startsWith?.('$')) {
+      try {
+        return getToken(backgroundColor.slice(1) as Token) || theme.background?.val || '#ffffff';
+      } catch {
+        return theme.background?.val || '#ffffff';
+      }
+    }
+    return backgroundColor;
+  }, [backgroundColor, theme.background]);
+
+  const handleLeft = useCallback(() => {
+    if (onLeftPress) return onLeftPress();
     if (onBack) return onBack();
     router.back();
-  };
+  }, [onLeftPress, onBack, router]);
+
+  const totalHeight = insets.top + DEFAULT_HEADER_HEIGHT;
 
   return (
-    <Theme>
-      <YStack backgroundColor={backgroundColor} {...headerShadow}>
-        <YStack height={insets.top} backgroundColor={backgroundColor}/>
+    <YStack
+      testID={testID}
+      position="relative"
+      height={totalHeight}
+      paddingTop={insets.top}
+      backgroundColor={enableBlur ? 'transparent' : resolvedBg}
+      {...(Platform.OS === 'android' ? {elevation: 1} : {})}
+      style={styles.shadow}
+    >
+      {enableBlur && (
+        <BlurView
+          intensity={blurIntensity}
+          tint={blurTint}
+          style={styles.blurFill}
+        />
+      )}
 
-        <XStack height={barHeight} alignItems="center" backgroundColor={backgroundColor} position="relative">
-
-          <XStack position="absolute" left={0} zIndex={1} alignItems="center" justifyContent="flex-start"
-                  paddingHorizontal="$2">
-            <IconButton onPress={handleBack} a11yLabel="Voltar">
-              <ArrowLeft size={22} color="$absoluteTextPrimary"/>
-            </IconButton>
-          </XStack>
-
-          <XStack flex={1} alignItems="center" justifyContent="center">
-            <Text fontSize={titleSizeToken} fontWeight="500" numberOfLines={1} ellipsizeMode="tail"
-                  color="$absoluteTextPrimary">
-              {title}
-            </Text>
-          </XStack>
-
-          <XStack position="absolute" right={0} zIndex={1} alignItems="center" justifyContent="flex-end"
-                  paddingHorizontal="$2">
-            {showRight && rightIcon ? (
-              <IconButton onPress={onRightPress} a11yLabel="Ação do header">
-                {rightIcon}
-              </IconButton>
-            ) : null}
-          </XStack>
+      <XStack height={DEFAULT_HEADER_HEIGHT} alignItems="center">
+        {/* Esquerda */}
+        <XStack width={SIDE_WIDTH} alignItems="center" justifyContent="flex-start" paddingLeft="$1">
+          <IconButton a11yLabel={`Voltar${title ? ` para ${title}` : ''}`} onPress={handleLeft}>
+            {leftIcon ?? <ArrowLeft size={22} color={theme.color?.val ?? '#000'}/>}
+          </IconButton>
         </XStack>
-      </YStack>
-    </Theme>
+
+        <XStack flex={1} alignItems="center" justifyContent="center" paddingHorizontal="$2">
+          <Text
+            fontSize="$5"
+            fontWeight="600"
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            color="$color"
+          >
+            {title}
+          </Text>
+        </XStack>
+
+        <XStack width={SIDE_WIDTH} alignItems="center" justifyContent="flex-end" paddingRight="$1">
+          {showRight && rightIcon ? (
+            <IconButton a11yLabel="Ação do header" onPress={onRightPress}>
+              {rightIcon}
+            </IconButton>
+          ) : null}
+        </XStack>
+      </XStack>
+    </YStack>
   );
-}
+});
+
+const styles = StyleSheet.create({
+  shadow: {
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 0.5},
+    shadowOpacity: 0.22,
+    shadowRadius: 0.22,
+  },
+  blurFill: {
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+  },
+  iconButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 9999,
+  },
+});

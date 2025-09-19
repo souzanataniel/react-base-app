@@ -82,6 +82,8 @@ export const config = createTamagui({
       background: '#F2F2F7',
       backgroundStrong: '#FFFFFF',
 
+      card: '#FFFFFF',
+
       color: '#000000',
       colorSecondary: '#3C3C4399',
       colorTertiary: '#3C3C434C',
@@ -90,11 +92,25 @@ export const config = createTamagui({
 
       primary: '#2873FF',
       link: '#007AFF',
+
+      switch: '#E4E4E47F',
+      switchBorder: '#E4E4E47F',
+
+      cardHeader: '#2873FF',
+
+      button: '#2873FF',
+      buttonLabel: '#FFFFFF',
+
+      backgroundInput: '#F9F9F9',
+      placeholderText: '#3C3C434C',
+
     },
 
     dark: {
-      background: '#1C1C1E',
+      background: '#000000',
       backgroundStrong: '#000000',
+
+      card: '#1C1C1E',
 
       color: '#FFFFFF',
       colorSecondary: '#EBEBF599',
@@ -102,8 +118,20 @@ export const config = createTamagui({
       colorQuaternary: '#EBEBF52D',
       placeholderColor: '#EBEBF54C',
 
-      primary: '#2873FF',
-      link: '#0984FF',
+      primary: '#FFFFFF',
+      link: '#FFFFFF',
+
+      switch: '#48484A7F',
+      switchBorder: '#48484A7F',
+
+      cardHeader: '#1C1C1E',
+
+      button: '#FFFFFF',
+      buttonLabel: '#000000',
+
+      backgroundInput: '#323232',
+      placeholderTex: '#EBEBF54C',
+
     }
   },
   shorthands,

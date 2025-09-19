@@ -38,6 +38,7 @@ import {
 } from 'react-native-heroicons/solid';
 
 import {useTabBarHeight} from './hooks/useTabBarHeight';
+import {SHADOWS} from '@/shared/constants/shadows';
 
 interface TabRoute {
   key: string;
@@ -468,7 +469,6 @@ const CustomTabBarComponent = React.memo<TabBarProps>(({
       backgroundColor: config.colors.background,
       borderTopLeftRadius: config.spacing.borderRadius,
       borderTopRightRadius: config.spacing.borderRadius,
-      shadowColor: config.colors.shadow,
       shadowOpacity: 0.2,
       shadowRadius: 1
     }, animatedTabBarStyle]}>

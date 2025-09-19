@@ -6,6 +6,7 @@ import {AuthGuard} from '@/features/auth/components/AuthGuard';
 export default function AppLayout() {
   const visibleTabs = ['home', 'favorites', 'profile-user', 'profile'];
   const hiddenTabs = ['notifications', 'update-profile'];
+
   return (
     <AuthGuard requireAuth={true}>
       <Tabs

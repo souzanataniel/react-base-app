@@ -1,10 +1,9 @@
 import React from 'react';
-import {Text, YStack} from 'tamagui';
-import {Calendar, CircleCheck, Phone, Type, User} from '@tamagui/lucide-icons';
+import {YStack} from 'tamagui';
+import {CircleCheck} from '@tamagui/lucide-icons';
 import {LabelInput} from '@/shared/components/ui/Input/FormInput';
 import {LoadingButton} from '@/shared/components';
 import {PhoneInput} from '@/shared/components/ui/Input/BasePhoneInput';
-import {COLORS} from '@/shared/constants/colors';
 
 type UpdateProfileFormProps = {
   firstName?: string;
@@ -26,7 +25,6 @@ type UpdateProfileFormProps = {
   isLoading: boolean;
   onSubmit: () => void;
   showSaveButton?: boolean;
-  // Props para mostrar sucesso na validação
   validFields?: {
     firstName?: boolean;
     lastName?: boolean;
@@ -34,6 +32,10 @@ type UpdateProfileFormProps = {
     phone?: boolean;
     dateOfBirth?: boolean;
   };
+  // Props para controlar quais campos mostrar
+  showOnlyPersonalInfo?: boolean;
+  showOnlyContact?: boolean;
+  showOnlyAdditional?: boolean;
 };
 
 export function UpdateProfileForm(props: UpdateProfileFormProps) {
@@ -58,79 +60,81 @@ export function UpdateProfileForm(props: UpdateProfileFormProps) {
     onSubmit,
     showSaveButton = true,
     validFields = {},
+    showOnlyPersonalInfo = false,
+    showOnlyContact = false,
+    showOnlyAdditional = false,
   } = props;
 
+  // Se nenhuma flag específica está ativa, mostra todos os campos
+  const showAll = !showOnlyPersonalInfo && !showOnlyContact && !showOnlyAdditional;
+
   return (
-    <YStack gap="$4">
-      <YStack gap="$2">
+    <YStack flex={1}>
+      <YStack gap="$2.5">
+        {/* Campos de Informações Pessoais */}
+        {(showAll || showOnlyPersonalInfo) && (
+          <>
+            <LabelInput
+              label="Nome"
+              placeholder="Seu nome"
+              value={firstName || ''}
+              onChangeText={onFirstNameChange}
+              onBlur={onBlurFirstName}
+              autoCapitalize="words"
+              showSuccessIcon={validFields.firstName}
+              rightIcon={<CircleCheck size={20} color="$defaultPrimary"/>}
+            />
 
-        <YStack gap="$1" marginBottom="$6" alignItems="center">
-          <Text fontSize="$6" fontWeight="500" color="$absoluteTextSecondary" textAlign="center">
-            Dados Pessoais
-          </Text>
-          <Text fontSize="$3" fontWeight="400" color="$absoluteTextTertiary" textAlign="center">
-            Atualizar Dados Básicos do Usuário.
-          </Text>
-        </YStack>
+            <LabelInput
+              label="Sobrenome"
+              placeholder="Seu sobrenome"
+              value={lastName || ''}
+              onChangeText={onLastNameChange}
+              onBlur={onBlurLastName}
+              autoCapitalize="words"
+              showSuccessIcon={validFields.lastName}
+              rightIcon={<CircleCheck size={20} color="$defaultPrimary"/>}
+            />
 
-        <LabelInput
-          label="Nome"
-          placeholder="Seu nome"
-          value={firstName || ''}
-          onChangeText={onFirstNameChange}
-          onBlur={onBlurFirstName}
-          leftIcon={<User size={20} color="$absoluteTextSecondary"/>}
-          autoCapitalize="words"
-          showSuccessIcon={validFields.firstName}
-          rightIcon={<CircleCheck size={25} color="$lightest" fill={COLORS.DARK}/>}
-        />
+            <LabelInput
+              label="Nome de exibição"
+              placeholder="Como você gostaria de ser chamado"
+              value={displayName || ''}
+              onChangeText={onDisplayNameChange}
+              onBlur={onBlurDisplayName}
+              autoCapitalize="words"
+              showSuccessIcon={validFields.displayName}
+              rightIcon={<CircleCheck size={20} color="$defaultPrimary"/>}
+            />
+          </>
+        )}
 
-        <LabelInput
-          label="Sobrenome"
-          placeholder="Seu sobrenome"
-          value={lastName || ''}
-          onChangeText={onLastNameChange}
-          onBlur={onBlurLastName}
-          leftIcon={<User size={20} color="$absoluteTextSecondary"/>}
-          autoCapitalize="words"
-          showSuccessIcon={validFields.lastName}
-          rightIcon={<CircleCheck size={25} color="$lightest" fill={COLORS.DARK}/>}
-        />
+        {/* Campo de Contato */}
+        {(showAll || showOnlyContact) && (
+          <PhoneInput
+            label="Celular"
+            showSuccessIcon={validFields.phone}
+            successIcon={<CircleCheck size={20} color="$defaultPrimary"/>}
+            onChangeText={onPhoneChange}
+            onBlur={onBlurPhone}
+            value={phone || ''}
+          />
+        )}
 
-        <LabelInput
-          label="Nome de exibição"
-          placeholder="Como você gostaria de ser chamado"
-          value={displayName || ''}
-          onChangeText={onDisplayNameChange}
-          onBlur={onBlurDisplayName}
-          leftIcon={<Type size={20} color="$absoluteTextSecondary"/>}
-          autoCapitalize="words"
-          showSuccessIcon={validFields.displayName}
-          rightIcon={<CircleCheck size={25} color="$lightest" fill={COLORS.DARK}/>}
-        />
-
-        <PhoneInput
-          label="Celular"
-          leftIcon={<Phone size={20} color="$absoluteTextSecondary"/>}
-          showSuccessIcon={validFields.phone}
-          successIcon={<CircleCheck size={25} color="$lightest" fill={COLORS.DARK}/>}
-          onChangeText={onPhoneChange}
-          onBlur={onBlurPhone}
-          value={phone || ''}
-        />
-
-        <LabelInput
-          label="Data de nascimento"
-          placeholder="DD/MM/AAAA"
-          value={dateOfBirth || ''}
-          onChangeText={onDateOfBirthChange}
-          onBlur={onBlurDateOfBirth}
-          leftIcon={<Calendar size={20} color="$absoluteTextSecondary"/>}
-          keyboardType="numeric"
-          showSuccessIcon={validFields.dateOfBirth}
-          rightIcon={<CircleCheck size={25} color="$lightest" fill={COLORS.DARK}/>}
-          maxLength={10}
-        />
+        {/* Campo de Informações Adicionais */}
+        {(showAll || showOnlyAdditional) && (
+          <LabelInput
+            label="Data de nascimento"
+            placeholder="DD/MM/AAAA"
+            value={dateOfBirth || ''}
+            onChangeText={onDateOfBirthChange}
+            onBlur={onBlurDateOfBirth}
+            keyboardType="numeric"
+            showSuccessIcon={validFields.dateOfBirth}
+            rightIcon={<CircleCheck size={20} color="$defaultPrimary"/>}
+            maxLength={10}
+          />
+        )}
       </YStack>
 
       {showSaveButton && (

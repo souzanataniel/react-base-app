@@ -36,14 +36,14 @@ const queryClient = new QueryClient({
 
 export function AppProvider({children, ...rest}: Omit<TamaguiProviderProps, 'config'>) {
   const colorScheme = useColorScheme();
-  const themeName = colorScheme ?? 'light' ;
+  const themeName = colorScheme ?? 'light';
 
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
         <TamaguiProvider config={config} {...rest}>
-          <AuthProvider>
-            <Theme name={themeName}>
+          <Theme name={themeName}>
+            <AuthProvider>
               <ToastProvider swipeDirection="horizontal" duration={3000} native={[]}>
                 <BaseAlertProvider>
                   <BaseLoaderProvider>
@@ -58,8 +58,8 @@ export function AppProvider({children, ...rest}: Omit<TamaguiProviderProps, 'con
                   </BaseLoaderProvider>
                 </BaseAlertProvider>
               </ToastProvider>
-            </Theme>
-          </AuthProvider>
+            </AuthProvider>
+          </Theme>
         </TamaguiProvider>
       </SafeAreaProvider>
     </QueryClientProvider>
