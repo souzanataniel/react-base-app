@@ -11,6 +11,7 @@ import {CircleCheck, User} from '@tamagui/lucide-icons';
 import {ScreenWithBlurHeader} from '@/shared/components/layout/ScreenWithBlurHeader';
 import {LabelInput} from '@/shared/components/ui/Input/FormInput';
 import {PhoneInput} from '@/shared/components/ui/Input/BasePhoneInput';
+import {DateInput} from '@/shared/components/ui/Input/DateInput';
 import {ZodError} from 'zod';
 import {dateMasks} from '@/shared/utils/masks';
 
@@ -31,7 +32,6 @@ interface Section {
   fields: Field[];
 }
 
-// Configuração flexível e extensível
 const FORM_SECTIONS: Record<string, Section> = {
   personal: {
     title: 'Informações Pessoais',
@@ -45,7 +45,6 @@ const FORM_SECTIONS: Record<string, Section> = {
     title: 'Contato',
     fields: [
       {name: 'phone', label: 'Celular', type: 'phone'},
-      // Fácil adicionar: {name: 'email', label: 'E-mail', type: 'text', keyboardType: 'email-address'},
     ]
   },
   additional: {
@@ -79,14 +78,12 @@ export const UpdateProfileScreen = () => {
     dateOfBirth: user?.dateOfBirth || '',
   });
 
-  // Progresso do perfil
   const profileProgress = useMemo(() => {
     const values = Object.values(formData);
     const filled = values.filter(v => v && v.trim() !== '').length;
     return Math.round((filled / values.length) * 100);
   }, [formData]);
 
-  // Verificar mudanças
   const hasChanges = useMemo(() => {
     return Object.keys(formData).some(key => {
       const k = key as keyof UpdateProfileFormData;
@@ -94,7 +91,6 @@ export const UpdateProfileScreen = () => {
     });
   }, [formData, user]);
 
-  // Reset ao focar na tela
   useFocusEffect(
     useCallback(() => {
       setFormData({
@@ -112,7 +108,6 @@ export const UpdateProfileScreen = () => {
     }, [user])
   );
 
-  // Handler genérico de mudança
   const handleChange = useCallback((field: keyof UpdateProfileFormData, mask?: (v: string) => string) => {
     return (value: string) => {
       const processedValue = mask ? mask(value) : value;
@@ -120,7 +115,6 @@ export const UpdateProfileScreen = () => {
     };
   }, []);
 
-  // Validação de campo
   const validateField = useCallback((field: keyof UpdateProfileFormData, value: string | undefined | '') => {
     try {
       const schema = updateProfileSchema.shape[field];
@@ -133,12 +127,10 @@ export const UpdateProfileScreen = () => {
     }
   }, []);
 
-  // Handler de blur
   const handleBlur = useCallback((field: keyof UpdateProfileFormData) => {
     return () => validateField(field, formData[field]);
   }, [formData, validateField]);
 
-  // Salvar
   const handleSave = useCallback(async () => {
     if (!hasChanges || isLoading) return;
 
@@ -159,7 +151,6 @@ export const UpdateProfileScreen = () => {
     setIsLoading(true);
     try {
       console.log('Salvando:', formData);
-      // TODO: await updateUserProfile(formData);
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       setFooterVisible(false);
@@ -172,7 +163,6 @@ export const UpdateProfileScreen = () => {
     }
   }, [formData, hasChanges, isLoading]);
 
-  // Renderizar campo baseado no tipo
   const renderField = useCallback((field: Field) => {
     const commonProps = {
       label: field.label,
@@ -183,7 +173,6 @@ export const UpdateProfileScreen = () => {
       showSuccessIcon: validFields[field.name],
     };
 
-    // Campo de telefone
     if (field.type === 'phone') {
       return (
         <PhoneInput
@@ -194,7 +183,18 @@ export const UpdateProfileScreen = () => {
       );
     }
 
-    // Campo de texto padrão (funciona para text, date, e outros)
+    if (field.type === 'date') {
+      return (
+        <DateInput
+          key={field.name}
+          {...commonProps}
+          maxDate={new Date()}
+          successIcon={<CircleCheck size={20} color="$primary"/>}
+          rightIcon={<CircleCheck size={20} color="$primary"/>}
+        />
+      );
+    }
+
     return (
       <LabelInput
         key={field.name}
@@ -207,9 +207,8 @@ export const UpdateProfileScreen = () => {
     );
   }, [formData, validFields, handleChange, handleBlur]);
 
-  // Renderizar seção
-  const renderSection = useCallback((section: Section) => (
-    <YStack gap="$2">
+  const renderSection = useCallback((sectionKey: string, section: Section) => (
+    <YStack key={`${sectionKey}-section`} gap="$2">
       <Text fontSize="$2" fontWeight="600" color="$gray11" paddingLeft="$2">
         {section.title}
       </Text>
@@ -224,7 +223,7 @@ export const UpdateProfileScreen = () => {
       title="Perfil"
       onBack={() => router.push('/(app)/profile')}
       hasKeyboardInputs={true}
-      footerHeight={tabBarHeight + 100}
+      footerHeight={tabBarHeight}
       footer={
         <CustomSaveFooter
           onSave={handleSave}
@@ -237,30 +236,25 @@ export const UpdateProfileScreen = () => {
       }
     >
       <YStack paddingHorizontal="$4" paddingVertical="$4" gap="$4">
-        {/* Hero */}
         <CardTitle
           icon={<User size={24} color="white"/>}
           title="Dados Pessoais"
           description="Atualize suas informações básicas"
         />
 
-        {/* Progresso */}
         <YStack backgroundColor="$card" borderRadius="$3" padding="$3" gap="$2">
           <XStack justifyContent="space-between" alignItems="center">
             <Text fontSize="$2" color="$color" fontWeight="500">Perfil Completo</Text>
             <Text fontSize="$2" color="$color" fontWeight="600">{profileProgress}%</Text>
           </XStack>
           <Progress value={profileProgress} max={100} size="$2">
-            <Progress.Indicator backgroundColor="$primary" animation="bouncy" opacity={0.8} borderRadius="$5"/>
+            <Progress.Indicator backgroundColor="$defaultPrimary" animation="bouncy" opacity={0.8} borderRadius="$5"/>
           </Progress>
         </YStack>
 
-        {/* Renderizar todas as seções */}
-        {Object.values(FORM_SECTIONS).map((section, index) => (
-          <React.Fragment key={index}>
-            {renderSection(section)}
-          </React.Fragment>
-        ))}
+        {Object.entries(FORM_SECTIONS).map(([key, section]) =>
+          renderSection(key, section)
+        )}
       </YStack>
     </ScreenWithBlurHeader>
   );

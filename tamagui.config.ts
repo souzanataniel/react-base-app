@@ -85,6 +85,8 @@ export const config = createTamagui({
       card: '#FFFFFF',
 
       color: '#000000',
+      colorInverse: '#FFFFFF',
+
       colorSecondary: '#3C3C4399',
       colorTertiary: '#3C3C434C',
       colorQuaternary: '#3C3C432D',
@@ -113,6 +115,7 @@ export const config = createTamagui({
       card: '#1C1C1E',
 
       color: '#FFFFFF',
+      colorInverse: '#000000',
       colorSecondary: '#EBEBF599',
       colorTertiary: '#EBEBF54C',
       colorQuaternary: '#EBEBF52D',

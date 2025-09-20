@@ -27,15 +27,13 @@ interface ScreenWithBlurHeaderProps {
   showsVerticalScrollIndicator?: boolean;
   keyboardShouldPersistTaps?: 'always' | 'never' | 'handled';
 
-  // NOVO: Props para footer
   footer?: React.ReactNode;
-  footerHeight?: number; // Altura estimada do footer para calcular padding
+  footerHeight?: number;
 }
 
 export const ScreenWithBlurHeader: React.FC<ScreenWithBlurHeaderProps> = ({
                                                                             children,
                                                                             title,
-
                                                                             leftIcon,
                                                                             onLeftPress,
                                                                             onBack,
@@ -45,68 +43,64 @@ export const ScreenWithBlurHeader: React.FC<ScreenWithBlurHeaderProps> = ({
                                                                             enableBlur = true,
                                                                             blurIntensity = 80,
                                                                             blurTint = 'default',
-
                                                                             scrollEnabled = true,
                                                                             hasKeyboardInputs = false,
                                                                             contentContainerStyle,
                                                                             showsVerticalScrollIndicator = false,
                                                                             keyboardShouldPersistTaps = 'handled',
-
-                                                                            // NOVO
                                                                             footer,
-                                                                            footerHeight = 100, // Altura padrão do footer + padding
+                                                                            footerHeight = 100,
                                                                           }) => {
   const insets = useSafeAreaInsets();
   const headerHeight = insets.top + DEFAULT_HEADER_HEIGHT;
 
-  // Calcular padding bottom se houver footer
-  const bottomPadding = footer ? footerHeight : 0;
+  // Calcular padding bottom considerando safe area
+  const bottomPadding = footer
+    ? footerHeight + (Platform.OS === 'android' ? Math.max(insets.bottom || 0, 16) : (insets.bottom || 0))
+    : Platform.OS === 'android' ? Math.max(insets.bottom || 0, 16) : (insets.bottom || 0);
 
   const scrollContent = (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <YStack flex={1}>
+      <YStack flex={1} paddingTop={headerHeight} paddingBottom={bottomPadding}>
         {children}
       </YStack>
     </TouchableWithoutFeedback>
   );
 
+  // Estilo base para o scroll - removendo flexGrow no Android
+  const baseScrollStyle = [
+    Platform.OS === 'android' ? {} : styles.scrollContent,
+    {
+      paddingTop: headerHeight,
+      paddingBottom: bottomPadding,
+    },
+    contentContainerStyle,
+  ];
+
   return (
     <YStack flex={1} backgroundColor="$background">
       {hasKeyboardInputs ? (
         <KeyboardAwareScrollView
-          contentContainerStyle={[
-            styles.scrollContent,
-            {
-              paddingTop: headerHeight,
-              paddingBottom: bottomPadding, // NOVO
-            },
-            contentContainerStyle,
-          ]}
           enableAutomaticScroll={true}
           enableOnAndroid={true}
-          extraScrollHeight={footer ? footerHeight + 20 : 20} // MODIFICADO
+          extraScrollHeight={0}
+          extraHeight={0}
           keyboardShouldPersistTaps={keyboardShouldPersistTaps}
           scrollEnabled={scrollEnabled}
           showsVerticalScrollIndicator={showsVerticalScrollIndicator}
           scrollEventThrottle={16}
+          style={styles.scrollView}
         >
           {scrollContent}
         </KeyboardAwareScrollView>
       ) : (
         <ScrollView
-          contentContainerStyle={[
-            styles.scrollContent,
-            {
-              paddingTop: headerHeight,
-              paddingBottom: bottomPadding, // NOVO
-            },
-            contentContainerStyle,
-          ]}
           scrollEnabled={scrollEnabled}
           showsVerticalScrollIndicator={showsVerticalScrollIndicator}
           bounces={Platform.OS === 'ios'}
           scrollEventThrottle={16}
           decelerationRate="fast"
+          style={styles.scrollView}
         >
           {scrollContent}
         </ScrollView>
@@ -134,6 +128,7 @@ export const ScreenWithBlurHeader: React.FC<ScreenWithBlurHeaderProps> = ({
         />
       </YStack>
 
+      {/* Footer fixo no fundo */}
       {footer && (
         <YStack
           position="absolute"
@@ -152,5 +147,8 @@ export const ScreenWithBlurHeader: React.FC<ScreenWithBlurHeaderProps> = ({
 const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
+  },
+  scrollView: {
+    flex: 1,
   },
 });

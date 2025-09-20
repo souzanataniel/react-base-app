@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {Pressable} from 'react-native';
+import {Platform} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import Animated, {
@@ -10,11 +10,11 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import {Stack, Text, useTheme, XStack, YStack} from 'tamagui';
+import {Button, Spinner, Stack, useTheme, XStack} from 'tamagui';
 import {Check} from '@tamagui/lucide-icons';
 
-const AnimatedStack = Animated.createAnimatedComponent(YStack);
-const AnimatedXStack = Animated.createAnimatedComponent(XStack);
+const AnimatedStack = Animated.createAnimatedComponent(Stack);
+const AnimatedButton = Animated.createAnimatedComponent(Button);
 
 interface CustomSaveFooterProps {
   onSave: () => Promise<void> | void;
@@ -25,74 +25,36 @@ interface CustomSaveFooterProps {
   visible?: boolean;
   onError?: (error: Error) => void;
   hapticFeedback?: boolean;
-}
-
-interface LoadingSpinnerProps {
-  size?: number;
+  backgroundColor?: string;
   color?: string;
+  fontWeight?: string | number;
+  icon?: React.ReactNode;
 }
 
-const LoadingSpinner = React.memo<LoadingSpinnerProps>(({size = 18, color = 'white'}) => {
-  const rotation = useSharedValue(0);
-
-  useEffect(() => {
-    rotation.value = withRepeat(withTiming(360, {duration: 1000}), -1, false);
-    return () => {
-      rotation.value = 0;
-    };
-  }, []);
-
-  const spinnerStyle = useAnimatedStyle(() => ({
-    transform: [{rotate: `${rotation.value}deg`}],
-  }));
-
-  return (
-    <AnimatedStack
-      width={size}
-      height={size}
-      borderRadius={size / 2}
-      borderWidth={2}
-      borderColor={color}
-      borderTopColor="transparent"
-      style={spinnerStyle}
-    />
-  );
-});
-
-LoadingSpinner.displayName = 'LoadingSpinner';
-
-export const CustomSaveFooter = React.memo(({
-                                              onSave,
-                                              isLoading = false,
-                                              disabled = false,
-                                              loadingText = 'Salvando...',
-                                              saveText = 'Salvar alterações',
-                                              visible = true,
-                                              onError,
-                                              hapticFeedback = true,
-                                            }: CustomSaveFooterProps) => {
+export const CustomSaveFooter = React.memo<CustomSaveFooterProps>(({
+                                                                     onSave,
+                                                                     isLoading = false,
+                                                                     disabled = false,
+                                                                     loadingText = 'Salvando...',
+                                                                     saveText = 'Salvar alterações',
+                                                                     visible = true,
+                                                                     onError,
+                                                                     hapticFeedback = true,
+                                                                     backgroundColor = '$button',
+                                                                     color = '$buttonLabel',
+                                                                   }) => {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Animações simplificadas
   const slideY = useSharedValue(visible ? 0 : 100);
-  const scale = useSharedValue(1);
   const shakeX = useSharedValue(0);
-  const buttonY = useSharedValue(0);
+  const scale = useSharedValue(1);
 
   const isButtonDisabled = useMemo(
     () => disabled || isLoading || isProcessing,
     [disabled, isLoading, isProcessing]
-  );
-
-  const activeColor = useMemo(
-    () => theme.button?.get() || '#007AFF',
-    [theme]
-  );
-
-  const inactiveColor = useMemo(
-    () => theme.button?.get() || '#8E8E93',
-    [theme]
   );
 
   const buttonText = useMemo(
@@ -100,31 +62,41 @@ export const CustomSaveFooter = React.memo(({
     [isLoading, isProcessing, loadingText, saveText]
   );
 
+  const displayIcon = useMemo(() => {
+    if (isLoading || isProcessing) {
+      return <Spinner size="small" color={color}/>;
+    }
+    return <Check size={18} color={color}/>;
+  }, [isLoading, isProcessing, color]);
+
+  // Calcula padding bottom adequado para cada plataforma
+  const bottomPadding = useMemo(() => {
+    if (Platform.OS === 'android') {
+      // Android: insets.bottom (para evitar botões do sistema) + padding extra
+      return (insets.bottom || 0) + 12;
+    }
+    // iOS: manter comportamento original
+    return insets.bottom || 12;
+  }, [insets.bottom]);
+
+  // Efeito de slide do footer
   useEffect(() => {
-    slideY.value = withTiming(visible ? 0 : 100, {duration: 150});
+    slideY.value = withTiming(visible ? 0 : 100, {duration: 250});
   }, [visible]);
 
+  // Styles animados
   const footerStyle = useAnimatedStyle(() => ({
     transform: [{translateY: slideY.value}],
-    shadowOpacity: 0.2,
-    shadowRadius: 1
   }));
 
-  const buttonContainerStyle = useAnimatedStyle(() => ({
+  const buttonStyle = useAnimatedStyle(() => ({
     transform: [
       {scale: scale.value},
       {translateX: shakeX.value},
-      {translateY: buttonY.value},
     ],
   }));
 
-  const buttonBgStyle = useAnimatedStyle(() => ({
-    backgroundColor: withTiming(
-      isButtonDisabled ? inactiveColor : activeColor,
-      {duration: 200}
-    ),
-  }));
-
+  // Haptic feedback
   const triggerHaptic = useCallback((type: 'press' | 'success' | 'error') => {
     if (!hapticFeedback) return;
 
@@ -148,11 +120,11 @@ export const CustomSaveFooter = React.memo(({
     setIsProcessing(true);
     triggerHaptic('press');
 
-    buttonY.value = withSpring(-1, {damping: 15, stiffness: 400}, (finished) => {
-      if (finished) {
-        buttonY.value = withSpring(0, {damping: 15, stiffness: 350});
-      }
-    });
+    // Animação de press
+    scale.value = withSequence(
+      withSpring(0.96, {damping: 20, stiffness: 500}),
+      withSpring(1, {damping: 20, stiffness: 350})
+    );
 
     try {
       await onSave();
@@ -162,6 +134,7 @@ export const CustomSaveFooter = React.memo(({
       onError?.(error);
       triggerHaptic('error');
 
+      // Animação de shake para erro
       shakeX.value = withSequence(
         withTiming(-8, {duration: 80}),
         withRepeat(withTiming(8, {duration: 80}), 3, true),
@@ -171,16 +144,6 @@ export const CustomSaveFooter = React.memo(({
       setIsProcessing(false);
     }
   }, [isButtonDisabled, onSave, onError, triggerHaptic]);
-
-  const handlePressIn = useCallback(() => {
-    if (isButtonDisabled) return;
-    scale.value = withSpring(0.96, {damping: 20, stiffness: 500});
-  }, [isButtonDisabled]);
-
-  const handlePressOut = useCallback(() => {
-    if (isButtonDisabled) return;
-    scale.value = withSpring(1, {damping: 20, stiffness: 500});
-  }, [isButtonDisabled]);
 
   return (
     <AnimatedStack
@@ -192,55 +155,24 @@ export const CustomSaveFooter = React.memo(({
         alignItems="center"
         paddingHorizontal="$4"
         paddingTop="$3"
-        paddingBottom={insets.bottom || 12}
+        paddingBottom={bottomPadding}
       >
-        <Stack
+        <AnimatedButton
+          size="$4"
+          backgroundColor={backgroundColor}
+          color={color}
+          fontWeight="$6"
+          disabled={isButtonDisabled}
+          opacity={isButtonDisabled ? 0.6 : 1}
+          onPress={handlePress}
+          icon={displayIcon}
           width="100%"
           maxWidth={380}
-          alignSelf="center"
+          height={48}
+          style={buttonStyle}
         >
-          <Pressable
-            onPress={handlePress}
-            onPressIn={handlePressIn}
-            onPressOut={handlePressOut}
-            disabled={isButtonDisabled}
-            accessibilityRole="button"
-            accessibilityLabel={buttonText}
-            accessibilityState={{busy: isLoading || isProcessing, disabled: isButtonDisabled}}
-            style={{opacity: isButtonDisabled ? 0.6 : 1}}
-          >
-            <AnimatedXStack
-              alignItems="center"
-              justifyContent="center"
-              style={buttonContainerStyle}
-            >
-              <AnimatedXStack
-                alignItems="center"
-                justifyContent="center"
-                gap="$2"
-                borderRadius="$10"
-                paddingHorizontal="$8"
-                paddingVertical="$3"
-                height={48}
-                style={buttonBgStyle}
-              >
-                {isLoading || isProcessing ? (
-                  <LoadingSpinner/>
-                ) : (
-                  <Check size={18} color="white"/>
-                )}
-
-                <Text
-                  color="white"
-                  fontSize="$4"
-                  fontWeight="600"
-                >
-                  {buttonText}
-                </Text>
-              </AnimatedXStack>
-            </AnimatedXStack>
-          </Pressable>
-        </Stack>
+          {buttonText}
+        </AnimatedButton>
       </XStack>
     </AnimatedStack>
   );

@@ -60,7 +60,7 @@ export const BasicHeader = React.memo(function BasicHeader({
                                                              rightIcon,
                                                              onRightPress,
                                                              showRight = !!rightIcon,
-                                                             backgroundColor,
+                                                             backgroundColor = '$colorInverse',
                                                              enableBlur = true,
                                                              blurIntensity = 80,
                                                              blurTint = 'default',
@@ -70,18 +70,6 @@ export const BasicHeader = React.memo(function BasicHeader({
   const theme = useTheme();
   const router = useRouter();
 
-  const resolvedBg = useMemo(() => {
-    if (!backgroundColor) return theme.background?.val || '#ffffff';
-    if (backgroundColor.startsWith?.('$')) {
-      try {
-        return getToken(backgroundColor.slice(1) as Token) || theme.background?.val || '#ffffff';
-      } catch {
-        return theme.background?.val || '#ffffff';
-      }
-    }
-    return backgroundColor;
-  }, [backgroundColor, theme.background]);
-
   const handleLeft = useCallback(() => {
     if (onLeftPress) return onLeftPress();
     if (onBack) return onBack();
@@ -90,17 +78,20 @@ export const BasicHeader = React.memo(function BasicHeader({
 
   const totalHeight = insets.top + DEFAULT_HEADER_HEIGHT;
 
+  const shouldUseBlur = enableBlur && Platform.OS === 'ios';
+  const finalBackgroundColor = shouldUseBlur ? 'transparent' : theme.colorInverse?.get();
+
   return (
     <YStack
       testID={testID}
       position="relative"
       height={totalHeight}
       paddingTop={insets.top}
-      backgroundColor={enableBlur ? 'transparent' : resolvedBg}
+      backgroundColor={finalBackgroundColor}
       {...(Platform.OS === 'android' ? {elevation: 1} : {})}
       style={styles.shadow}
     >
-      {enableBlur && (
+      {shouldUseBlur && (
         <BlurView
           intensity={blurIntensity}
           tint={blurTint}

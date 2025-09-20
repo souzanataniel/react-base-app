@@ -71,19 +71,9 @@ export const HapticButton = ({
       onPress={handlePress}
       {...props}
       pressStyle={{
-        scale: 0.98,
+        scale: 0.95,
         backgroundColor: backgroundColor,
         borderColor: COLORS.PRIMARY
-      }}
-      style={{
-        shadowColor: '#000',
-        shadowOffset: {
-          width: 0,
-          height: 4,
-        },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 8,
       }}
     />
   );
