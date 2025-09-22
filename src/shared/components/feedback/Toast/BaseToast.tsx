@@ -9,6 +9,34 @@ export function BaseToast() {
   const isError = currentToast.title?.toLowerCase().includes('erro')
   const isSuccess = currentToast.title?.toLowerCase().includes('sucesso')
 
+  // ✅ Define cores manualmente
+  const getColors = () => {
+    if (isError) {
+      return {
+        background: '$button',
+        titleColor: '$buttonLabel',
+        descriptionColor: '$buttonLabel',
+        borderColor: '$button'
+      }
+    }
+    if (isSuccess) {
+      return {
+        background: '$button',
+        titleColor: '$buttonLabel',
+        descriptionColor: '$buttonLabel',
+        borderColor: '$button'
+      }
+    }
+    return {
+      background: '$button',
+      titleColor: '$buttonLabel',
+      descriptionColor: '$buttonLabel',
+      borderColor: '$button'
+    }
+  }
+
+  const colors = getColors()
+
   return (
     <Toast
       animation="200ms"
@@ -19,25 +47,38 @@ export function BaseToast() {
       exitStyle={{opacity: 0, y: -20}}
       opacity={1}
       scale={1}
-      theme={isError ? 'red' : isSuccess ? 'green' : 'accent'}
       width="100%"
-      borderRadius="$6"
+      borderRadius="$4"
       position="absolute"
       top="50%"
       alignSelf="center"
+      backgroundColor={colors.background}
+      borderWidth={1}
+      borderColor={colors.borderColor}
+      shadowColor="$shadowColor"
+      shadowRadius={8}
+      shadowOffset={{width: 0, height: 2}}
+      elevation={3}
     >
       <YStack
         alignItems="center"
         gap="$2"
-        paddingHorizontal="$1"
-        paddingVertical="$1"
+        paddingHorizontal="$4"
+        paddingVertical="$3"
         width="100%"
       >
-        <Toast.Title fontWeight="bold" textAlign="center">
+        <Toast.Title
+          fontWeight="bold"
+          textAlign="center"
+          color={colors.titleColor}
+        >
           {currentToast.title}
         </Toast.Title>
         {!!currentToast.message && (
-          <Toast.Description textAlign="center">
+          <Toast.Description
+            textAlign="center"
+            color={colors.descriptionColor}
+          >
             {currentToast.message}
           </Toast.Description>
         )}

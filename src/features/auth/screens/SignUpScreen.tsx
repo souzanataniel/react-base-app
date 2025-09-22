@@ -50,7 +50,7 @@ export const SignUpScreen = () => {
   };
 
   return (
-    <BaseScreenWrapper keyboardOpeningTime={300}>
+    <BaseScreenWrapper>
       <View flex={1} paddingTop={insets.top + 10} justifyContent="center">
         <YStack padding="$2" gap="$2">
           <YStack

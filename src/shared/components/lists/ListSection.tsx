@@ -14,9 +14,9 @@ export const ListSection = ({
     <YStack marginTop={marginTop}>
       {title && (
         <Text
-          fontSize="$2"
-          color="$colorSecondary"
-          fontWeight="400"
+          fontSize="$3"
+          color="$color"
+          fontWeight="600"
           paddingHorizontal="$4"
           paddingBottom="$2"
           textTransform="uppercase"

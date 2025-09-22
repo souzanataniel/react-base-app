@@ -5,7 +5,7 @@ import {AuthGuard} from '@/features/auth/components/AuthGuard';
 
 export default function AppLayout() {
   const visibleTabs = ['home', 'favorites', 'profile'];
-  const hiddenTabs = ['notifications', 'update-profile'];
+  const hiddenTabs = ['notifications', 'update-profile', 'update-contacts'];
 
   return (
     <AuthGuard requireAuth={true}>
@@ -53,6 +53,15 @@ export default function AppLayout() {
           options={{
             title: 'Atualizar Perfil',
             tabBarLabel: 'Atualizar Perfil',
+            headerShown: false,
+          }}
+        />
+
+        <Tabs.Screen
+          name="update-contacts"
+          options={{
+            title: 'Atualizar Contatos',
+            tabBarLabel: 'Atualizar Contatos',
             headerShown: false,
           }}
         />

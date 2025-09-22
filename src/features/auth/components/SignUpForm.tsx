@@ -1,11 +1,12 @@
 import React, {useState} from 'react';
 import {Progress, Text, XStack, YStack} from 'tamagui';
 import {CircleCheck, LockKeyhole, Mail, Phone, User} from '@tamagui/lucide-icons';
-import {LabelInput} from '@/shared/components/ui/Input/FormInput';
-import {LabelPasswordInput} from '@/shared/components/ui/Input/FormPasswordInput';
+import {FormInput} from '@/shared/components/ui/Input/FormInput';
+import {FormPasswordInput} from '@/shared/components/ui/Input/FormPasswordInput';
 import {CheckboxLabel, HapticButton, LoadingButton} from '@/shared/components';
 import {PhoneInput} from '@/shared/components/ui/Input/BasePhoneInput';
 import {FormStepper} from '@/shared/components/layout/FormStepper';
+import {EmailInput} from '@/shared/components/ui/Input/EmailInput';
 
 type StepperSignUpFormProps = {
   firstName: string;
@@ -83,7 +84,7 @@ export function SignUpForm(props: StepperSignUpFormProps) {
       case 1:
         return (
           <YStack gap="$2" animation="quick" enterStyle={{opacity: 0, x: 20}} exitStyle={{opacity: 0, x: -20}}>
-            <LabelInput
+            <FormInput
               label="Nome"
               placeholder="Seu nome"
               value={firstName}
@@ -92,10 +93,10 @@ export function SignUpForm(props: StepperSignUpFormProps) {
               leftIcon={<User size={20} color="$defaultSecondaryLabel"/>}
               autoCapitalize="words"
               showSuccessIcon
-              rightIcon={<CircleCheck size={25} color="$defaultPrimary"/>}
+              successIcon={<CircleCheck size={25} color="$defaultPrimary"/>}
             />
 
-            <LabelInput
+            <FormInput
               label="Sobrenome"
               placeholder="Seu sobrenome"
               value={lastName}
@@ -103,14 +104,14 @@ export function SignUpForm(props: StepperSignUpFormProps) {
               onBlur={onBlurLastName}
               leftIcon={<User size={20} color="$defaultSecondaryLabel"/>}
               autoCapitalize="words"
-              showSuccessIcon={true}
-              rightIcon={<CircleCheck size={25} color="$defaultPrimary"/>}
+              showSuccessIcon
+              successIcon={<CircleCheck size={25} color="$defaultPrimary"/>}
             />
 
             <PhoneInput
               label="Celular"
               leftIcon={<Phone size={20} color="$defaultSecondaryLabel"/>}
-              showSuccessIcon={true}
+              showSuccessIcon
               successIcon={<CircleCheck size={25} color="$defaultPrimary" />}
               onChangeText={onPhoneChange}
               onBlur={onBlurPhone}
@@ -122,26 +123,18 @@ export function SignUpForm(props: StepperSignUpFormProps) {
       case 2:
         return (
           <YStack gap="$2" animation="quick" enterStyle={{opacity: 0, x: 20}} exitStyle={{opacity: 0, x: -20}}>
-            <LabelInput
+            <EmailInput
               label="Email"
-              placeholder="exemplo@gmail.com"
-              keyboardType="email-address"
               value={email}
               onChangeText={onEmailChange}
               onBlur={onBlurEmail}
               leftIcon={<Mail size={20} color="$defaultSecondaryLabel"/>}
-              autoCapitalize="none"
-              autoCorrect={false}
-              spellCheck={false}
-              textContentType="emailAddress"
-              autoComplete="email"
               showSuccessIcon
-              rightIcon={<CircleCheck size={25} color="$defaultPrimary"/>}
+              successIcon={<CircleCheck size={25} color="$defaultPrimary"/>}
             />
 
-            <LabelPasswordInput
+            <FormPasswordInput
               label="Senha"
-              placeholder="••••••••"
               value={password}
               onChangeText={onPasswordChange}
               onBlur={onBlurPassword}

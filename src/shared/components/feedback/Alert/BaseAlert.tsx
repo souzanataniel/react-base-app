@@ -80,7 +80,7 @@ export function BaseAlert({
             ]}
             enterStyle={{x: 0, y: -20, opacity: 0, scale: 0.95}}
             exitStyle={{x: 0, y: 10, opacity: 0, scale: 0.95}}
-            backgroundColor="$background"
+            backgroundColor="$card"
             borderRadius="$6"
             borderWidth={0}
             minWidth={280}
@@ -150,8 +150,8 @@ export function BaseAlert({
               >
                 <AlertDialog.Action asChild>
                   <Button
-                    backgroundColor={config.confirmButtonColor}
-                    color="$defaultWhite"
+                    backgroundColor="$button"
+                    color="$buttonLabel"
                     onPress={handleConfirm}
                     borderRadius="$4"
                     height={48}
@@ -174,8 +174,8 @@ export function BaseAlert({
                   <AlertDialog.Cancel asChild>
                     <Button
                       backgroundColor="transparent"
-                      borderColor="$borderColor"
-                      borderWidth={1}
+                      borderColor="$primary"
+                      borderWidth={2}
                       color="$color"
                       onPress={handleCancel}
                       borderRadius="$4"

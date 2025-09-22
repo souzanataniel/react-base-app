@@ -43,7 +43,7 @@ export const SignInScreen = () => {
   }, []);
 
   return (
-    <BaseScreenWrapper extraScrollHeight={100} keyboardOpeningTime={300}>
+    <BaseScreenWrapper extraScrollHeight={100}>
       <View flex={1} justifyContent="center">
         <YStack padding="$2">
           <YStack

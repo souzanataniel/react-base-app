@@ -1,7 +1,7 @@
 import {Avatar, Text, View, YStack} from 'tamagui';
 import {Edit3, User} from '@tamagui/lucide-icons';
 import React from 'react';
-import {Pressable} from 'react-native';
+import {Platform, Pressable} from 'react-native';
 import {ProfileHeaderProps} from '@/shared/components/lists/types';
 
 export const ProfileHeader = ({
@@ -17,6 +17,8 @@ export const ProfileHeader = ({
     medium: {avatarSize: '$10', nameSize: '$7', padding: '$3'},
     large: {avatarSize: '$12', nameSize: '$8', padding: '$6'},
   };
+
+  const marginBottom = Platform.OS === 'ios' ? "$4": "$6";
 
   const config = sizeConfig[size];
 
@@ -36,6 +38,7 @@ export const ProfileHeader = ({
               borderWidth: 1,
               borderColor: 'rgba(0, 0, 0, 0.04)',
             }}
+            marginTop={marginBottom}
     >
       <View position="relative" marginBottom="$3">
         <Avatar circular size={config.avatarSize}>

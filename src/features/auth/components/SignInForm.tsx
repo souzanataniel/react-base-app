@@ -1,11 +1,10 @@
 import React from 'react';
 import {Text, XStack, YStack} from 'tamagui';
 import {CircleCheck, LockKeyhole, Mail} from '@tamagui/lucide-icons';
-import {LabelInput} from '@/shared/components/ui/Input/FormInput';
-import {LabelPasswordInput} from '@/shared/components/ui/Input/FormPasswordInput';
 import {LoadingButton} from '@/shared/components';
 import {Link} from 'expo-router';
-import {COLORS} from '@/shared/constants/colors';
+import {EmailInput} from '@/shared/components/ui/Input/EmailInput';
+import {FormPasswordInput} from '@/shared/components/ui/Input/FormPasswordInput';
 
 type Props = {
   email: string;
@@ -27,32 +26,22 @@ export function SignInForm({
                            }: Props) {
   return (
     <YStack gap="$2">
-      <LabelInput
+      <EmailInput
         label="Email"
-        placeholder="exemplo@gmail.com"
-        keyboardType="email-address"
-        autoCapitalize="none"
-        autoCorrect={false}
-        spellCheck={false}
-        textContentType="emailAddress"
-        autoComplete="email"
         value={email}
         onChangeText={onEmailChange}
         onBlur={onBlurEmail}
         leftIcon={<Mail size={20} color="$defaultSecondaryLabel"/>}
         showSuccessIcon
-        rightIcon={<CircleCheck size={25} color="$defaultPrimary"/>}
+        successIcon={<CircleCheck size={25} color="$defaultPrimary"/>}
       />
 
-      <LabelPasswordInput
+      <FormPasswordInput
         label="Senha"
-        placeholder="••••••••"
         value={password}
         onChangeText={onPasswordChange}
         onBlur={onBlurPassword}
         leftIcon={<LockKeyhole size={20} color="$defaultSecondaryLabel"/>}
-        borderWidth={1}
-        borderRadius="$4"
       />
 
       <XStack

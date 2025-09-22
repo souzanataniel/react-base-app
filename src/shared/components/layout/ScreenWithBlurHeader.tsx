@@ -42,7 +42,7 @@ export const ScreenWithBlurHeader: React.FC<ScreenWithBlurHeaderProps> = ({
                                                                             showRight,
                                                                             enableBlur = true,
                                                                             blurIntensity = 80,
-                                                                            blurTint = 'default',
+                                                                            blurTint,
                                                                             scrollEnabled = true,
                                                                             hasKeyboardInputs = false,
                                                                             contentContainerStyle,

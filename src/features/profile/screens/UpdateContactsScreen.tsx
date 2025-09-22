@@ -1,31 +1,32 @@
 import {useAuth} from '@/features/auth/hooks/useAuth';
 import React, {useCallback, useMemo, useState} from 'react';
 import {CustomSaveFooter} from '@/shared/components/ui/CustomSaveFooter/CustomSaveFooter';
-import {Progress, Text, XStack, YStack} from 'tamagui';
+import {Text, YStack} from 'tamagui';
 import {router, useFocusEffect} from 'expo-router';
 import {useTabBarHeight} from '@/shared/components/ui/AnimatedTabBar/hooks/useTabBarHeight';
 import {Alert} from 'react-native';
-import {UpdateProfileFormData, updateProfileSchema} from '@/features/profile/schema/updateProfileSchema';
+import {updateContactsSchema, UpdateContatcsFormData} from '@/features/profile/schema/updateContactsSchema';
 import {CardTitle} from '@/shared/components/ui/Cards/CardTitle';
-import {CircleCheck, User} from '@tamagui/lucide-icons';
+import {CircleCheck, Contact} from '@tamagui/lucide-icons';
 import {ScreenWithBlurHeader} from '@/shared/components/layout/ScreenWithBlurHeader';
 import {FormInput} from '@/shared/components/ui/Input/FormInput';
 import {PhoneInput} from '@/shared/components/ui/Input/BasePhoneInput';
 import {DateInput} from '@/shared/components/ui/Input/DateInput';
 import {ZodError} from 'zod';
-import {dateMasks} from '@/shared/utils/masks';
-import {updateProfile} from '@/features/profile/services/updateProfileService';
+import {updateProfileField} from '@/features/profile/services/updateProfileService';
+import {useBaseToast} from '@/shared/components/feedback/Toast';
 
-type FieldType = 'text' | 'phone' | 'date';
+type FieldType = 'text' | 'phone' | 'date' | 'email' | 'password';
 
 interface Field {
-  name: keyof UpdateProfileFormData;
+  name: keyof UpdateContatcsFormData;
   label: string;
   placeholder?: string;
   type?: FieldType;
   mask?: (v: string) => string;
   keyboardType?: 'default' | 'numeric' | 'phone-pad' | 'email-address';
   maxLength?: number;
+  disabled?: boolean;
 }
 
 interface Section {
@@ -34,60 +35,31 @@ interface Section {
 }
 
 const FORM_SECTIONS: Record<string, Section> = {
-  personal: {
-    title: 'Informações Pessoais',
-    fields: [
-      {name: 'firstName', label: 'Nome', placeholder: 'Seu nome', type: 'text'},
-      {name: 'lastName', label: 'Sobrenome', placeholder: 'Seu sobrenome', type: 'text'},
-      {name: 'displayName', label: 'Nome de exibição', placeholder: 'Como você gostaria de ser chamado', type: 'text'},
-    ]
-  },
   contact: {
     title: 'Contato',
     fields: [
       {name: 'phone', label: 'Celular', type: 'phone'},
+      {name: 'email', label: 'Email', type: 'email', disabled: true},
     ]
   },
-  additional: {
-    title: 'Informações Adicionais',
-    fields: [
-      {
-        name: 'dateOfBirth',
-        label: 'Data de nascimento',
-        placeholder: 'DD/MM/AAAA',
-        type: 'date',
-        mask: dateMasks.date,
-        keyboardType: 'numeric',
-        maxLength: 10
-      },
-    ]
-  }
 };
 
-export const UpdateProfileScreen = () => {
+export const UpdateContactsScreen = () => {
   const {user, setUser} = useAuth();
   const {tabBarHeight} = useTabBarHeight();
   const [isLoading, setIsLoading] = useState(false);
   const [footerVisible, setFooterVisible] = useState(false);
   const [validFields, setValidFields] = useState<Record<string, boolean>>({});
+  const {showSuccess} = useBaseToast();
 
-  const [formData, setFormData] = useState<UpdateProfileFormData>({
-    firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
-    displayName: user?.displayName || '',
+  const [formData, setFormData] = useState<UpdateContatcsFormData>({
+    email: user?.email || '',
     phone: user?.phone || '',
-    dateOfBirth: user?.dateOfBirth || '',
   });
-
-  const profileProgress = useMemo(() => {
-    const values = Object.values(formData);
-    const filled = values.filter(v => v && v.trim() !== '').length;
-    return Math.round((filled / values.length) * 100);
-  }, [formData]);
 
   const hasChanges = useMemo(() => {
     return Object.keys(formData).some(key => {
-      const k = key as keyof UpdateProfileFormData;
+      const k = key as keyof UpdateContatcsFormData;
       return formData[k] !== (user?.[k] || '');
     });
   }, [formData, user]);
@@ -95,11 +67,8 @@ export const UpdateProfileScreen = () => {
   useFocusEffect(
     useCallback(() => {
       setFormData({
-        firstName: user?.firstName || '',
-        lastName: user?.lastName || '',
-        displayName: user?.displayName || '',
+        email: user?.email || '',
         phone: user?.phone || '',
-        dateOfBirth: user?.dateOfBirth || '',
       });
       setFooterVisible(false);
       setValidFields({});
@@ -109,16 +78,16 @@ export const UpdateProfileScreen = () => {
     }, [user])
   );
 
-  const handleChange = useCallback((field: keyof UpdateProfileFormData, mask?: (v: string) => string) => {
+  const handleChange = useCallback((field: keyof UpdateContatcsFormData, mask?: (v: string) => string) => {
     return (value: string) => {
       const processedValue = mask ? mask(value) : value;
       setFormData(prev => ({...prev, [field]: processedValue}));
     };
   }, []);
 
-  const validateField = useCallback((field: keyof UpdateProfileFormData, value: string | undefined | '') => {
+  const validateField = useCallback((field: keyof UpdateContatcsFormData, value: string | undefined | '') => {
     try {
-      const schema = updateProfileSchema.shape[field];
+      const schema = updateContactsSchema.shape[field];
       schema.parse(value);
       setValidFields(prev => ({...prev, [field]: true}));
       return true;
@@ -128,7 +97,7 @@ export const UpdateProfileScreen = () => {
     }
   }, []);
 
-  const handleBlur = useCallback((field: keyof UpdateProfileFormData) => {
+  const handleBlur = useCallback((field: keyof UpdateContatcsFormData) => {
     return () => validateField(field, formData[field]);
   }, [formData, validateField]);
 
@@ -136,8 +105,7 @@ export const UpdateProfileScreen = () => {
     if (!hasChanges || isLoading || !user?.id) return;
 
     try {
-      // Validação com Zod
-      updateProfileSchema.parse(formData);
+      updateContactsSchema.parse(formData);
     } catch (error) {
       if (error instanceof ZodError) {
         const errors = error.issues.map(e => e.message);
@@ -153,9 +121,7 @@ export const UpdateProfileScreen = () => {
     setIsLoading(true);
     try {
       console.log('Salvando alterações:', formData);
-
-      // Chama o serviço de atualização
-      const result = await updateProfile(user.id, formData);
+      const result = await updateProfileField(user.id, 'phone', formData.phone);
 
       if (!result.success || result.error) {
         Alert.alert('Erro', result.error || 'Erro ao salvar alterações', [{text: 'OK'}]);
@@ -168,14 +134,9 @@ export const UpdateProfileScreen = () => {
 
       console.log('✅ Perfil atualizado com sucesso:', result.user);
 
-      // Sucesso - volta para a tela anterior
       setFooterVisible(false);
       setTimeout(() => {
-        Alert.alert(
-          'Sucesso!',
-          'Perfil atualizado com sucesso',
-          [{ text: 'OK', onPress: () => router.push('/(app)/profile') }]
-        );
+        showSuccess('Contatos', 'Dados de contato atualizados com sucesso !');
       }, 300);
 
     } catch (error) {
@@ -194,6 +155,7 @@ export const UpdateProfileScreen = () => {
       onBlur: handleBlur(field.name),
       showSuccessIcon: validFields[field.name],
       successIcon: <CircleCheck size={20} color="$primary"/>,
+      disabled: field.disabled,
     };
 
     if (field.type === 'phone') {
@@ -222,6 +184,12 @@ export const UpdateProfileScreen = () => {
         autoCapitalize={field.type === 'text' ? 'words' : 'none'}
         keyboardType={field.keyboardType || 'default'}
         maxLength={field.maxLength}
+        disabledStyle={{
+          backgroundColor: '$red2',
+          color: '$red9',
+          borderColor: '$red7',
+          borderWidth: 1
+        }}
       />
     );
   }, [formData, validFields, handleChange, handleBlur]);
@@ -256,20 +224,10 @@ export const UpdateProfileScreen = () => {
     >
       <YStack paddingHorizontal="$4" paddingVertical="$4" gap="$4">
         <CardTitle
-          icon={<User size={24} color="white"/>}
-          title="Dados Pessoais"
-          description="Atualize suas informações básicas"
+          icon={<Contact size={24} color="white"/>}
+          title="Dados de Contato"
+          description="Atualize suas informações de contato"
         />
-
-        <YStack backgroundColor="$card" borderRadius="$3" padding="$3" gap="$2">
-          <XStack justifyContent="space-between" alignItems="center">
-            <Text fontSize="$2" color="$color" fontWeight="500">Perfil Completo</Text>
-            <Text fontSize="$2" color="$color" fontWeight="600">{profileProgress}%</Text>
-          </XStack>
-          <Progress value={profileProgress} max={100} size="$2">
-            <Progress.Indicator backgroundColor="$defaultPrimary" animation="bouncy" opacity={0.8} borderRadius="$5"/>
-          </Progress>
-        </YStack>
 
         {Object.entries(FORM_SECTIONS).map(([key, section]) =>
           renderSection(key, section)

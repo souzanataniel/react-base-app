@@ -15,57 +15,145 @@ type DateInputProps = Omit<InputProps, 'keyboardType' | 'maxLength' | 'editable'
   minDate?: Date;
   maxDate?: Date;
   mode?: 'date' | 'datetime' | 'time';
+  // Novo: permite controlar o formato de saída
+  outputFormat?: 'DD/MM/YYYY' | 'YYYY-MM-DD';
+  // Novo: se deve normalizar automaticamente o valor inicial
+  autoNormalize?: boolean;
 };
 
 const PICKER_HEIGHT = 400;
 
+// Detecta o formato da data baseado na string
+const detectDateFormat = (dateString: string): 'DD/MM/YYYY' | 'YYYY-MM-DD' | 'unknown' => {
+  if (!dateString) return 'unknown';
+
+  // Remove espaços e verifica padrões
+  const clean = dateString.trim();
+
+  // Formato YYYY-MM-DD (ISO)
+  if (/^\d{4}-\d{2}-\d{2}$/.test(clean)) {
+    return 'YYYY-MM-DD';
+  }
+
+  // Formato DD/MM/YYYY
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(clean)) {
+    return 'DD/MM/YYYY';
+  }
+
+  return 'unknown';
+};
+
 const isValidDate = (dateString: string): boolean => {
   if (!dateString) return false;
 
-  const numbers = dateString.replace(/\D/g, '');
-  if (numbers.length !== 8) return false;
+  const format = detectDateFormat(dateString);
 
-  const day = parseInt(numbers.slice(0, 2), 10);
-  const month = parseInt(numbers.slice(2, 4), 10);
-  const year = parseInt(numbers.slice(4, 8), 10);
+  if (format === 'DD/MM/YYYY') {
+    const numbers = dateString.replace(/\D/g, '');
+    if (numbers.length !== 8) return false;
 
-  if (day < 1 || day > 31) return false;
-  if (month < 1 || month > 12) return false;
-  if (year < 1900 || year > new Date().getFullYear()) return false;
+    const day = parseInt(numbers.slice(0, 2), 10);
+    const month = parseInt(numbers.slice(2, 4), 10);
+    const year = parseInt(numbers.slice(4, 8), 10);
 
-  const dateObj = new Date(year, month - 1, day);
-  return (
-    dateObj.getDate() === day &&
-    dateObj.getMonth() === month - 1 &&
-    dateObj.getFullYear() === year
-  );
+    if (day < 1 || day > 31) return false;
+    if (month < 1 || month > 12) return false;
+    if (year < 1900 || year > new Date().getFullYear()) return false;
+
+    // month - 1 porque Date() usa zero-indexado
+    const dateObj = new Date(year, month - 1, day);
+    return (
+      dateObj.getDate() === day &&
+      dateObj.getMonth() === month - 1 && // comparar com month - 1
+      dateObj.getFullYear() === year
+    );
+  }
+
+  if (format === 'YYYY-MM-DD') {
+    const parts = dateString.split('-');
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10); // mês 1-12 na string
+    const day = parseInt(parts[2], 10);
+
+    if (day < 1 || day > 31) return false;
+    if (month < 1 || month > 12) return false;
+    if (year < 1900 || year > new Date().getFullYear()) return false;
+
+    // IMPORTANTE: month - 1 para Date(), mas comparar com month - 1 também
+    const dateObj = new Date(year, month - 1, day);
+    return (
+      dateObj.getDate() === day &&
+      dateObj.getMonth() === month - 1 && // Date().getMonth() retorna 0-11
+      dateObj.getFullYear() === year
+    );
+  }
+
+  return false;
 };
 
-const formatDateToString = (date: Date): string => {
+const formatDateToString = (date: Date, format: 'DD/MM/YYYY' | 'YYYY-MM-DD' = 'DD/MM/YYYY'): string => {
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const year = date.getFullYear();
+
+  if (format === 'YYYY-MM-DD') {
+    return `${year}-${month}-${day}`;
+  }
+
   return `${day}/${month}/${year}`;
 };
 
 const parseStringToDate = (dateString: string): Date | null => {
   if (!dateString) return null;
 
-  const numbers = dateString.replace(/\D/g, '');
+  const format = detectDateFormat(dateString);
 
-  if (numbers.length === 8) {
-    const day = parseInt(numbers.slice(0, 2), 10);
-    const month = parseInt(numbers.slice(2, 4), 10);
-    const year = parseInt(numbers.slice(4, 8), 10);
+  if (format === 'DD/MM/YYYY') {
+    const numbers = dateString.replace(/\D/g, '');
 
-    const date = new Date(year, month - 1, day);
+    if (numbers.length === 8) {
+      const day = parseInt(numbers.slice(0, 2), 10);
+      const month = parseInt(numbers.slice(2, 4), 10);
+      const year = parseInt(numbers.slice(4, 8), 10);
 
-    if (!isNaN(date.getTime()) && isValidDate(dateString)) {
-      return date;
+      // month - 1 porque Date() usa mês zero-indexado (0-11)
+      const date = new Date(year, month - 1, day);
+
+      if (!isNaN(date.getTime()) && isValidDate(dateString)) {
+        return date;
+      }
+    }
+  }
+
+  if (format === 'YYYY-MM-DD') {
+    const parts = dateString.split('-');
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10); // mês de 1-12 no formato ISO
+      const day = parseInt(parts[2], 10);
+
+      // IMPORTANTE: month - 1 porque Date() usa mês zero-indexado
+      // Se a string é "2024-01-15", month será 1 (Janeiro)
+      // Mas Date() precisa de 0 para Janeiro
+      const date = new Date(year, month - 1, day);
+
+      if (!isNaN(date.getTime()) && isValidDate(dateString)) {
+        return date;
+      }
     }
   }
 
   return null;
+};
+
+// Converte qualquer formato de entrada para o formato de exibição DD/MM/YYYY
+const convertToDisplayFormat = (dateString: string): string => {
+  if (!dateString) return '';
+
+  const parsedDate = parseStringToDate(dateString);
+  if (!parsedDate) return dateString; // Retorna original se não conseguir converter
+
+  return formatDateToString(parsedDate, 'DD/MM/YYYY');
 };
 
 function BaseDateInput(
@@ -87,6 +175,8 @@ function BaseDateInput(
     maxDate = new Date(),
     mode = 'date',
     onBlur,
+    outputFormat = 'DD/MM/YYYY', // Formato padrão para compatibilidade
+    autoNormalize = true, // Por padrão, normaliza automaticamente
   }: DateInputProps,
   ref: React.Ref<any>
 ) {
@@ -95,6 +185,7 @@ function BaseDateInput(
   const backdropAnim = useRef(new Animated.Value(0)).current;
 
   const [inputValue, setInputValue] = useState('');
+  const [displayValue, setDisplayValue] = useState(''); // Valor mostrado no input (sempre DD/MM/YYYY)
   const [isValid, setIsValid] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
 
@@ -108,7 +199,10 @@ function BaseDateInput(
 
   useEffect(() => {
     if (value !== undefined && value !== inputValue) {
-      setInputValue(value);
+      // Converte para formato de exibição
+      const display = convertToDisplayFormat(value);
+      setDisplayValue(display);
+
       const validation = validationFn ? validationFn(value) : isValidDate(value);
       setIsValid(validation);
 
@@ -116,10 +210,31 @@ function BaseDateInput(
         const parsedDate = parseStringToDate(value);
         if (parsedDate) {
           setSelectedDate(parsedDate);
+
+          // IMPORTANTE: Normaliza o valor para o outputFormat esperado
+          // Se value veio do banco como YYYY-MM-DD mas outputFormat é DD/MM/YYYY
+          // ou vice-versa, converte para o formato correto
+          if (autoNormalize) {
+            const normalizedValue = formatDateToString(parsedDate, outputFormat);
+            setInputValue(normalizedValue);
+
+            // Se o valor normalizado é diferente do valor original,
+            // chama onChangeText para atualizar o formulário
+            if (normalizedValue !== value && onChangeText) {
+              // Usa setTimeout para evitar loops de re-render
+              setTimeout(() => {
+                onChangeText(normalizedValue);
+              }, 0);
+            }
+          } else {
+            setInputValue(value);
+          }
         }
+      } else {
+        setInputValue(value);
       }
     }
-  }, [value, validationFn]);
+  }, [value, validationFn, outputFormat, onChangeText, autoNormalize]);
 
   useEffect(() => {
     if (showPicker) {
@@ -167,7 +282,7 @@ function BaseDateInput(
   const handleCalendarPress = () => {
     Keyboard.dismiss();
 
-    if (!inputValue || !isValidDate(inputValue)) {
+    if (!displayValue || !isValidDate(displayValue)) {
       setSelectedDate(getDefaultDate());
     }
 
@@ -193,11 +308,17 @@ function BaseDateInput(
     }
 
     setSelectedDate(dateToUse);
-    const formattedDate = formatDateToString(dateToUse);
 
-    setInputValue(formattedDate);
+    // Formato para exibição (sempre DD/MM/YYYY)
+    const displayDate = formatDateToString(dateToUse, 'DD/MM/YYYY');
+    setDisplayValue(displayDate);
+
+    // Formato para o callback (conforme outputFormat)
+    const outputDate = formatDateToString(dateToUse, outputFormat);
+    setInputValue(outputDate);
+
     setIsValid(true);
-    onChangeText?.(formattedDate);
+    onChangeText?.(outputDate);
 
     if (Platform.OS === 'android' && onBlur) {
       setTimeout(() => {
@@ -222,7 +343,7 @@ function BaseDateInput(
     }
   };
 
-  const shouldShowSuccessIcon = showSuccessIcon && isValid && inputValue.trim().length > 0;
+  const shouldShowSuccessIcon = showSuccessIcon && isValid && displayValue.trim().length > 0;
   const paddingLeft = leftIcon ? 45 : 16;
   const paddingRight = 48;
 
@@ -267,9 +388,9 @@ function BaseDateInput(
           <View style={inputContainerStyle}>
             <Text
               fontSize={14}
-              color={inputValue ? (theme.color?.get() || '#000000') : (theme.placeholderTex?.get() || '#999999')}
+              color={displayValue ? (theme.color?.get() || '#000000') : (theme.placeholderTex?.get() || '#999999')}
             >
-              {inputValue || placeholder}
+              {displayValue || placeholder}
             </Text>
           </View>
         </TouchableOpacity>
@@ -375,7 +496,7 @@ function BaseDateInput(
                       elevation: 4,
                     }}
                   >
-                    <Text color="$buttonLabel" fontWeight="700" fontSize={17}>
+                    <Text color="$buttonLabel" fontWeight="500" fontSize={17}>
                       Confirmar
                     </Text>
                   </TouchableOpacity>

@@ -18,7 +18,7 @@ const DEFAULT_THUMB_STYLE: ViewStyle = {
 
 export const BaseSwitch = memo(function BaseSwitch({
                                                      thumbColor = '#FFF',
-                                                     scale = 0.9,
+                                                     scale = 0.8,
                                                      thumbStyle,
                                                      style,
                                                      checked,

@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
-import {Alert, ScrollView} from 'react-native';
+import {ScrollView} from 'react-native';
 import {YStack} from 'tamagui';
-import {BellRing, Info, Lock, LogOut, Mail, MapPin, Phone, User, Vibrate} from '@tamagui/lucide-icons';
+import {BellRing, Info, Lock, LogOut, MapPin, Phone, User, Vibrate} from '@tamagui/lucide-icons';
 import {CollapsibleScreen} from '@/shared/components/layout/CollapsibleScreen';
 import {ListItem, ListSection, ProfileHeader} from '@/shared/components/lists';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -9,32 +9,21 @@ import {useAuth} from '@/features/auth/hooks/useAuth';
 import {PaintBrushIcon} from 'react-native-heroicons/mini';
 import {router} from 'expo-router';
 import {StatusBar} from 'expo-status-bar';
+import {useThemeManager} from '@/shared/hooks/useTheme';
+import {useCommon} from '@/shared/hooks/useCommon';
 
 export function ProfileScreen() {
+  const insets = useSafeAreaInsets();
   const [enableLocation, setEnableLocation] = useState(false);
   const [enableTactileFeedback, setEnableTactileFeedback] = useState(false);
   const [enableNotifications, setEnableNotifications] = useState(false);
+  const {nextTheme, getModeDisplayName} = useThemeManager();
+  const {logoutApp} = useCommon();
 
-  const insets = useSafeAreaInsets();
-  const {user, signOut} = useAuth();
+  const {user} = useAuth();
 
-  const logoffAction = () => {
-    Alert.alert(
-      'Sair do App',
-      'Você tem certeza que deseja sair do app?',
-      [
-        {
-          text: 'Cancelar',
-          onPress: () => console.log('Cancelado'),
-          style: 'cancel',
-        },
-        {
-          text: 'OK',
-          onPress: () => signOut(),
-        },
-      ],
-      {cancelable: true}
-    );
+  const changeTheme = async () => {
+    await nextTheme();
   };
 
   return (
@@ -67,19 +56,13 @@ export function ProfileScreen() {
                 icon={<Phone size={18} color="white"/>}
                 iconBg="#059669"
                 title="Informações de Contato"
-                onPress={() => console.log('Account Details')}
+                onPress={() => router.push('/(app)/update-contacts')}
               />
               <ListItem
                 icon={<Lock size={18} color="white"/>}
                 iconBg="#D97706"
                 title="Alterar Senha"
                 onPress={() => console.log('Transaction History')}
-              />
-              <ListItem
-                icon={<Mail size={18} color="white"/>}
-                iconBg="#7C3AED"
-                title="Alterar Email"
-                onPress={() => console.log('Documents')}
               />
             </ListSection>
 
@@ -120,8 +103,8 @@ export function ProfileScreen() {
                 icon={<PaintBrushIcon size={18} color="white"/>}
                 iconBg="#7C3AED"
                 title="Tema do App"
-                valueText="Automático"
-                onPress={() => console.log('Documents')}
+                valueText={getModeDisplayName()}
+                onPress={() => changeTheme()}
               />
               <ListItem
                 icon={<Info size={18} color="white"/>}
@@ -134,7 +117,7 @@ export function ProfileScreen() {
                 icon={<LogOut size={18} color="white"/>}
                 iconBg="#DC2626"
                 title="Sair do App"
-                onPress={() => logoffAction()}
+                onPress={() => logoutApp()}
                 showChevron={false}
               />
             </ListSection>
