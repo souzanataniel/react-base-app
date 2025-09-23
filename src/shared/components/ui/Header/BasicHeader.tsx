@@ -19,6 +19,7 @@ type BasicHeaderProps = {
   rightIcon?: React.ReactNode;
   onRightPress?: () => void;
   showRight?: boolean;
+  hideBackButton?: boolean; // Nova prop adicionada
   backgroundColor?: string;
   enableBlur?: boolean;
   blurIntensity?: number;
@@ -61,6 +62,7 @@ export const BasicHeader = React.memo(function BasicHeader({
                                                              rightIcon,
                                                              onRightPress,
                                                              showRight = !!rightIcon,
+                                                             hideBackButton = false, // Valor padrão false
                                                              enableBlur = true,
                                                              blurIntensity = 80,
                                                              blurTint,
@@ -102,9 +104,11 @@ export const BasicHeader = React.memo(function BasicHeader({
 
       <XStack height={DEFAULT_HEADER_HEIGHT} alignItems="center">
         <XStack width={SIDE_WIDTH} alignItems="center" justifyContent="flex-start" paddingLeft="$1">
-          <IconButton a11yLabel={`Voltar${title ? ` para ${title}` : ''}`} onPress={handleLeft}>
-            {leftIcon ?? <ArrowLeft size={22} color={theme.color?.val ?? '#000'}/>}
-          </IconButton>
+          {!hideBackButton && (
+            <IconButton a11yLabel={`Voltar${title ? ` para ${title}` : ''}`} onPress={handleLeft}>
+              {leftIcon ?? <ArrowLeft size={22} color={theme.color?.val ?? '#000'}/>}
+            </IconButton>
+          )}
         </XStack>
 
         <XStack flex={1} alignItems="center" justifyContent="center" paddingHorizontal="$2">

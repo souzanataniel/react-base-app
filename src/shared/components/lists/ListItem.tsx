@@ -24,7 +24,7 @@ export const ListItem = ({
                            icon,
                            title,
                            subtitle,
-                           iconBg = '$defaultPrimary',
+                           iconBg = '$primary',
                            iconSize = 28,
                            showChevron = true,
                            showSwitch = false,

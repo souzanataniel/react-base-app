@@ -9,6 +9,8 @@ import {config} from '../../../tamagui.config';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {AuthProvider} from '@/features/auth/providers/AuthProvider';
 import {useThemeManager} from '@/shared/hooks/useTheme';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {AlertProvider} from '@/shared/components/feedback/CustomAlert/CustomAlert';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -62,13 +64,17 @@ const ThemedApp = ({children}: { children: React.ReactNode }) => {
 export function AppProvider({children, ...rest}: Omit<TamaguiProviderProps, 'config'>) {
   return (
     <QueryClientProvider client={queryClient}>
-      <SafeAreaProvider>
-        <TamaguiProvider config={config} {...rest}>
-          <ThemedApp>
-            {children}
-          </ThemedApp>
-        </TamaguiProvider>
-      </SafeAreaProvider>
+      <GestureHandlerRootView style={{flex: 1}}>
+        <SafeAreaProvider>
+          <TamaguiProvider config={config} {...rest}>
+            <ThemedApp>
+              <AlertProvider>
+              {children}
+              </AlertProvider>
+            </ThemedApp>
+          </TamaguiProvider>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
     </QueryClientProvider>
   );
 }

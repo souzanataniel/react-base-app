@@ -1,8 +1,9 @@
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {COLORS} from '@/shared/constants/colors';
+import {useTheme} from 'tamagui';
 
 export const useTabBarHeight = () => {
   const insets = useSafeAreaInsets();
+  const theme = useTheme();
 
   const config = {
     sizes: {
@@ -14,10 +15,10 @@ export const useTabBarHeight = () => {
       containerHeight: 40,
     },
     colors: {
-      active: '#007AFF',
-      inactive: COLORS.SECONDARY_LABEL,
-      background: 'white',
-      activeBorder: '#007AFF',
+      active: theme.primary?.val || '#007AFF',
+      inactive: theme.colorSecondary?.val || theme.gray10?.val || '#8E8E93',
+      background: theme.card?.val || theme.backgroundStrong?.val || 'white',
+      activeBorder: theme.primary?.val || '#007AFF',
     },
     spacing: {
       paddingHorizontal: 6,

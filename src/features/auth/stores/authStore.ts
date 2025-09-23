@@ -2,7 +2,13 @@ import {create} from 'zustand';
 import {createJSONStorage, persist} from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as authService from '../services/authService';
-import {AuthState, SignInCredentials, SignUpCredentials, User} from '@/features/auth/types/auth.types';
+import {
+  AuthState,
+  SignInCredentials,
+  SignUpCredentials,
+  UpdatePasswordCredentials,
+  User
+} from '@/features/auth/types/auth.types';
 import {router} from 'expo-router';
 
 // Constantes
@@ -30,6 +36,13 @@ interface AuthStore extends AuthState {
   setLoading: (loading: boolean) => void;
   clearError: () => void;
   cleanup: () => void;
+
+  // ← Novo método
+  updatePassword: (credentials: UpdatePasswordCredentials) => Promise<{
+    success: boolean;
+    error?: string;
+    message: string;
+  }>;
 }
 
 // Controle global de inicialização
@@ -225,6 +238,51 @@ export const useAuthStore = create<AuthStore>()(
             isLoading: false,
             error: null,
           });
+        }
+      },
+
+      // ← Novo método updatePassword
+      updatePassword: async (credentials: UpdatePasswordCredentials) => {
+        set({isLoading: true, error: null});
+
+        try {
+          console.log('🔐 Executando atualização de senha...');
+          const response = await authService.updatePassword(credentials);
+
+          if (response.success) {
+            console.log('✅ Senha atualizada com sucesso');
+            set({
+              isLoading: false,
+              error: null,
+            });
+            return {
+              success: true,
+              message: response.message
+            };
+          } else {
+            console.log('❌ Erro ao atualizar senha:', response.error);
+            set({
+              error: response.error || 'Erro ao atualizar senha',
+              isLoading: false,
+            });
+            return {
+              success: false,
+              error: response.error,
+              message: response.message
+            };
+          }
+        } catch (error) {
+          const errorMessage = 'Erro inesperado ao atualizar senha';
+          console.error('💥 Exceção na atualização de senha:', error);
+          set({
+            error: errorMessage,
+            isLoading: false,
+          });
+          return {
+            success: false,
+            error: errorMessage,
+            message: errorMessage
+          };
         }
       },
 

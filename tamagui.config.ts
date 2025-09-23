@@ -133,7 +133,7 @@ export const config = createTamagui({
       buttonLabel: '#000000',
 
       backgroundInput: '#323232',
-      placeholderTex: '#EBEBF54C',
+      placeholderText: '#EBEBF54C',
 
     }
   },

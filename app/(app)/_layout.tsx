@@ -1,11 +1,11 @@
 import React from 'react';
 import {Tabs} from 'expo-router';
-import {AnimatedTabBar} from '@/shared/components/ui/AnimatedTabBar';
+import {AnimatedTabBar} from '@/shared/components/ui/AnimatedTabBar/AnimatedTabBar';
 import {AuthGuard} from '@/features/auth/components/AuthGuard';
 
 export default function AppLayout() {
   const visibleTabs = ['home', 'favorites', 'profile'];
-  const hiddenTabs = ['notifications', 'update-profile', 'update-contacts'];
+  const hiddenTabs = ['notifications', 'update-profile', 'update-contacts', 'update-password'];
 
   return (
     <AuthGuard requireAuth={true}>
@@ -62,6 +62,15 @@ export default function AppLayout() {
           options={{
             title: 'Atualizar Contatos',
             tabBarLabel: 'Atualizar Contatos',
+            headerShown: false,
+          }}
+        />
+
+        <Tabs.Screen
+          name="update-password"
+          options={{
+            title: 'Atualizar Password',
+            tabBarLabel: 'Atualizar Password',
             headerShown: false,
           }}
         />

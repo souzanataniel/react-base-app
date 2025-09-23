@@ -1,12 +1,14 @@
 import React, {useState} from 'react';
-import {Progress, Text, XStack, YStack} from 'tamagui';
+import {Text, XStack, YStack} from 'tamagui';
 import {CircleCheck, LockKeyhole, Mail, Phone, User} from '@tamagui/lucide-icons';
 import {FormInput} from '@/shared/components/ui/Input/FormInput';
 import {FormPasswordInput} from '@/shared/components/ui/Input/FormPasswordInput';
-import {CheckboxLabel, HapticButton, LoadingButton} from '@/shared/components';
+import {HapticButton, LoadingButton} from '@/shared/components';
 import {PhoneInput} from '@/shared/components/ui/Input/BasePhoneInput';
 import {FormStepper} from '@/shared/components/layout/FormStepper';
 import {EmailInput} from '@/shared/components/ui/Input/EmailInput';
+import {CheckboxLabel} from '@/shared/components/ui/Input/CheckboxLabel';
+import {PasswordStrengthIndicator} from '@/shared/components/ui/PasswordIndicator/PasswordStrengthIndicator';
 
 type StepperSignUpFormProps = {
   firstName: string;
@@ -59,14 +61,6 @@ export function SignUpForm(props: StepperSignUpFormProps) {
     passwordStrength,
   } = props;
 
-  const strengthConfig = {
-    weak: {color: '$error', progress: 33, text: 'Fraca'},
-    medium: {color: '$warning', progress: 66, text: 'Média'},
-    strong: {color: '$success', progress: 100, text: 'Forte'},
-  };
-
-  const currentStrength = strengthConfig[passwordStrength];
-
   const handleNext = () => {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
@@ -112,7 +106,7 @@ export function SignUpForm(props: StepperSignUpFormProps) {
               label="Celular"
               leftIcon={<Phone size={20} color="$defaultSecondaryLabel"/>}
               showSuccessIcon
-              successIcon={<CircleCheck size={25} color="$defaultPrimary" />}
+              successIcon={<CircleCheck size={25} color="$defaultPrimary"/>}
               onChangeText={onPhoneChange}
               onBlur={onBlurPhone}
               value={phone}
@@ -141,26 +135,10 @@ export function SignUpForm(props: StepperSignUpFormProps) {
               leftIcon={<LockKeyhole size={20} color="$defaultSecondaryLabel"/>}
             />
 
-            {password.length > 0 && (
-              <YStack gap="$2" paddingHorizontal="$2" marginTop="$1">
-                <XStack justifyContent="space-between" alignItems="center">
-                  <Text fontSize="$2" color="$light">Força da senha:</Text>
-                  <Text fontSize="$2" color={currentStrength.color} fontWeight="600">
-                    {currentStrength.text}
-                  </Text>
-                </XStack>
-                <Progress
-                  value={currentStrength.progress}
-                  backgroundColor="$lighter"
-                  height={4}
-                >
-                  <Progress.Indicator
-                    backgroundColor={currentStrength.color}
-                    animation="bouncy"
-                  />
-                </Progress>
-              </YStack>
-            )}
+            <PasswordStrengthIndicator
+              password={password}
+              strength={passwordStrength}
+            />
 
             <XStack alignItems="center" padding="$2">
               <CheckboxLabel

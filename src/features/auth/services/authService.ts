@@ -6,7 +6,7 @@ import {
   ResetPasswordCredentials,
   ResetPasswordResponse,
   SignInCredentials,
-  SignUpCredentials,
+  SignUpCredentials, UpdatePasswordCredentials, UpdatePasswordResponse,
   User
 } from '@/features/auth/types/auth.types';
 import {formatErrors} from '@/features/auth/utils/authUtils';
@@ -393,5 +393,72 @@ export const verifyResetToken = async (): Promise<{ isValid: boolean; user?: Use
   } catch (error) {
     console.error('💥 Erro ao verificar token:', error);
     return {isValid: false};
+  }
+};
+
+/**
+ * Atualiza a senha do usuário após validar a senha atual
+ */
+export const updatePassword = async (credentials: UpdatePasswordCredentials): Promise<UpdatePasswordResponse> => {
+  try {
+    console.log('🔐 Atualizando senha do usuário...');
+
+    // Primeiro, obter o usuário atual para pegar o email
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      console.log('❌ Usuário não encontrado ou não autenticado');
+      return {
+        success: false,
+        error: 'Usuário não autenticado',
+        message: 'Você precisa estar logado para alterar a senha'
+      };
+    }
+
+    console.log('👤 Validando senha atual para:', user.email);
+
+    // Validar a senha atual tentando fazer login
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: user.email!,
+      password: credentials.currentPassword
+    });
+
+    if (signInError) {
+      console.log('❌ Senha atual incorreta:', signInError.message);
+      return {
+        success: false,
+        error: 'Senha atual incorreta',
+        message: 'A senha atual informada está incorreta'
+      };
+    }
+
+    console.log('✅ Senha atual validada, atualizando para nova senha...');
+
+    // Atualizar para a nova senha
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: credentials.newPassword
+    });
+
+    if (updateError) {
+      console.log('❌ Erro ao atualizar senha:', updateError.message);
+      return {
+        success: false,
+        error: formatErrors(updateError),
+        message: formatErrors(updateError)
+      };
+    }
+
+    console.log('✅ Senha atualizada com sucesso');
+    return {
+      success: true,
+      message: 'Senha atualizada com sucesso!'
+    };
+  } catch (error) {
+    console.error('💥 Exceção ao atualizar senha:', error);
+    return {
+      success: false,
+      error: formatErrors(error),
+      message: 'Erro inesperado ao atualizar senha'
+    };
   }
 };

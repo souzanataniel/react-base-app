@@ -1,10 +1,7 @@
 import {useAuth} from '@/features/auth/hooks/useAuth';
-import React, {useCallback, useMemo, useState} from 'react';
-import {CustomSaveFooter} from '@/shared/components/ui/CustomSaveFooter/CustomSaveFooter';
+import React, {useCallback, useState} from 'react';
 import {Text, YStack} from 'tamagui';
 import {router, useFocusEffect} from 'expo-router';
-import {useTabBarHeight} from '@/shared/components/ui/AnimatedTabBar/hooks/useTabBarHeight';
-import {Alert} from 'react-native';
 import {updateContactsSchema, UpdateContatcsFormData} from '@/features/profile/schema/updateContactsSchema';
 import {CardTitle} from '@/shared/components/ui/Cards/CardTitle';
 import {CircleCheck, Contact} from '@tamagui/lucide-icons';
@@ -14,7 +11,8 @@ import {PhoneInput} from '@/shared/components/ui/Input/BasePhoneInput';
 import {DateInput} from '@/shared/components/ui/Input/DateInput';
 import {ZodError} from 'zod';
 import {updateProfileField} from '@/features/profile/services/updateProfileService';
-import {useBaseToast} from '@/shared/components/feedback/Toast';
+import {useGlobalAlert} from '@/shared/components/feedback/CustomAlert/CustomAlert';
+import {BottomButtonContainer} from '@/shared/components/ui/BottomButton/BottomButtonContainer';
 
 type FieldType = 'text' | 'phone' | 'date' | 'email' | 'password';
 
@@ -46,23 +44,14 @@ const FORM_SECTIONS: Record<string, Section> = {
 
 export const UpdateContactsScreen = () => {
   const {user, setUser} = useAuth();
-  const {tabBarHeight} = useTabBarHeight();
   const [isLoading, setIsLoading] = useState(false);
-  const [footerVisible, setFooterVisible] = useState(false);
   const [validFields, setValidFields] = useState<Record<string, boolean>>({});
-  const {showSuccess} = useBaseToast();
+  const {showSuccess, showError, showWarning} = useGlobalAlert();
 
   const [formData, setFormData] = useState<UpdateContatcsFormData>({
     email: user?.email || '',
     phone: user?.phone || '',
   });
-
-  const hasChanges = useMemo(() => {
-    return Object.keys(formData).some(key => {
-      const k = key as keyof UpdateContatcsFormData;
-      return formData[k] !== (user?.[k] || '');
-    });
-  }, [formData, user]);
 
   useFocusEffect(
     useCallback(() => {
@@ -70,11 +59,7 @@ export const UpdateContactsScreen = () => {
         email: user?.email || '',
         phone: user?.phone || '',
       });
-      setFooterVisible(false);
       setValidFields({});
-
-      const timer = setTimeout(() => setFooterVisible(true), 50);
-      return () => clearTimeout(timer);
     }, [user])
   );
 
@@ -102,17 +87,16 @@ export const UpdateContactsScreen = () => {
   }, [formData, validateField]);
 
   const handleSave = useCallback(async () => {
-    if (!hasChanges || isLoading || !user?.id) return;
+    if (isLoading || !user?.id) return;
 
     try {
       updateContactsSchema.parse(formData);
     } catch (error) {
       if (error instanceof ZodError) {
         const errors = error.issues.map(e => e.message);
-        Alert.alert(
+        showWarning(
           'Dados inválidos',
-          errors.length === 1 ? errors[0] : `Corrija:\n\n${errors.map(e => `• ${e}`).join('\n')}`,
-          [{text: 'OK'}]
+          errors.length === 1 ? errors[0] : `Corrija:\n\n${errors.map(e => `• ${e}`).join('\n')}`
         );
       }
       return;
@@ -124,7 +108,7 @@ export const UpdateContactsScreen = () => {
       const result = await updateProfileField(user.id, 'phone', formData.phone);
 
       if (!result.success || result.error) {
-        Alert.alert('Erro', result.error || 'Erro ao salvar alterações', [{text: 'OK'}]);
+        showError('Erro', result.error || 'Erro ao salvar alterações');
         return;
       }
 
@@ -133,19 +117,14 @@ export const UpdateContactsScreen = () => {
       }
 
       console.log('✅ Perfil atualizado com sucesso:', result.user);
-
-      setFooterVisible(false);
-      setTimeout(() => {
-        showSuccess('Contatos', 'Dados de contato atualizados com sucesso !');
-      }, 300);
-
+      showSuccess('Contatos', 'Dados de contato atualizados com sucesso !');
     } catch (error) {
       console.error('Erro inesperado:', error);
-      Alert.alert('Erro', 'Erro inesperado ao salvar. Tente novamente.', [{text: 'OK'}]);
+      showError('Erro', 'Erro inesperado ao salvar. Tente novamente.');
     } finally {
       setIsLoading(false);
     }
-  }, [formData, hasChanges, isLoading, user?.id]);
+  }, [formData, isLoading, user?.id]);
   const renderField = useCallback((field: Field) => {
     const commonProps = {
       label: field.label,
@@ -206,33 +185,31 @@ export const UpdateContactsScreen = () => {
   ), [renderField]);
 
   return (
-    <ScreenWithBlurHeader
-      title="Perfil"
-      onBack={() => router.push('/(app)/profile')}
-      hasKeyboardInputs={true}
-      footerHeight={tabBarHeight}
-      footer={
-        <CustomSaveFooter
-          onSave={handleSave}
-          isLoading={isLoading}
-          loadingText="Salvando Alterações"
-          saveText="Salvar alterações"
-          visible={footerVisible}
-          disabled={!hasChanges}
-        />
-      }
-    >
-      <YStack paddingHorizontal="$4" paddingVertical="$4" gap="$4">
-        <CardTitle
-          icon={<Contact size={24} color="white"/>}
-          title="Dados de Contato"
-          description="Atualize suas informações de contato"
-        />
+    <YStack flex={1}>
+      <ScreenWithBlurHeader
+        title="Perfil"
+        onBack={() => router.push('/(app)/profile')}
+        hasKeyboardInputs={true}
+        hasTabBar={false}
+      >
+        <YStack paddingHorizontal="$4" paddingVertical="$4" gap="$4">
+          <CardTitle
+            icon={<Contact size={24} color="white"/>}
+            title="Dados de Contato"
+            description="Atualize suas informações de contato"
+          />
 
-        {Object.entries(FORM_SECTIONS).map(([key, section]) =>
-          renderSection(key, section)
-        )}
-      </YStack>
-    </ScreenWithBlurHeader>
+          {Object.entries(FORM_SECTIONS).map(([key, section]) =>
+            renderSection(key, section)
+          )}
+        </YStack>
+      </ScreenWithBlurHeader>
+
+      <BottomButtonContainer
+        onSave={handleSave}
+        isLoading={isLoading}
+        saveText="Salvar Alterações"
+      />
+    </YStack>
   );
 };

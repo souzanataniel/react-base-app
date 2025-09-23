@@ -1,10 +1,7 @@
 import {useAuth} from '@/features/auth/hooks/useAuth';
 import React, {useCallback, useMemo, useState} from 'react';
-import {CustomSaveFooter} from '@/shared/components/ui/CustomSaveFooter/CustomSaveFooter';
 import {Progress, Text, XStack, YStack} from 'tamagui';
 import {router, useFocusEffect} from 'expo-router';
-import {useTabBarHeight} from '@/shared/components/ui/AnimatedTabBar/hooks/useTabBarHeight';
-import {Alert} from 'react-native';
 import {UpdateProfileFormData, updateProfileSchema} from '@/features/profile/schema/updateProfileSchema';
 import {CardTitle} from '@/shared/components/ui/Cards/CardTitle';
 import {CircleCheck, User} from '@tamagui/lucide-icons';
@@ -15,6 +12,8 @@ import {DateInput} from '@/shared/components/ui/Input/DateInput';
 import {ZodError} from 'zod';
 import {dateMasks} from '@/shared/utils/masks';
 import {updateProfile} from '@/features/profile/services/updateProfileService';
+import {AnimatedSaveButton} from '@/shared/components/ui/Button/AnimatedSaveButton';
+import {useGlobalAlert} from '@/shared/components/feedback/CustomAlert/CustomAlert';
 
 type FieldType = 'text' | 'phone' | 'date';
 
@@ -66,10 +65,9 @@ const FORM_SECTIONS: Record<string, Section> = {
 
 export const UpdateProfileScreen = () => {
   const {user, setUser} = useAuth();
-  const {tabBarHeight} = useTabBarHeight();
   const [isLoading, setIsLoading] = useState(false);
-  const [footerVisible, setFooterVisible] = useState(false);
   const [validFields, setValidFields] = useState<Record<string, boolean>>({});
+  const {showSuccess, showError, showWarning} = useGlobalAlert();
 
   const [formData, setFormData] = useState<UpdateProfileFormData>({
     firstName: user?.firstName || '',
@@ -85,13 +83,6 @@ export const UpdateProfileScreen = () => {
     return Math.round((filled / values.length) * 100);
   }, [formData]);
 
-  const hasChanges = useMemo(() => {
-    return Object.keys(formData).some(key => {
-      const k = key as keyof UpdateProfileFormData;
-      return formData[k] !== (user?.[k] || '');
-    });
-  }, [formData, user]);
-
   useFocusEffect(
     useCallback(() => {
       setFormData({
@@ -101,11 +92,7 @@ export const UpdateProfileScreen = () => {
         phone: user?.phone || '',
         dateOfBirth: user?.dateOfBirth || '',
       });
-      setFooterVisible(false);
       setValidFields({});
-
-      const timer = setTimeout(() => setFooterVisible(true), 50);
-      return () => clearTimeout(timer);
     }, [user])
   );
 
@@ -133,18 +120,16 @@ export const UpdateProfileScreen = () => {
   }, [formData, validateField]);
 
   const handleSave = useCallback(async () => {
-    if (!hasChanges || isLoading || !user?.id) return;
+    if (isLoading || !user?.id) return;
 
     try {
-      // Validação com Zod
       updateProfileSchema.parse(formData);
     } catch (error) {
       if (error instanceof ZodError) {
         const errors = error.issues.map(e => e.message);
-        Alert.alert(
-          'Dados inválidos',
-          errors.length === 1 ? errors[0] : `Corrija:\n\n${errors.map(e => `• ${e}`).join('\n')}`,
-          [{text: 'OK'}]
+        showWarning(
+          'Dados Inválidos !',
+          errors.length === 1 ? errors[0] : `Corrija: \n\n${errors.map(e => `• ${e}`).join('\n')}`,
         );
       }
       return;
@@ -152,13 +137,10 @@ export const UpdateProfileScreen = () => {
 
     setIsLoading(true);
     try {
-      console.log('Salvando alterações:', formData);
-
-      // Chama o serviço de atualização
       const result = await updateProfile(user.id, formData);
 
       if (!result.success || result.error) {
-        Alert.alert('Erro', result.error || 'Erro ao salvar alterações', [{text: 'OK'}]);
+        showError('Erro', result.error || 'Erro ao salvar alterações');
         return;
       }
 
@@ -166,25 +148,14 @@ export const UpdateProfileScreen = () => {
         setUser(result.user);
       }
 
-      console.log('✅ Perfil atualizado com sucesso:', result.user);
-
-      // Sucesso - volta para a tela anterior
-      setFooterVisible(false);
-      setTimeout(() => {
-        Alert.alert(
-          'Sucesso!',
-          'Perfil atualizado com sucesso',
-          [{ text: 'OK', onPress: () => router.push('/(app)/profile') }]
-        );
-      }, 300);
-
+      showSuccess('Perfil Atualizado!', 'Seu perfil foi atualizado com sucesso !');
     } catch (error) {
       console.error('Erro inesperado:', error);
-      Alert.alert('Erro', 'Erro inesperado ao salvar. Tente novamente.', [{text: 'OK'}]);
+      showError('Erro', 'Erro inesperado ao salvar. Tente novamente.');
     } finally {
       setIsLoading(false);
     }
-  }, [formData, hasChanges, isLoading, user?.id]);
+  }, [formData, isLoading, user?.id]);
   const renderField = useCallback((field: Field) => {
     const commonProps = {
       label: field.label,
@@ -242,17 +213,7 @@ export const UpdateProfileScreen = () => {
       title="Perfil"
       onBack={() => router.push('/(app)/profile')}
       hasKeyboardInputs={true}
-      footerHeight={tabBarHeight}
-      footer={
-        <CustomSaveFooter
-          onSave={handleSave}
-          isLoading={isLoading}
-          loadingText="Salvando Alterações"
-          saveText="Salvar alterações"
-          visible={footerVisible}
-          disabled={!hasChanges}
-        />
-      }
+      hasTabBar={false}
     >
       <YStack paddingHorizontal="$4" paddingVertical="$4" gap="$4">
         <CardTitle
@@ -274,6 +235,19 @@ export const UpdateProfileScreen = () => {
         {Object.entries(FORM_SECTIONS).map(([key, section]) =>
           renderSection(key, section)
         )}
+
+        <XStack
+          justifyContent="center"
+          alignItems="center"
+          paddingHorizontal="$2"
+          paddingTop="$2"
+        >
+          <AnimatedSaveButton
+            onSave={handleSave}
+            isLoading={isLoading}
+            disabled={false}
+          />
+        </XStack>
       </YStack>
     </ScreenWithBlurHeader>
   );

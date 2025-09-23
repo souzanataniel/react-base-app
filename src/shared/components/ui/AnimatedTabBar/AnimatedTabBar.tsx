@@ -38,7 +38,6 @@ import {
 } from 'react-native-heroicons/solid';
 
 import {useTabBarHeight} from './hooks/useTabBarHeight';
-import {SHADOWS} from '@/shared/constants/shadows';
 
 interface TabRoute {
   key: string;

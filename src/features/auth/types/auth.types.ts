@@ -69,3 +69,14 @@ export interface ResetPasswordResponse {
   error?: string;
   message?: string;
 }
+
+export interface UpdatePasswordCredentials {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface UpdatePasswordResponse {
+  success: boolean;
+  error?: string;
+  message: string;
+}

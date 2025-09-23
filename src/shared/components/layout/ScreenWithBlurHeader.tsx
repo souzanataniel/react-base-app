@@ -4,6 +4,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {Keyboard, Platform, ScrollView, StyleSheet, TouchableWithoutFeedback} from 'react-native';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {BasicHeader} from '@/shared/components/ui/Header/BasicHeader';
+import {useTabBarHeight} from '@/shared/components/ui/AnimatedTabBar/hooks/useTabBarHeight';
 
 const DEFAULT_HEADER_HEIGHT = Platform.select({ios: 44, android: 56, default: 56});
 
@@ -11,24 +12,27 @@ interface ScreenWithBlurHeaderProps {
   children: React.ReactNode;
   title: string;
 
+  // Header props
   leftIcon?: React.ReactNode;
   onLeftPress?: () => void;
   onBack?: () => void;
   rightIcon?: React.ReactNode;
   onRightPress?: () => void;
   showRight?: boolean;
+  hideBackButton?: boolean;
   enableBlur?: boolean;
   blurIntensity?: number;
   blurTint?: 'light' | 'dark' | 'default';
 
+  // Scroll props
   scrollEnabled?: boolean;
   hasKeyboardInputs?: boolean;
   contentContainerStyle?: object;
   showsVerticalScrollIndicator?: boolean;
   keyboardShouldPersistTaps?: 'always' | 'never' | 'handled';
 
-  footer?: React.ReactNode;
-  footerHeight?: number;
+  // Tab bar
+  hasTabBar?: boolean;
 }
 
 export const ScreenWithBlurHeader: React.FC<ScreenWithBlurHeaderProps> = ({
@@ -40,6 +44,7 @@ export const ScreenWithBlurHeader: React.FC<ScreenWithBlurHeaderProps> = ({
                                                                             rightIcon,
                                                                             onRightPress,
                                                                             showRight,
+                                                                            hideBackButton,
                                                                             enableBlur = true,
                                                                             blurIntensity = 80,
                                                                             blurTint,
@@ -48,34 +53,13 @@ export const ScreenWithBlurHeader: React.FC<ScreenWithBlurHeaderProps> = ({
                                                                             contentContainerStyle,
                                                                             showsVerticalScrollIndicator = false,
                                                                             keyboardShouldPersistTaps = 'handled',
-                                                                            footer,
-                                                                            footerHeight = 100,
+                                                                            hasTabBar = true,
                                                                           }) => {
   const insets = useSafeAreaInsets();
+  const {tabBarHeight} = useTabBarHeight();
   const headerHeight = insets.top + DEFAULT_HEADER_HEIGHT;
 
-  // Calcular padding bottom considerando safe area
-  const bottomPadding = footer
-    ? footerHeight + (Platform.OS === 'android' ? Math.max(insets.bottom || 0, 16) : (insets.bottom || 0))
-    : Platform.OS === 'android' ? Math.max(insets.bottom || 0, 16) : (insets.bottom || 0);
-
-  const scrollContent = (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <YStack flex={1} paddingTop={headerHeight} paddingBottom={bottomPadding}>
-        {children}
-      </YStack>
-    </TouchableWithoutFeedback>
-  );
-
-  // Estilo base para o scroll - removendo flexGrow no Android
-  const baseScrollStyle = [
-    Platform.OS === 'android' ? {} : styles.scrollContent,
-    {
-      paddingTop: headerHeight,
-      paddingBottom: bottomPadding,
-    },
-    contentContainerStyle,
-  ];
+  const bottomPadding = hasTabBar ? tabBarHeight + 16 : (insets.bottom || 0);
 
   return (
     <YStack flex={1} backgroundColor="$background">
@@ -90,8 +74,19 @@ export const ScreenWithBlurHeader: React.FC<ScreenWithBlurHeaderProps> = ({
           showsVerticalScrollIndicator={showsVerticalScrollIndicator}
           scrollEventThrottle={16}
           style={styles.scrollView}
+          contentContainerStyle={[
+            {
+              paddingTop: headerHeight,
+              paddingBottom: bottomPadding,
+            },
+            contentContainerStyle,
+          ]}
         >
-          {scrollContent}
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <YStack flex={1}>
+              {children}
+            </YStack>
+          </TouchableWithoutFeedback>
         </KeyboardAwareScrollView>
       ) : (
         <ScrollView
@@ -101,8 +96,19 @@ export const ScreenWithBlurHeader: React.FC<ScreenWithBlurHeaderProps> = ({
           scrollEventThrottle={16}
           decelerationRate="fast"
           style={styles.scrollView}
+          contentContainerStyle={[
+            {
+              paddingTop: headerHeight,
+              paddingBottom: bottomPadding,
+            },
+            contentContainerStyle,
+          ]}
         >
-          {scrollContent}
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <YStack flex={1}>
+              {children}
+            </YStack>
+          </TouchableWithoutFeedback>
         </ScrollView>
       )}
 
@@ -122,32 +128,17 @@ export const ScreenWithBlurHeader: React.FC<ScreenWithBlurHeaderProps> = ({
           rightIcon={rightIcon}
           onRightPress={onRightPress}
           showRight={showRight}
+          hideBackButton={hideBackButton}
           enableBlur={enableBlur}
           blurIntensity={blurIntensity}
           blurTint={blurTint}
         />
       </YStack>
-
-      {/* Footer fixo no fundo */}
-      {footer && (
-        <YStack
-          position="absolute"
-          bottom={0}
-          left={0}
-          right={0}
-          zIndex={998}
-        >
-          {footer}
-        </YStack>
-      )}
     </YStack>
   );
 };
 
 const styles = StyleSheet.create({
-  scrollContent: {
-    flexGrow: 1,
-  },
   scrollView: {
     flex: 1,
   },
