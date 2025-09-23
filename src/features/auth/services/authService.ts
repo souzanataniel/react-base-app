@@ -6,7 +6,9 @@ import {
   ResetPasswordCredentials,
   ResetPasswordResponse,
   SignInCredentials,
-  SignUpCredentials, UpdatePasswordCredentials, UpdatePasswordResponse,
+  SignUpCredentials,
+  UpdatePasswordCredentials,
+  UpdatePasswordResponse,
   User
 } from '@/features/auth/types/auth.types';
 import {formatErrors} from '@/features/auth/utils/authUtils';
@@ -22,6 +24,71 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: false,
   },
 });
+
+/**
+ * 🎯 MAPEIA Supabase User + Profile → User de domínio
+ */
+const mapSupabaseUserToDomain = async (supabaseUser: any): Promise<User | null> => {
+  if (!supabaseUser) return null;
+
+  try {
+    // Busca dados do perfil
+    const {data: profile} = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', supabaseUser.id)
+      .single();
+
+    const user: User = {
+      // Básicos
+      id: supabaseUser.id,
+      email: supabaseUser.email!,
+      firstName: profile?.first_name,
+      lastName: profile?.last_name,
+      displayName: profile?.display_name,
+      phone: profile?.phone,
+      dateOfBirth: profile?.date_of_birth,
+
+      // Visual
+      avatarUrl: profile?.avatar_url,
+
+      // Localização
+      country: profile?.country,
+      city: profile?.city,
+      timezone: profile?.timezone || 'America/Sao_Paulo',
+      language: profile?.language || 'pt-BR',
+
+      // Status
+      isActive: profile?.is_active ?? true,
+      isVerified: profile?.is_verified ?? false,
+
+      // Preferências
+      pushNotifications: profile?.push_notifications ?? true,
+      emailNotifications: profile?.email_notifications ?? true,
+      themePreference: profile?.theme_preference || 'system',
+
+      // UX
+      firstLoginAt: profile?.first_login_at,
+      lastActiveAt: profile?.last_active_at || new Date().toISOString(),
+
+      // Timestamps
+      createdAt: profile?.created_at || supabaseUser.created_at,
+      updatedAt: profile?.updated_at || supabaseUser.created_at,
+    };
+
+    return user;
+  } catch (error) {
+    console.error('❌ Erro ao mapear usuário:', error);
+    // Retorna versão mínima se falhar
+    return {
+      id: supabaseUser.id,
+      email: supabaseUser.email!,
+      firstName: '',
+      lastName: '',
+      createdAt: supabaseUser.created_at,
+    };
+  }
+};
 
 /**
  * Faz login do usuário
@@ -47,22 +114,10 @@ export const signIn = async (credentials: SignInCredentials): Promise<AuthRespon
 
     console.log('✅ Login realizado com sucesso:', data.user.email);
 
-    // Busca dados do perfil
-    const {data: profile} = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', data.user.id)
-      .single();
+    // 🎯 MAPEAR CORRETAMENTE
+    const user = await mapSupabaseUserToDomain(data.user);
 
-    const user: User = {
-      id: data.user.id,
-      email: data.user.email!,
-      firstName: profile?.first_name,
-      lastName: profile?.last_name,
-      createdAt: data.user.created_at,
-    };
-
-    console.log('👤 Dados do usuário preparados:', user.email);
+    console.log('👤 Dados do usuário preparados:', user?.email);
     return {user, error: null};
   } catch (error) {
     console.error('💥 Exceção no login:', error);
@@ -136,14 +191,8 @@ export const signUp = async (credentials: SignUpCredentials): Promise<AuthRespon
       console.log('✅ Perfil encontrado:', profile);
     }
 
-    const user: User = {
-      id: data.user.id,
-      email: data.user.email!,
-      firstName: credentials.firstName?.trim(),
-      lastName: credentials.lastName?.trim(),
-      phone: credentials.phone?.trim(),
-      createdAt: data.user.created_at,
-    };
+    // 🎯 MAPEAR CORRETAMENTE
+    const user = await mapSupabaseUserToDomain(data.user);
 
     return {user, error: null};
   } catch (error) {
@@ -174,7 +223,7 @@ export const signOut = async (): Promise<{ error: string | null }> => {
 };
 
 /**
- * Obtém usuário atual
+ * 🎯 CORRIGIDO: Obtém usuário atual (já mapeado)
  */
 export const getCurrentUser = async (): Promise<User | null> => {
   try {
@@ -189,58 +238,14 @@ export const getCurrentUser = async (): Promise<User | null> => {
 
     console.log('👤 Usuário encontrado:', user.email);
 
-    const {data: profile, error: profileError} = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-
-    if (profileError) {
-      console.warn('⚠️ Erro ao buscar perfil:', profileError.message);
-    }
-
-    const userData: User = {
-      // Básicos
-      id: user.id,
-      email: user.email!,
-      firstName: profile?.first_name,
-      lastName: profile?.last_name,
-      displayName: profile?.display_name,
-      phone: profile?.phone,
-      dateOfBirth: profile?.date_of_birth,
-
-      // Visual
-      avatarUrl: profile?.avatar_url,
-
-      // Localização
-      country: profile?.country,
-      city: profile?.city,
-      timezone: profile?.timezone || 'America/Sao_Paulo',
-      language: profile?.language || 'pt-BR',
-
-      // Status
-      isActive: profile?.is_active ?? true,
-      isVerified: profile?.is_verified ?? false,
-
-      // Preferências
-      pushNotifications: profile?.push_notifications ?? true,
-      emailNotifications: profile?.email_notifications ?? true,
-      themePreference: profile?.theme_preference || 'system',
-
-      // UX
-      firstLoginAt: profile?.first_login_at,
-      lastActiveAt: profile?.last_active_at || new Date().toISOString(),
-
-      // Timestamps
-      createdAt: profile?.created_at || user.created_at,
-      updatedAt: profile?.updated_at || user.created_at,
-    };
+    // 🎯 MAPEAR CORRETAMENTE
+    const userData = await mapSupabaseUserToDomain(user);
 
     console.log('✅ Dados do usuário recuperados:', {
-      hasProfile: !!profile,
-      email: userData.email,
-      displayName: userData.displayName,
-      isActive: userData.isActive
+      hasProfile: !!userData,
+      email: userData?.email,
+      displayName: userData?.displayName,
+      isActive: userData?.isActive
     });
 
     return userData;
@@ -279,7 +284,8 @@ export const getSession = async () => {
 };
 
 /**
- * Escuta mudanças no estado de autenticação
+ * 🎯 CORRIGIDO: Escuta mudanças no estado de autenticação
+ * Agora retorna User de domínio (não Session)
  */
 export const onAuthStateChange = (callback: (user: User | null) => void) => {
   console.log('👂 Configurando listener de mudanças de auth...');
@@ -289,7 +295,8 @@ export const onAuthStateChange = (callback: (user: User | null) => void) => {
 
     if (session?.user) {
       console.log('🔄 Session User Found');
-      const user = await getCurrentUser();
+      // 🎯 MAPEAR CORRETAMENTE antes de chamar callback
+      const user = await mapSupabaseUserToDomain(session.user);
       callback(user);
     } else {
       callback(null);
@@ -337,7 +344,7 @@ export const forgotPassword = async (credentials: ForgotPasswordCredentials): Pr
  */
 export const resetPassword = async (credentials: ResetPasswordCredentials): Promise<ResetPasswordResponse> => {
   try {
-    console.log('🔐 Atualizando senha do usuário...');
+    console.log('🔑 Atualizando senha do usuário...');
 
     const {error} = await supabase.auth.updateUser({
       password: credentials.password
@@ -383,8 +390,8 @@ export const verifyResetToken = async (): Promise<{ isValid: boolean; user?: Use
 
     console.log('✅ Token válido para usuário:', user.email);
 
-    // Buscar dados completos do perfil
-    const userData = await getCurrentUser();
+    // 🎯 MAPEAR CORRETAMENTE
+    const userData = await mapSupabaseUserToDomain(user);
 
     return {
       isValid: true,
@@ -401,10 +408,10 @@ export const verifyResetToken = async (): Promise<{ isValid: boolean; user?: Use
  */
 export const updatePassword = async (credentials: UpdatePasswordCredentials): Promise<UpdatePasswordResponse> => {
   try {
-    console.log('🔐 Atualizando senha do usuário...');
+    console.log('🔑 Atualizando senha do usuário...');
 
     // Primeiro, obter o usuário atual para pegar o email
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {data: {user}, error: userError} = await supabase.auth.getUser();
 
     if (userError || !user) {
       console.log('❌ Usuário não encontrado ou não autenticado');
@@ -418,7 +425,7 @@ export const updatePassword = async (credentials: UpdatePasswordCredentials): Pr
     console.log('👤 Validando senha atual para:', user.email);
 
     // Validar a senha atual tentando fazer login
-    const { error: signInError } = await supabase.auth.signInWithPassword({
+    const {error: signInError} = await supabase.auth.signInWithPassword({
       email: user.email!,
       password: credentials.currentPassword
     });
@@ -435,7 +442,7 @@ export const updatePassword = async (credentials: UpdatePasswordCredentials): Pr
     console.log('✅ Senha atual validada, atualizando para nova senha...');
 
     // Atualizar para a nova senha
-    const { error: updateError } = await supabase.auth.updateUser({
+    const {error: updateError} = await supabase.auth.updateUser({
       password: credentials.newPassword
     });
 

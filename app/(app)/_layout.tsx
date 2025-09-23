@@ -1,17 +1,17 @@
 import React from 'react';
-import {Tabs} from 'expo-router';
-import {AnimatedTabBar} from '@/shared/components/ui/AnimatedTabBar/AnimatedTabBar';
-import {AuthGuard} from '@/features/auth/components/AuthGuard';
+import { Tabs } from 'expo-router';
+import { AnimatedTabBar } from '@/shared/components/ui/AnimatedTabBar/AnimatedTabBar';
+import { AuthGate } from '@/features/auth/components/AuthGate';
 
 export default function AppLayout() {
   const visibleTabs = ['home', 'favorites', 'profile'];
   const hiddenTabs = ['notifications', 'update-profile', 'update-contacts', 'update-password'];
 
   return (
-    <AuthGuard requireAuth={true}>
+    <AuthGate requireAuth>
       <Tabs
         tabBar={(props) =>
-          <AnimatedTabBar {...props} visibleTabs={visibleTabs} hiddenRoutes={hiddenTabs}/>}>
+          <AnimatedTabBar {...props} visibleTabs={visibleTabs} hiddenRoutes={hiddenTabs} />}>
 
         <Tabs.Screen
           name="home"
@@ -84,6 +84,6 @@ export default function AppLayout() {
           }}
         />
       </Tabs>
-    </AuthGuard>
+    </AuthGate>
   );
 }

@@ -1,7 +1,6 @@
 import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useAuth} from './useAuth';
-import {useRouter} from 'expo-router';
 import {registerSchema, SignUpFormData} from '@/features/auth/schemas/registerSchema';
 
 type SubmitResult = {
@@ -13,7 +12,6 @@ type SubmitResult = {
 
 export const useSignUp = () => {
   const {signUp, isLoading, error, clearError} = useAuth();
-  const router = useRouter();
 
   const form = useForm<SignUpFormData>({
     resolver: zodResolver(registerSchema),
@@ -49,16 +47,15 @@ export const useSignUp = () => {
 
       if (result.success) {
         reset();
-        try {
-          router.replace('/(app)/home');
-        } catch {
-          router.push('/(app)/home');
-        }
+        // ✅ SEM NAVEGAÇÃO - AuthGate vai redirecionar automaticamente
         return {success: true};
       }
 
       if (result.fieldErrors) {
-        if (result.fieldErrors.firstName) setError('firstName', {type: 'server', message: result.fieldErrors.firstName});
+        if (result.fieldErrors.firstName) setError('firstName', {
+          type: 'server',
+          message: result.fieldErrors.firstName
+        });
         if (result.fieldErrors.lastName) setError('lastName', {type: 'server', message: result.fieldErrors.lastName});
         if (result.fieldErrors.email) setError('email', {type: 'server', message: result.fieldErrors.email});
         if (result.fieldErrors.phone) setError('phone', {type: 'server', message: result.fieldErrors.phone});

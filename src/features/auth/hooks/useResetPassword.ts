@@ -1,9 +1,8 @@
-import {useForm} from 'react-hook-form';
-import {zodResolver} from '@hookform/resolvers/zod';
-import {useEffect, useState} from 'react';
-import {useRouter} from 'expo-router';
-import {ResetPasswordFormData, resetPasswordSchema} from '@/features/auth/schemas/forgotPasswordSchema';
-import {resetPassword, verifyResetToken} from '@/features/auth/services/authService';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useState } from 'react';
+import { ResetPasswordFormData, resetPasswordSchema } from '@/features/auth/schemas/forgotPasswordSchema';
+import { resetPassword, verifyResetToken } from '@/features/auth/services/authService';
 
 type SubmitResult = {
   success: true;
@@ -18,7 +17,7 @@ export const useResetPassword = () => {
   const [isVerifying, setIsVerifying] = useState(true);
   const [isValidToken, setIsValidToken] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
+  const [resetSuccess, setResetSuccess] = useState(false);
 
   const form = useForm<ResetPasswordFormData>({
     resolver: zodResolver(resetPasswordSchema),
@@ -43,28 +42,24 @@ export const useResetPassword = () => {
     const checkToken = async () => {
       try {
         setIsVerifying(true);
-        const {isValid} = await verifyResetToken();
+        const { isValid } = await verifyResetToken();
 
         if (!isValid) {
           setError('Link de reset inválido ou expirado');
-          setTimeout(() => {
-            router.replace('/(auth)/forgot-password');
-          }, 3000);
+          // ✅ SEM NAVEGAÇÃO MANUAL - usuário pode ir manualmente ou AuthGate redireciona
         } else {
           setIsValidToken(true);
         }
       } catch (err) {
         setError('Erro ao verificar link de reset');
-        setTimeout(() => {
-          router.replace('/(auth)/forgot-password');
-        }, 3000);
+        // ✅ SEM NAVEGAÇÃO MANUAL
       } finally {
         setIsVerifying(false);
       }
     };
 
     checkToken();
-  }, [router]);
+  }, []);
 
   const clearError = () => setError(null);
 
@@ -80,15 +75,13 @@ export const useResetPassword = () => {
 
       if (result.success) {
         reset();
+        setResetSuccess(true);
 
-        // Redirecionar para login após sucesso
-        setTimeout(() => {
-          router.replace('/(auth)/sign-in');
-        }, 2000);
-
+        // ✅ SEM NAVEGAÇÃO AUTOMÁTICA
+        // Deixa o usuário decidir quando ir para login
         return {
           success: true,
-          message: result.message || 'Senha atualizada com sucesso!'
+          message: result.message || 'Senha atualizada com sucesso! Você pode fazer login agora.'
         };
       }
 
@@ -143,7 +136,7 @@ export const useResetPassword = () => {
     if (!validation.success) {
       const validationErrors = validation.error.issues.reduce((acc, err) => {
         const fieldName = err.path[0] as keyof ResetPasswordFormData;
-        acc[fieldName] = {message: err.message};
+        acc[fieldName] = { message: err.message };
         return acc;
       }, {} as any);
 
@@ -180,14 +173,15 @@ export const useResetPassword = () => {
     // Estados
     isVerifying,
     isValidToken,
+    resetSuccess, // ✅ NOVO: indica se reset foi bem-sucedido
 
     // Valores dos campos
     password: getValues('password') || '',
     confirmPassword: getValues('confirmPassword') || '',
 
     // Funções de atualização
-    updatePassword: (v: string) => setValue('password', v, {shouldDirty: true}),
-    updateConfirmPassword: (v: string) => setValue('confirmPassword', v, {shouldDirty: true}),
+    updatePassword: (v: string) => setValue('password', v, { shouldDirty: true }),
+    updateConfirmPassword: (v: string) => setValue('confirmPassword', v, { shouldDirty: true }),
 
     submit,
 

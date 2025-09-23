@@ -1,8 +1,7 @@
-import {useForm} from 'react-hook-form';
-import {zodResolver} from '@hookform/resolvers/zod';
-import {useAuth} from './useAuth';
-import {useRouter} from 'expo-router';
-import {loginSchema, SignInFormData} from '@/features/auth/schemas/loginSchema';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useAuth } from './useAuth';
+import { loginSchema, SignInFormData } from '@/features/auth/schemas/loginSchema';
 
 type SubmitResult = {
   success: true;
@@ -12,12 +11,11 @@ type SubmitResult = {
 };
 
 export const useSignIn = () => {
-  const {signIn, isLoading, error, clearError} = useAuth();
-  const router = useRouter();
+  const { signIn, isLoading, error, clearError } = useAuth();
 
   const form = useForm<SignInFormData>({
     resolver: zodResolver(loginSchema),
-    defaultValues: {email: '', password: ''},
+    defaultValues: { email: '', password: '' },
     mode: 'onSubmit',
     reValidateMode: 'onSubmit',
   });
@@ -36,17 +34,13 @@ export const useSignIn = () => {
 
       if (result.success) {
         reset();
-        try {
-          router.replace('/(app)/home');
-        } catch {
-          router.push('/(app)/home');
-        }
-        return {success: true};
+        // ✅ SEM NAVEGAÇÃO - AuthGate vai redirecionar automaticamente
+        return { success: true };
       }
 
       if (result.fieldErrors) {
-        if (result.fieldErrors.email) setError('email', {type: 'server', message: result.fieldErrors.email});
-        if (result.fieldErrors.password) setError('password', {type: 'server', message: result.fieldErrors.password});
+        if (result.fieldErrors.email) setError('email', { type: 'server', message: result.fieldErrors.email });
+        if (result.fieldErrors.password) setError('password', { type: 'server', message: result.fieldErrors.password });
       }
 
       return {
@@ -84,7 +78,7 @@ export const useSignIn = () => {
     if (!validation.success) {
       const validationErrors = validation.error.issues.reduce((acc, err) => {
         const fieldName = err.path[0] as keyof SignInFormData;
-        acc[fieldName] = {message: err.message};
+        acc[fieldName] = { message: err.message };
         return acc;
       }, {} as any);
 
@@ -103,8 +97,8 @@ export const useSignIn = () => {
   return {
     email: getValues('email') || '',
     password: getValues('password') || '',
-    updateEmail: (v: string) => setValue('email', v, {shouldDirty: true}),
-    updatePassword: (v: string) => setValue('password', v, {shouldDirty: true}),
+    updateEmail: (v: string) => setValue('email', v, { shouldDirty: true }),
+    updatePassword: (v: string) => setValue('password', v, { shouldDirty: true }),
 
     submit,
 
