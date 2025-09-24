@@ -1,4 +1,3 @@
-// src/components/CustomAlert.tsx
 import React, {
   createContext,
   forwardRef,
@@ -9,15 +8,16 @@ import React, {
   useRef,
   useState
 } from 'react';
-import {StyleSheet} from 'react-native';
-// ===== TAMAGUI THEME INTEGRATION =====
+import {Dimensions, Keyboard, StyleSheet} from 'react-native';
 import {Button, Circle, Text, useTheme, YStack} from 'tamagui';
 import BottomSheet, {BottomSheetBackdrop, BottomSheetView} from '@gorhom/bottom-sheet';
 import Animated, {useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import LottieView from 'lottie-react-native';
+import {useHapticFeedback} from '@/shared/components/feedback/Haptic/HapticContext';
 
-// ===== TYPES =====
+const {width: screenWidth} = Dimensions.get('window');
+
 type AlertIconType = 'success' | 'info' | 'warning' | 'error';
 
 interface AlertConfig {
@@ -27,6 +27,7 @@ interface AlertConfig {
   iconType?: AlertIconType;
   onConfirm?: () => void | Promise<void>;
   onClose?: () => void;
+  disableHaptic?: boolean;
 }
 
 interface CustomAlertRef {
@@ -34,7 +35,6 @@ interface CustomAlertRef {
   hide: () => void;
 }
 
-// ===== ICON COMPONENT =====
 const AnimatedIcon: React.FC<{ type: AlertIconType }> = ({type}) => {
   const scale = useSharedValue(0);
 
@@ -114,11 +114,11 @@ const AnimatedIcon: React.FC<{ type: AlertIconType }> = ({type}) => {
   );
 };
 
-// ===== MAIN COMPONENT =====
 const CustomAlert = forwardRef<CustomAlertRef, {}>((_, ref) => {
   const bottomSheetRef = useRef<BottomSheet>(null);
   const insets = useSafeAreaInsets();
-  const styles = useThemedStyles(); // Usar estilos com tema
+  const styles = useThemedStyles();
+  const hapticFeedback = useHapticFeedback();
 
   const [alertData, setAlertData] = useState<AlertConfig>({
     title: '',
@@ -127,14 +127,36 @@ const CustomAlert = forwardRef<CustomAlertRef, {}>((_, ref) => {
     iconType: 'success'
   });
 
-  const snapPoints = useMemo(() => ['45%'], []);
+  const snapPoints = useMemo(() => ['42%'], []); // Reduzido para compensar o padding inferior
   const contentOpacity = useSharedValue(0);
 
   const showAlert = useCallback((config: AlertConfig) => {
+    Keyboard.dismiss();
+
+    // Haptic feedback baseado no tipo de alerta (se não estiver desabilitado)
+    if (!config.disableHaptic) {
+      switch (config.iconType) {
+        case 'success':
+          hapticFeedback.success();
+          break;
+        case 'error':
+          hapticFeedback.error();
+          break;
+        case 'warning':
+          hapticFeedback.warning();
+          break;
+        case 'info':
+          hapticFeedback.light();
+          break;
+        default:
+          hapticFeedback.light();
+      }
+    }
+
     setAlertData(config);
     bottomSheetRef.current?.expand();
     contentOpacity.value = withSpring(1, {damping: 15, stiffness: 200});
-  }, []);
+  }, [hapticFeedback]);
 
   const hideAlert = useCallback(() => {
     contentOpacity.value = withSpring(0, {damping: 15, stiffness: 200});
@@ -148,6 +170,10 @@ const CustomAlert = forwardRef<CustomAlertRef, {}>((_, ref) => {
   ), []);
 
   const handleConfirm = useCallback(async () => {
+    if (!alertData.disableHaptic) {
+      hapticFeedback.selection();
+    }
+
     try {
       if (alertData.onConfirm) await alertData.onConfirm();
     } catch (error) {
@@ -155,12 +181,16 @@ const CustomAlert = forwardRef<CustomAlertRef, {}>((_, ref) => {
     } finally {
       hideAlert();
     }
-  }, [alertData.onConfirm, hideAlert]);
+  }, [alertData.onConfirm, alertData.disableHaptic, hapticFeedback, hideAlert]);
 
   const handleClose = useCallback(() => {
+    if (!alertData.disableHaptic) {
+      hapticFeedback.light();
+    }
+
     alertData.onClose?.();
     hideAlert();
-  }, [alertData.onClose, hideAlert]);
+  }, [alertData.onClose, alertData.disableHaptic, hapticFeedback, hideAlert]);
 
   const contentAnimatedStyle = useAnimatedStyle(() => ({
     opacity: contentOpacity.value,
@@ -176,6 +206,7 @@ const CustomAlert = forwardRef<CustomAlertRef, {}>((_, ref) => {
       onClose={handleClose}
       backgroundStyle={styles.bottomSheetBackground}
       handleIndicatorStyle={styles.handleIndicator}
+      containerStyle={styles.bottomSheetContainer}
     >
       <BottomSheetView style={styles.contentContainer}>
         <Animated.View style={contentAnimatedStyle}>
@@ -185,27 +216,24 @@ const CustomAlert = forwardRef<CustomAlertRef, {}>((_, ref) => {
             justifyContent="center"
             space="$3"
             padding="$4"
-            backgroundColor="$card" // Usar token do tema
+            backgroundColor="$card"
             paddingBottom={Math.max(insets.bottom || 0, 20)}
           >
-            {/* Icon */}
             <AnimatedIcon type={alertData.iconType || 'success'}/>
 
-            {/* Title */}
             <Text
               fontSize="$8"
               fontWeight="600"
-              color="$color" // Token do tema para texto principal
+              color="$color"
               textAlign="center"
               marginBottom="$2"
             >
               {alertData.title}
             </Text>
 
-            {/* Message */}
             <Text
               fontSize="$4"
-              color="$colorSecondary" // Token do tema para texto secundário
+              color="$colorSecondary"
               textAlign="center"
               lineHeight="$2"
               marginBottom="$4"
@@ -214,7 +242,6 @@ const CustomAlert = forwardRef<CustomAlertRef, {}>((_, ref) => {
               {alertData.message}
             </Text>
 
-            {/* Confirm Button */}
             <Button
               size="$4"
               backgroundColor="$button"
@@ -238,7 +265,6 @@ const CustomAlert = forwardRef<CustomAlertRef, {}>((_, ref) => {
   );
 });
 
-// ===== HOOK =====
 const useCustomAlert = () => {
   const alertRef = useRef<CustomAlertRef>(null);
 
@@ -246,20 +272,72 @@ const useCustomAlert = () => {
     alertRef.current?.show(config);
   }, []);
 
-  const showSuccess = useCallback((title: string, message: string, confirmText?: string, onConfirm?: () => void) => {
-    showAlert({title, message, iconType: 'success', confirmText: confirmText || 'Fechar!', onConfirm});
+  const showSuccess = useCallback((
+    title: string,
+    message: string,
+    confirmText?: string,
+    onConfirm?: () => void,
+    disableHaptic?: boolean
+  ) => {
+    showAlert({
+      title,
+      message,
+      iconType: 'success',
+      confirmText: confirmText || 'Fechar!',
+      onConfirm,
+      disableHaptic
+    });
   }, [showAlert]);
 
-  const showError = useCallback((title: string, message: string, confirmText?: string, onRetry?: () => void) => {
-    showAlert({title, message, iconType: 'error', confirmText: confirmText || 'Fechar!', onConfirm: onRetry});
+  const showError = useCallback((
+    title: string,
+    message: string,
+    confirmText?: string,
+    onRetry?: () => void,
+    disableHaptic?: boolean
+  ) => {
+    showAlert({
+      title,
+      message,
+      iconType: 'error',
+      confirmText: confirmText || 'Fechar!',
+      onConfirm: onRetry,
+      disableHaptic
+    });
   }, [showAlert]);
 
-  const showWarning = useCallback((title: string, message: string, confirmText?: string, onConfirm?: () => void) => {
-    showAlert({title, message, iconType: 'warning', confirmText: confirmText || 'Entendido!', onConfirm});
+  const showWarning = useCallback((
+    title: string,
+    message: string,
+    confirmText?: string,
+    onConfirm?: () => void,
+    disableHaptic?: boolean
+  ) => {
+    showAlert({
+      title,
+      message,
+      iconType: 'warning',
+      confirmText: confirmText || 'Entendido!',
+      onConfirm,
+      disableHaptic
+    });
   }, [showAlert]);
 
-  const showInfo = useCallback((title: string, message: string, confirmText?: string, onConfirm?: () => void) => {
-    showAlert({title, message, iconType: 'info', confirmText: confirmText || 'OK!', onConfirm});
+  const showInfo = useCallback((
+    title: string,
+    message: string,
+    confirmText?: string,
+    onConfirm?: () => void,
+    disableHaptic?: boolean
+  ) => {
+    showAlert({
+      title,
+      message,
+      iconType: 'info',
+      confirmText: confirmText || 'OK!',
+      onConfirm,
+      disableHaptic
+    });
   }, [showAlert]);
 
   const AlertComponent = useCallback(() => <CustomAlert ref={alertRef}/>, []);
@@ -267,7 +345,6 @@ const useCustomAlert = () => {
   return {showAlert, showSuccess, showError, showWarning, showInfo, AlertComponent};
 };
 
-// ===== CONTEXT =====
 const AlertContext = createContext<ReturnType<typeof useCustomAlert> | null>(null);
 
 export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({children}) => {
@@ -286,26 +363,35 @@ export const useGlobalAlert = () => {
   return context;
 };
 
-// Hook para estilos com tema
 const useThemedStyles = () => {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
+  const isTablet = screenWidth > 768;
 
   return StyleSheet.create({
     bottomSheetBackground: {
-      backgroundColor: theme.card?.val, // Usa token do tema
+      backgroundColor: theme.card?.val,
       borderTopLeftRadius: 16,
       borderTopRightRadius: 16,
     },
     handleIndicator: {
-      backgroundColor: theme.borderColor?.val, // Usa token do tema
+      backgroundColor: theme.colorQuaternary?.val,
       width: 50,
       height: 4,
+      borderRadius: 2,
     },
     contentContainer: {
       flex: 1,
     },
     backdrop: {
-      backgroundColor: theme.color?.val, // Para overlay
+      backgroundColor: theme.color?.val,
+    },
+    bottomSheetContainer: {
+      marginHorizontal: isTablet ? 16 : 8,
+      marginBottom: Math.max(insets.bottom - 8, 0),
+      borderRadius: 16,
+      borderBottomLeftRadius: 32,
+      borderBottomRightRadius: 32,
     }
   });
 };

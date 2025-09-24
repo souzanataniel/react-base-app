@@ -219,7 +219,6 @@ export const CollapsibleHeader = React.memo(({
 
   return (
     <View style={containerStyle}>
-      {/* Título grande - sempre com background sólido */}
       <Animated.View
         style={[
           largeTitleContainerStyle,
@@ -237,7 +236,6 @@ export const CollapsibleHeader = React.memo(({
         </Text>
       </Animated.View>
 
-      {/* Header fixo - com ou sem blur */}
       {enableBlur ? (
         <Animated.View style={[headerContainerBaseStyle, {opacity: blurOpacity}]}>
           <BlurView

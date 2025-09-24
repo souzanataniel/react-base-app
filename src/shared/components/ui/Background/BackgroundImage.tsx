@@ -41,7 +41,6 @@ export const BackgroundImage = memo(
           transition={250}
         />
 
-        {/* Gradiente base sutil (dá contraste mesmo antes do fade) */}
         <LinearGradient
           colors={['#2a4d5a', '#1a2a35', '#0f1419']}
           style={{position: 'absolute', inset: 0, opacity: fallbackOpacity}}
@@ -49,7 +48,6 @@ export const BackgroundImage = memo(
           end={{x: 1, y: 1}}
         />
 
-        {/* Overlay escurecedor por cima de tudo */}
         <LinearGradient
           colors={['transparent', `rgba(0,0,0,${overlayOpacity})`, `rgba(0,0,0,${overlayOpacity + 0.2})`]}
           style={{position: 'absolute', inset: 0}}

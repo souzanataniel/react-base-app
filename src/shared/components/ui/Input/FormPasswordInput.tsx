@@ -19,7 +19,6 @@ export const FormPasswordInput = memo(forwardRef<any, FormPasswordInputProps>((p
 
   return (
     <YStack gap="$2">
-      {/* Renderizar label se existir */}
       {label && (
         <XStack>
           {typeof label === 'string' ? (
@@ -32,7 +31,6 @@ export const FormPasswordInput = memo(forwardRef<any, FormPasswordInputProps>((p
         </XStack>
       )}
 
-      {/* Container com input e botão sobrepostos */}
       <View style={{position: 'relative'}}>
         <BaseInput
           ref={ref}
@@ -41,11 +39,10 @@ export const FormPasswordInput = memo(forwardRef<any, FormPasswordInputProps>((p
           backgroundColor="$backgroundInput"
           placeholderTextColor="$placeholderText"
           textColor="$color"
-          paddingRight={showSuccessIcon ? 80 : 50} // Espaço para o(s) ícone(s)
+          paddingRight={showSuccessIcon ? 80 : 50}
           {...baseProps}
         />
 
-        {/* Ícones posicionados absolutamente */}
         <View style={{
           position: 'absolute',
           right: 8,
@@ -55,14 +52,12 @@ export const FormPasswordInput = memo(forwardRef<any, FormPasswordInputProps>((p
           alignItems: 'center',
           gap: 8,
         }}>
-          {/* Ícone de sucesso */}
           {showSuccessIcon && successIcon && (
             <View>
               {successIcon}
             </View>
           )}
 
-          {/* Botão de toggle */}
           <TouchableOpacity
             onPress={handleToggleVisibility}
             activeOpacity={0.6}

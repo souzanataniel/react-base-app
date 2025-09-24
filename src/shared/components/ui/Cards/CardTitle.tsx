@@ -22,7 +22,6 @@ const GeometricPattern = () => {
         opacity: 0.5,
       }}
     >
-      {/* Pontos (nodes) - distribuição mais orgânica */}
       <Circle cx="95" cy="18" r="1.5" fill="white" />
       <Circle cx="118" cy="25" r="1.2" fill="white" />
       <Circle cx="142" cy="12" r="1" fill="white" />
@@ -49,14 +48,11 @@ const GeometricPattern = () => {
       <Circle cx="128" cy="112" r="1.2" fill="white" />
       <Circle cx="152" cy="105" r="1" fill="white" />
 
-      {/* Linhas de conexão - mais orgânicas e variadas */}
-      {/* Conexões superiores */}
       <Line x1="95" y1="18" x2="118" y2="25" stroke="white" strokeWidth="0.5" />
       <Line x1="118" y1="25" x2="142" y2="12" stroke="white" strokeWidth="0.5" />
       <Line x1="142" y1="12" x2="165" y2="22" stroke="white" strokeWidth="0.5" />
       <Line x1="165" y1="22" x2="178" y2="35" stroke="white" strokeWidth="0.5" />
 
-      {/* Conexões cruzadas */}
       <Line x1="95" y1="18" x2="88" y2="42" stroke="white" strokeWidth="0.5" />
       <Line x1="95" y1="18" x2="110" y2="48" stroke="white" strokeWidth="0.5" />
       <Line x1="118" y1="25" x2="135" y2="38" stroke="white" strokeWidth="0.5" />
@@ -64,7 +60,6 @@ const GeometricPattern = () => {
       <Line x1="165" y1="22" x2="158" y2="52" stroke="white" strokeWidth="0.5" />
       <Line x1="178" y1="35" x2="182" y2="45" stroke="white" strokeWidth="0.5" />
 
-      {/* Conexões intermediárias */}
       <Line x1="88" y1="42" x2="110" y2="48" stroke="white" strokeWidth="0.5" />
       <Line x1="110" y1="48" x2="135" y2="38" stroke="white" strokeWidth="0.5" />
       <Line x1="135" y1="38" x2="158" y2="52" stroke="white" strokeWidth="0.5" />
@@ -76,7 +71,6 @@ const GeometricPattern = () => {
       <Line x1="158" y1="52" x2="148" y2="68" stroke="white" strokeWidth="0.5" />
       <Line x1="158" y1="52" x2="172" y2="75" stroke="white" strokeWidth="0.5" />
 
-      {/* Conexões do meio */}
       <Line x1="102" y1="65" x2="125" y2="72" stroke="white" strokeWidth="0.5" />
       <Line x1="125" y1="72" x2="148" y2="68" stroke="white" strokeWidth="0.5" />
       <Line x1="148" y1="68" x2="172" y2="75" stroke="white" strokeWidth="0.5" />
@@ -88,7 +82,6 @@ const GeometricPattern = () => {
       <Line x1="148" y1="68" x2="160" y2="95" stroke="white" strokeWidth="0.5" />
       <Line x1="172" y1="75" x2="160" y2="95" stroke="white" strokeWidth="0.5" />
 
-      {/* Conexões inferiores */}
       <Line x1="80" y1="85" x2="115" y2="92" stroke="white" strokeWidth="0.5" />
       <Line x1="115" y1="92" x2="138" y2="88" stroke="white" strokeWidth="0.5" />
       <Line x1="138" y1="88" x2="160" y2="95" stroke="white" strokeWidth="0.5" />
@@ -98,11 +91,9 @@ const GeometricPattern = () => {
       <Line x1="138" y1="88" x2="128" y2="112" stroke="white" strokeWidth="0.5" />
       <Line x1="160" y1="95" x2="152" y2="105" stroke="white" strokeWidth="0.5" />
 
-      {/* Conexões finais */}
       <Line x1="95" y1="108" x2="128" y2="112" stroke="white" strokeWidth="0.5" />
       <Line x1="128" y1="112" x2="152" y2="105" stroke="white" strokeWidth="0.5" />
 
-      {/* Algumas conexões diagonais extras para variar */}
       <Line x1="88" y1="42" x2="125" y2="72" stroke="white" strokeWidth="0.5" />
       <Line x1="118" y1="25" x2="110" y2="48" stroke="white" strokeWidth="0.5" />
     </Svg>
@@ -125,7 +116,6 @@ export const CardTitle = ({ icon, title, description }: CardTitleProps) => {
         elevation: 8,
       }}
     >
-      {/* Padrão geométrico no fundo direito */}
       <GeometricPattern />
 
       <XStack gap="$3" alignItems="center" zIndex={1}>

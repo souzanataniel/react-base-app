@@ -410,7 +410,6 @@ function BaseDateInput(
         )}
       </YStack>
 
-      {/* Modal iOS */}
       {Platform.OS === 'ios' && showPicker && (
         <Modal
           transparent
@@ -507,7 +506,6 @@ function BaseDateInput(
         </Modal>
       )}
 
-      {/* Android */}
       {showPicker && Platform.OS === 'android' && (
         <DateTimePicker
           value={selectedDate}

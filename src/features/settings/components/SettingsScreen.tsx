@@ -158,7 +158,6 @@ export const SettingsScreen = () => {
     <ScrollView flex={1} backgroundColor="$baseBackground">
       <YStack padding="$4" gap="$4">
 
-        {/* General Settings */}
         <YStack gap="$3">
           <Text fontSize="$5" fontWeight="600" color="$color12">
             Geral
@@ -211,7 +210,6 @@ export const SettingsScreen = () => {
           </Card>
         </YStack>
 
-        {/* Notification Settings */}
         {notificationsEnabled && (
           <YStack gap="$3">
             <Text fontSize="$5" fontWeight="600" color="$color12">
@@ -253,7 +251,6 @@ export const SettingsScreen = () => {
           </YStack>
         )}
 
-        {/* Security Settings */}
         <YStack gap="$3">
           <Text fontSize="$5" fontWeight="600" color="$color12">
             Segurança e Privacidade
@@ -296,7 +293,6 @@ export const SettingsScreen = () => {
           </Card>
         </YStack>
 
-        {/* Support and Help */}
         <YStack gap="$3">
           <Text fontSize="$5" fontWeight="600" color="$color12">
             Suporte e Ajuda
@@ -339,7 +335,6 @@ export const SettingsScreen = () => {
           </Card>
         </YStack>
 
-        {/* Data Management */}
         <YStack gap="$3">
           <Text fontSize="$5" fontWeight="600" color="$color12">
             Gerenciamento de Dados
@@ -382,7 +377,6 @@ export const SettingsScreen = () => {
           </Card>
         </YStack>
 
-        {/* App Info */}
         <Card
           backgroundColor="$gray2"
           borderColor="$gray7"
@@ -402,7 +396,6 @@ export const SettingsScreen = () => {
           </YStack>
         </Card>
 
-        {/* Developer Options */}
         {__DEV__ && (
           <Card
             backgroundColor="$yellow2"

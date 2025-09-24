@@ -94,7 +94,6 @@ export function BaseAlert({
           >
             <YStack gap="$3" padding="$4" alignItems="center">
 
-              {/* Ícone */}
               <YStack
                 backgroundColor="transparent"
                 borderRadius="$10"
@@ -115,7 +114,6 @@ export function BaseAlert({
 
               </YStack>
 
-              {/* Título */}
               <AlertDialog.Title
                 fontSize="$6"
                 fontWeight="600"
@@ -127,7 +125,6 @@ export function BaseAlert({
                 {title}
               </AlertDialog.Title>
 
-              {/* Descrição */}
               {description && (
                 <AlertDialog.Description
                   fontSize="$4"
@@ -141,7 +138,6 @@ export function BaseAlert({
                 </AlertDialog.Description>
               )}
 
-              {/* Botões */}
               <XStack
                 gap="$2.5"
                 width="100%"

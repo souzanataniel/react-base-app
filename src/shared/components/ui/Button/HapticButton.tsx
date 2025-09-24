@@ -1,17 +1,19 @@
 import React from 'react';
 import type {ButtonProps} from 'tamagui';
 import {Button} from 'tamagui';
-import * as Haptics from 'expo-haptics';
 import {COLORS} from '@/shared/constants/colors';
+import {useHapticFeedback} from '@/shared/components/feedback/Haptic/HapticContext';
 
 interface HapticButtonProps extends Omit<ButtonProps, 'pressStyle' | 'style'> {
   hapticFeedback?: boolean;
-  hapticType?: 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error';
+  hapticType?: 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error' | 'selection';
+  disableHaptic?: boolean;
 }
 
 export const HapticButton = ({
                                hapticFeedback = true,
                                hapticType = 'light',
+                               disableHaptic = false,
                                disabled,
                                onPress,
                                backgroundColor = '$primary',
@@ -24,28 +26,35 @@ export const HapticButton = ({
                                ...props
                              }: HapticButtonProps) => {
 
+  const haptic = useHapticFeedback();
+
   const handlePress = async (event: any) => {
-    if (hapticFeedback && !disabled) {
+    if (hapticFeedback && !disableHaptic && !disabled) {
       try {
         switch (hapticType) {
           case 'light':
-            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            haptic.light();
             break;
           case 'medium':
-            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            haptic.medium();
             break;
           case 'heavy':
-            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+            haptic.heavy();
             break;
           case 'success':
-            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            haptic.success();
             break;
           case 'warning':
-            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+            haptic.warning();
             break;
           case 'error':
-            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+            haptic.error();
             break;
+          case 'selection':
+            haptic.selection();
+            break;
+          default:
+            haptic.light();
         }
       } catch (error) {
         console.log('Haptic feedback not available');
@@ -78,3 +87,43 @@ export const HapticButton = ({
     />
   );
 };
+
+export const HapticPrimaryButton: React.FC<Omit<HapticButtonProps, 'hapticType'>> = (props) => (
+  <HapticButton hapticType="medium" {...props} />
+);
+
+export const HapticSecondaryButton: React.FC<Omit<HapticButtonProps, 'hapticType'>> = (props) => (
+  <HapticButton hapticType="light" {...props} />
+);
+
+export const HapticSuccessButton: React.FC<Omit<HapticButtonProps, 'hapticType'>> = (props) => (
+  <HapticButton
+    hapticType="success"
+    backgroundColor="$green9"
+    {...props}
+  />
+);
+
+export const HapticWarningButton: React.FC<Omit<HapticButtonProps, 'hapticType'>> = (props) => (
+  <HapticButton
+    hapticType="warning"
+    backgroundColor="$orange9"
+    {...props}
+  />
+);
+
+export const HapticErrorButton: React.FC<Omit<HapticButtonProps, 'hapticType'>> = (props) => (
+  <HapticButton
+    hapticType="error"
+    backgroundColor="$red9"
+    {...props}
+  />
+);
+
+export const HapticDestructiveButton: React.FC<Omit<HapticButtonProps, 'hapticType'>> = (props) => (
+  <HapticButton hapticType="heavy" backgroundColor="$red9" {...props} />
+);
+
+export const HapticSelectionButton: React.FC<Omit<HapticButtonProps, 'hapticType'>> = (props) => (
+  <HapticButton hapticType="selection" {...props} />
+);

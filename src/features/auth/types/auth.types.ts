@@ -41,7 +41,7 @@ export interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   isInitialized: boolean;
-  isRedirecting: boolean; // 🎯 NOVO: controla transição pós-login
+  isRedirecting: boolean;
   error: string | null;
 }
 

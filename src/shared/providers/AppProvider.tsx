@@ -11,6 +11,7 @@ import {AuthProvider} from '@/features/auth/providers/AuthProvider';
 import {useThemeManager} from '@/shared/hooks/useTheme';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {AlertProvider} from '@/shared/components/feedback/CustomAlert/CustomAlert';
+import {HapticProvider} from '@/shared/components/feedback/Haptic/HapticContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -63,18 +64,20 @@ const ThemedApp = ({children}: { children: React.ReactNode }) => {
 
 export function AppProvider({children, ...rest}: Omit<TamaguiProviderProps, 'config'>) {
   return (
-    <QueryClientProvider client={queryClient}>
-      <GestureHandlerRootView style={{flex: 1}}>
-        <SafeAreaProvider>
-          <TamaguiProvider config={config} {...rest}>
-            <ThemedApp>
-              <AlertProvider>
-              {children}
-              </AlertProvider>
-            </ThemedApp>
-          </TamaguiProvider>
-        </SafeAreaProvider>
-      </GestureHandlerRootView>
-    </QueryClientProvider>
+    <HapticProvider>
+      <QueryClientProvider client={queryClient}>
+        <GestureHandlerRootView style={{flex: 1}}>
+          <SafeAreaProvider>
+            <TamaguiProvider config={config} {...rest}>
+              <ThemedApp>
+                <AlertProvider>
+                  {children}
+                </AlertProvider>
+              </ThemedApp>
+            </TamaguiProvider>
+          </SafeAreaProvider>
+        </GestureHandlerRootView>
+      </QueryClientProvider>
+    </HapticProvider>
   );
 }

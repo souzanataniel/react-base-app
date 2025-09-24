@@ -112,7 +112,6 @@ export const ScreenWithBlurHeader: React.FC<ScreenWithBlurHeaderProps> = ({
         </ScrollView>
       )}
 
-      {/* Header fixo no topo */}
       <YStack
         position="absolute"
         top={0}

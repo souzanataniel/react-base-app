@@ -82,7 +82,6 @@ export const PasswordStrengthIndicator = memo<PasswordStrengthIndicatorProps>(({
 
   return (
     <YStack gap="$2" paddingHorizontal={paddingHorizontal} marginTop={marginTop}>
-      {/* Indicador principal */}
       <XStack justifyContent="space-between" alignItems="center">
         <Text fontSize="$2" color="$light">
           {label}
@@ -103,7 +102,6 @@ export const PasswordStrengthIndicator = memo<PasswordStrengthIndicatorProps>(({
         />
       </Progress>
 
-      {/* Lista de requisitos (opcional) */}
       {showRequirements && password.length > 0 && (
         <YStack gap="$1" marginTop="$1">
           <Text fontSize="$1" color="$light" fontWeight="500">

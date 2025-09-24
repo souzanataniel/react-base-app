@@ -100,18 +100,16 @@ export const TransitionOverlay: React.FC<TransitionOverlayProps> = ({ onComplete
           transform: [{ scale: contentScale }],
         }}
       >
-        {/* Animação de sucesso */}
         <View style={{ width: 120, height: 120, marginBottom: 40 }}>
           <LottieSplash
             animationSource={successAnimation}
-            onComplete={() => {}} // Não faz nada, a sequência controla
+            onComplete={() => {}}
             duration={2000}
             text=""
             animationSize="fullscreen"
           />
         </View>
 
-        {/* Mensagem de boas-vindas */}
         <Text
           style={{
             fontSize: 28,
@@ -137,7 +135,6 @@ export const TransitionOverlay: React.FC<TransitionOverlayProps> = ({ onComplete
           Preparando sua experiência...
         </Text>
 
-        {/* Barra de progresso animada */}
         <View
           style={{
             width: 250,
@@ -160,7 +157,6 @@ export const TransitionOverlay: React.FC<TransitionOverlayProps> = ({ onComplete
           />
         </View>
 
-        {/* Pontos de progresso */}
         <View
           style={{
             flexDirection: 'row',

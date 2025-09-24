@@ -1,6 +1,6 @@
-import {supabase} from '@/features/auth/services/authService';
 import {User} from '@/features/auth/types/auth.types';
 import {UpdateProfileFormData} from '@/features/profile/schema/updateProfileSchema';
+import {supabase} from '@/lib/supabase';
 
 export interface UpdateProfileResponse {
   user: User | null;

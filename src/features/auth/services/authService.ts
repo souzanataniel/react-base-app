@@ -1,4 +1,3 @@
-import {createClient} from '@supabase/supabase-js';
 import {
   AuthResponse,
   ForgotPasswordCredentials,
@@ -12,18 +11,7 @@ import {
   User
 } from '@/features/auth/types/auth.types';
 import {formatErrors} from '@/features/auth/utils/authUtils';
-
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    storage: require('@react-native-async-storage/async-storage').default,
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: false,
-  },
-});
+import {supabase} from '@/lib/supabase';
 
 /**
  * 🎯 MAPEIA Supabase User + Profile → User de domínio
@@ -33,7 +21,7 @@ const mapSupabaseUserToDomain = async (supabaseUser: any): Promise<User | null> 
 
   try {
     // Busca dados do perfil
-    const {data: profile} = await supabase
+    const { data: profile } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', supabaseUser.id)
@@ -50,7 +38,7 @@ const mapSupabaseUserToDomain = async (supabaseUser: any): Promise<User | null> 
       dateOfBirth: profile?.date_of_birth,
 
       // Visual
-      avatarUrl: profile?.avatar_url,
+      avatarUrl: profile?.avatar_url, // ✅ Já mapeado corretamente
 
       // Localização
       country: profile?.country,
@@ -70,6 +58,7 @@ const mapSupabaseUserToDomain = async (supabaseUser: any): Promise<User | null> 
       // UX
       firstLoginAt: profile?.first_login_at,
       lastActiveAt: profile?.last_active_at || new Date().toISOString(),
+      loginCount: profile?.login_count || 0,
 
       // Timestamps
       createdAt: profile?.created_at || supabaseUser.created_at,
@@ -78,7 +67,7 @@ const mapSupabaseUserToDomain = async (supabaseUser: any): Promise<User | null> 
 
     return user;
   } catch (error) {
-    console.error('❌ Erro ao mapear usuário:', error);
+    console.error('⚠️ Erro ao mapear usuário:', error);
     // Retorna versão mínima se falhar
     return {
       id: supabaseUser.id,

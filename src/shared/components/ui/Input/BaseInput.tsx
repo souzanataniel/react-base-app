@@ -125,7 +125,6 @@ function BaseInputComponent(
 
   return (
     <YStack gap="$2" {...containerProps}>
-      {/* Label */}
       {label ? (
         <Text
           fontSize={labelFontSize}
@@ -137,9 +136,7 @@ function BaseInputComponent(
         </Text>
       ) : null}
 
-      {/* Container do Input */}
       <YStack position="relative">
-        {/* Ícone Esquerdo */}
         {leftIcon && (
           <XStack
             position="absolute"
@@ -155,10 +152,8 @@ function BaseInputComponent(
           </XStack>
         )}
 
-        {/* Input Principal */}
         {renderInput ? renderInput(defaultInputProps) : <Input {...defaultInputProps} />}
 
-        {/* Ícone Direito (apenas quando não disabled) */}
         {rightIcon && isValid && !disabled && (
           <XStack
             position="absolute"
@@ -173,7 +168,6 @@ function BaseInputComponent(
           </XStack>
         )}
 
-        {/* Ícone de Sucesso */}
         {shouldShowSuccessIcon && !rightIcon && (
           <XStack
             position="absolute"
