@@ -1,5 +1,4 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import * as Haptics from 'expo-haptics';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -10,6 +9,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import {Button, Spinner} from 'tamagui';
 import {Check} from '@tamagui/lucide-icons';
+import {useHapticFeedback} from '@/shared/components/feedback/Haptic/HapticContext';
 
 const AnimatedButton = Animated.createAnimatedComponent(Button);
 
@@ -21,6 +21,7 @@ interface AnimatedSaveButtonProps {
   saveText?: string;
   onError?: (error: Error) => void;
   hapticFeedback?: boolean;
+  disableHaptic?: boolean;
   backgroundColor?: string;
   color?: string;
   icon?: React.ReactNode;
@@ -40,6 +41,7 @@ export const AnimatedSaveButton = React.memo<AnimatedSaveButtonProps>(({
                                                                          saveText = 'Salvar Alterações',
                                                                          onError,
                                                                          hapticFeedback = true,
+                                                                         disableHaptic = false,
                                                                          backgroundColor = '$button',
                                                                          color = '$buttonLabel',
                                                                          size = '$4',
@@ -50,6 +52,7 @@ export const AnimatedSaveButton = React.memo<AnimatedSaveButtonProps>(({
                                                                          style,
                                                                        }) => {
   const [isProcessing, setIsProcessing] = useState(false);
+  const haptic = useHapticFeedback();
 
   const shakeX = useSharedValue(0);
   const scale = useSharedValue(1);
@@ -79,20 +82,21 @@ export const AnimatedSaveButton = React.memo<AnimatedSaveButtonProps>(({
   }));
 
   const triggerHaptic = useCallback((type: 'press' | 'success' | 'error') => {
-    if (!hapticFeedback) return;
+    if (!hapticFeedback || disableHaptic) return;
 
+    // Usar o sistema global - só executa se estiver habilitado
     switch (type) {
       case 'press':
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        haptic.medium();
         break;
       case 'success':
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        haptic.success();
         break;
       case 'error':
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        haptic.error();
         break;
     }
-  }, [hapticFeedback]);
+  }, [hapticFeedback, disableHaptic, haptic]);
 
   const handlePress = useCallback(async () => {
     if (isButtonDisabled) return;
@@ -121,7 +125,7 @@ export const AnimatedSaveButton = React.memo<AnimatedSaveButtonProps>(({
     } finally {
       setIsProcessing(false);
     }
-  }, [isButtonDisabled, onSave, onError, triggerHaptic]);
+  }, [isButtonDisabled, onSave, onError, triggerHaptic, scale, shakeX]);
 
   return (
     <AnimatedButton
@@ -145,3 +149,29 @@ export const AnimatedSaveButton = React.memo<AnimatedSaveButtonProps>(({
 });
 
 AnimatedSaveButton.displayName = 'AnimatedSaveButton';
+
+export const AnimatedPrimarySaveButton: React.FC<Omit<AnimatedSaveButtonProps, 'backgroundColor' | 'color'>> = (props) => (
+  <AnimatedSaveButton
+    backgroundColor="$blue9"
+    color="white"
+    {...props}
+  />
+);
+
+export const AnimatedSuccessSaveButton: React.FC<Omit<AnimatedSaveButtonProps, 'backgroundColor' | 'color'>> = (props) => (
+  <AnimatedSaveButton
+    backgroundColor="$green9"
+    color="white"
+    saveText="Confirmar Alterações"
+    {...props}
+  />
+);
+
+export const AnimatedDangerSaveButton: React.FC<Omit<AnimatedSaveButtonProps, 'backgroundColor' | 'color'>> = (props) => (
+  <AnimatedSaveButton
+    backgroundColor="$red9"
+    color="white"
+    saveText="Salvar e Aplicar"
+    {...props}
+  />
+);

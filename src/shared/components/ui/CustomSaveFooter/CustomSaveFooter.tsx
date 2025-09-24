@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Platform} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -12,6 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import {Button, Spinner, Stack, useTheme, XStack} from 'tamagui';
 import {Check} from '@tamagui/lucide-icons';
+import {useHapticFeedback} from '@/shared/components/feedback/Haptic/HapticContext';
 
 const AnimatedStack = Animated.createAnimatedComponent(Stack);
 const AnimatedButton = Animated.createAnimatedComponent(Button);
@@ -25,6 +25,7 @@ interface CustomSaveFooterProps {
   visible?: boolean;
   onError?: (error: Error) => void;
   hapticFeedback?: boolean;
+  disableHaptic?: boolean; // Nova prop para controle individual
   backgroundColor?: string;
   color?: string;
   fontWeight?: string | number;
@@ -40,11 +41,13 @@ export const CustomSaveFooter = React.memo<CustomSaveFooterProps>(({
                                                                      visible = true,
                                                                      onError,
                                                                      hapticFeedback = true,
+                                                                     disableHaptic = false,
                                                                      backgroundColor = '$button',
                                                                      color = '$buttonLabel',
                                                                    }) => {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const haptic = useHapticFeedback();
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Animações simplificadas
@@ -82,7 +85,7 @@ export const CustomSaveFooter = React.memo<CustomSaveFooterProps>(({
   // Efeito de slide do footer
   useEffect(() => {
     slideY.value = withTiming(visible ? 0 : 100, {duration: 250});
-  }, [visible]);
+  }, [visible, slideY]);
 
   // Styles animados
   const footerStyle = useAnimatedStyle(() => ({
@@ -96,22 +99,23 @@ export const CustomSaveFooter = React.memo<CustomSaveFooterProps>(({
     ],
   }));
 
-  // Haptic feedback
+  // Haptic feedback usando sistema global
   const triggerHaptic = useCallback((type: 'press' | 'success' | 'error') => {
-    if (!hapticFeedback) return;
+    if (!hapticFeedback || disableHaptic) return;
 
+    // Usar o sistema global - só executa se estiver habilitado
     switch (type) {
       case 'press':
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        haptic.medium();
         break;
       case 'success':
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        haptic.success();
         break;
       case 'error':
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        haptic.error();
         break;
     }
-  }, [hapticFeedback]);
+  }, [hapticFeedback, disableHaptic, haptic]);
 
   // Handlers
   const handlePress = useCallback(async () => {
@@ -143,7 +147,7 @@ export const CustomSaveFooter = React.memo<CustomSaveFooterProps>(({
     } finally {
       setIsProcessing(false);
     }
-  }, [isButtonDisabled, onSave, onError, triggerHaptic]);
+  }, [isButtonDisabled, onSave, onError, triggerHaptic, scale, shakeX]);
 
   return (
     <AnimatedStack
@@ -179,3 +183,30 @@ export const CustomSaveFooter = React.memo<CustomSaveFooterProps>(({
 });
 
 CustomSaveFooter.displayName = 'CustomSaveFooter';
+
+// Variantes pré-configuradas
+export const CustomPrimarySaveFooter: React.FC<Omit<CustomSaveFooterProps, 'backgroundColor' | 'color'>> = (props) => (
+  <CustomSaveFooter
+    backgroundColor="$blue9"
+    color="white"
+    {...props}
+  />
+);
+
+export const CustomSuccessSaveFooter: React.FC<Omit<CustomSaveFooterProps, 'backgroundColor' | 'color'>> = (props) => (
+  <CustomSaveFooter
+    backgroundColor="$green9"
+    color="white"
+    saveText="Confirmar Alterações"
+    {...props}
+  />
+);
+
+export const CustomDangerSaveFooter: React.FC<Omit<CustomSaveFooterProps, 'backgroundColor' | 'color'>> = (props) => (
+  <CustomSaveFooter
+    backgroundColor="$red9"
+    color="white"
+    saveText="Aplicar Alterações"
+    {...props}
+  />
+);

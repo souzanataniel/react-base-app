@@ -1,33 +1,143 @@
-import {supabase} from '@/lib/supabase';
-import {manipulateAsync, SaveFormat} from 'expo-image-manipulator';
+import { supabase } from '@/lib/supabase';
+import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export class AvatarService {
   private static readonly BUCKET_NAME = 'avatars';
+  private static readonly CACHE_KEY_PREFIX = 'avatar_cache_';
+  private static readonly CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 dias
 
   /**
-   * Upload de avatar com compressão
+   * Obter avatar com cache AsyncStorage
+   */
+  static async getAvatarUrl(userId: string): Promise<string | null> {
+    try {
+      console.log('Getting avatar for user:', userId);
+
+      // 1. Verificar cache no AsyncStorage
+      const cachedData = await this.getCachedAvatar(userId);
+      if (cachedData) {
+        console.log('Using cached avatar data');
+        return cachedData;
+      }
+
+      // 2. Buscar do servidor
+      const serverUrl = await this.getServerAvatarUrl(userId);
+      if (!serverUrl) {
+        console.log('No avatar found on server');
+        return null;
+      }
+
+      // 3. Cachear URL do servidor (com timestamp para cache-busting)
+      const cachedUrl = `${serverUrl}?t=${Date.now()}`;
+      await this.cacheAvatarUrl(userId, cachedUrl);
+
+      console.log('Avatar URL cached:', cachedUrl);
+      return cachedUrl;
+
+    } catch (error) {
+      console.error('Error getting avatar URL:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Obter avatar do cache AsyncStorage
+   */
+  private static async getCachedAvatar(userId: string): Promise<string | null> {
+    try {
+      const cacheKey = `${this.CACHE_KEY_PREFIX}${userId}`;
+      const cachedDataStr = await AsyncStorage.getItem(cacheKey);
+
+      if (!cachedDataStr) return null;
+
+      const cachedData = JSON.parse(cachedDataStr);
+
+      // Verificar se não expirou
+      const isExpired = (Date.now() - cachedData.timestamp) > this.CACHE_DURATION;
+      if (isExpired) {
+        await AsyncStorage.removeItem(cacheKey);
+        return null;
+      }
+
+      return cachedData.avatarUrl;
+    } catch (error) {
+      console.error('Error getting cached avatar:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Cachear URL do avatar no AsyncStorage
+   */
+  private static async cacheAvatarUrl(userId: string, avatarUrl: string): Promise<void> {
+    try {
+      const cacheKey = `${this.CACHE_KEY_PREFIX}${userId}`;
+      const cacheData = {
+        avatarUrl,
+        timestamp: Date.now(),
+      };
+
+      await AsyncStorage.setItem(cacheKey, JSON.stringify(cacheData));
+    } catch (error) {
+      console.error('Error caching avatar URL:', error);
+    }
+  }
+
+  /**
+   * Limpar cache do usuário
+   */
+  private static async clearUserCache(userId: string): Promise<void> {
+    try {
+      const cacheKey = `${this.CACHE_KEY_PREFIX}${userId}`;
+      await AsyncStorage.removeItem(cacheKey);
+      console.log('Cache cleared for user:', userId);
+    } catch (error) {
+      console.error('Error clearing cache:', error);
+    }
+  }
+
+  /**
+   * Verificar se avatar existe no servidor
+   */
+  private static async getServerAvatarUrl(userId: string): Promise<string | null> {
+    try {
+      const fileName = `${userId}/avatar.jpg`;
+      const { data: files, error } = await supabase.storage
+        .from(this.BUCKET_NAME)
+        .list(userId);
+
+      if (error || !files || files.length === 0) return null;
+
+      const avatarFile = files.find(f => f.name === 'avatar.jpg');
+      if (!avatarFile) return null;
+
+      const { data } = supabase.storage
+        .from(this.BUCKET_NAME)
+        .getPublicUrl(fileName);
+
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error getting server avatar URL:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Upload de avatar
    */
   static async uploadAvatar(userId: string, imageUri: string): Promise<string> {
     try {
-      console.log('📸 AvatarService.uploadAvatar started:', {userId, imageUri});
+      console.log('Starting avatar upload:', { userId, imageUri });
 
       // Comprimir imagem
-      console.log('🔄 Compressing image...');
       const compressedImage = await manipulateAsync(
         imageUri,
-        [{resize: {width: 400, height: 400}}],
-        {compress: 0.8, format: SaveFormat.JPEG}
+        [{ resize: { width: 400, height: 400 } }],
+        { compress: 0.8, format: SaveFormat.JPEG }
       );
 
-      console.log('✅ Image compressed:', {
-        originalUri: imageUri,
-        compressedUri: compressedImage.uri,
-        width: compressedImage.width,
-        height: compressedImage.height
-      });
-
-      // Preparar FormData
-      console.log('📦 Preparing FormData...');
+      // Upload para Supabase
       const formData = new FormData();
       formData.append('file', {
         uri: compressedImage.uri,
@@ -36,11 +146,7 @@ export class AvatarService {
       } as any);
 
       const fileName = `${userId}/avatar.jpg`;
-      console.log('📂 Upload filename:', fileName);
-
-      // Upload para Supabase Storage
-      console.log('⬆️ Uploading to Supabase Storage...');
-      const {data, error} = await supabase.storage
+      const { data, error } = await supabase.storage
         .from(this.BUCKET_NAME)
         .upload(fileName, formData, {
           cacheControl: '3600',
@@ -48,26 +154,23 @@ export class AvatarService {
           contentType: 'image/jpeg',
         });
 
-      if (error) {
-        console.error('❌ Supabase upload error:', error);
-        throw error;
-      }
-
-      console.log('✅ Upload successful:', data);
+      if (error) throw error;
 
       // Obter URL público
-      console.log('🔗 Getting public URL...');
-      const {data: urlData} = supabase.storage
+      const { data: urlData } = supabase.storage
         .from(this.BUCKET_NAME)
         .getPublicUrl(fileName);
 
       const publicUrl = urlData.publicUrl;
-      console.log('✅ Public URL generated:', publicUrl);
 
-      // Retornar URL limpa (sem timestamp) - o hook vai gerenciar cache-busting
-      return publicUrl;
+      // Cachear URL com timestamp para forçar atualização
+      const cachedUrl = `${publicUrl}?t=${Date.now()}`;
+      await this.cacheAvatarUrl(userId, cachedUrl);
+
+      console.log('Upload successful and cached:', cachedUrl);
+      return cachedUrl;
     } catch (error) {
-      console.error('❌ Error in AvatarService.uploadAvatar:', error);
+      console.error('Error in avatar upload:', error);
       throw error instanceof Error ? error : new Error('Erro no upload');
     }
   }
@@ -77,23 +180,18 @@ export class AvatarService {
    */
   static async deleteAvatar(userId: string): Promise<void> {
     try {
-      console.log('🗑️ AvatarService.deleteAvatar started:', {userId});
-
       const fileName = `${userId}/avatar.jpg`;
-      console.log('📂 Delete filename:', fileName);
-
-      const {error} = await supabase.storage
+      const { error } = await supabase.storage
         .from(this.BUCKET_NAME)
         .remove([fileName]);
 
-      if (error) {
-        console.error('❌ Supabase delete error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log('✅ Avatar deleted from storage successfully');
+      // Limpar cache
+      await this.clearUserCache(userId);
+      console.log('Avatar deleted successfully');
     } catch (error) {
-      console.error('❌ Error in AvatarService.deleteAvatar:', error);
+      console.error('Error deleting avatar:', error);
       throw error instanceof Error ? error : new Error('Erro ao deletar avatar');
     }
   }
@@ -103,44 +201,21 @@ export class AvatarService {
    */
   static async updateUserAvatar(userId: string, avatarUrl: string | null): Promise<void> {
     try {
-      console.log('💾 AvatarService.updateUserAvatar started:', {
-        userId,
-        avatarUrl: avatarUrl ? `${avatarUrl.substring(0, 50)}...` : null
-      });
-
       const updateData = {
         avatar_url: avatarUrl,
         updated_at: new Date().toISOString(),
       };
 
-      console.log('📝 Update data:', updateData);
-
-      const {data, error} = await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .update(updateData)
         .eq('id', userId)
-        .select(); // Retornar dados atualizados para verificação
+        .select();
 
-      if (error) {
-        console.error('❌ Supabase profile update error:', error);
-        throw error;
-      }
-
-      console.log('✅ Profile updated successfully:', data);
-
-      // Verificar se a atualização realmente aconteceu
-      if (data && data.length > 0) {
-        console.log('✅ Update confirmed, new profile data:', {
-          id: data[0].id,
-          avatar_url: data[0].avatar_url,
-          updated_at: data[0].updated_at
-        });
-      } else {
-        console.warn('⚠️ Update completed but no data returned');
-      }
-
+      if (error) throw error;
+      console.log('Profile updated successfully:', data);
     } catch (error) {
-      console.error('❌ Error in AvatarService.updateUserAvatar:', error);
+      console.error('Error updating profile:', error);
       throw error instanceof Error ? error : new Error('Erro ao atualizar perfil');
     }
   }
@@ -150,22 +225,11 @@ export class AvatarService {
    */
   static async uploadAndUpdateAvatar(userId: string, imageUri: string): Promise<string> {
     try {
-      console.log('🚀 AvatarService.uploadAndUpdateAvatar started:', {userId});
-
-      // 1. Upload da imagem
-      console.log('📸 Step 1: Uploading avatar...');
       const avatarUrl = await this.uploadAvatar(userId, imageUri);
-      console.log('✅ Step 1 completed - Avatar uploaded:', avatarUrl);
-
-      // 2. Atualizar perfil
-      console.log('💾 Step 2: Updating profile...');
-      await this.updateUserAvatar(userId, avatarUrl);
-      console.log('✅ Step 2 completed - Profile updated');
-
-      console.log('🎉 uploadAndUpdateAvatar completed successfully');
-      return avatarUrl;
+      await this.updateUserAvatar(userId, avatarUrl.split('?')[0]); // Salvar URL limpa no banco
+      return avatarUrl; // Retornar URL com timestamp para cache-busting
     } catch (error) {
-      console.error('❌ Error in uploadAndUpdateAvatar:', error);
+      console.error('Error in uploadAndUpdateAvatar:', error);
       throw error;
     }
   }
@@ -175,21 +239,10 @@ export class AvatarService {
    */
   static async deleteAndUpdateAvatar(userId: string): Promise<void> {
     try {
-      console.log('🚀 AvatarService.deleteAndUpdateAvatar started:', {userId});
-
-      // 1. Deletar do storage
-      console.log('🗑️ Step 1: Deleting from storage...');
       await this.deleteAvatar(userId);
-      console.log('✅ Step 1 completed - Avatar deleted from storage');
-
-      // 2. Limpar URL do perfil
-      console.log('💾 Step 2: Clearing profile avatar_url...');
       await this.updateUserAvatar(userId, null);
-      console.log('✅ Step 2 completed - Profile avatar_url cleared');
-
-      console.log('🎉 deleteAndUpdateAvatar completed successfully');
     } catch (error) {
-      console.error('❌ Error in deleteAndUpdateAvatar:', error);
+      console.error('Error in deleteAndUpdateAvatar:', error);
       throw error;
     }
   }
@@ -199,60 +252,57 @@ export class AvatarService {
    */
   static async checkAvatarExists(userId: string): Promise<boolean> {
     try {
-      console.log('🔍 Checking if avatar exists for user:', userId);
-
       const fileName = `${userId}/avatar.jpg`;
-      const {data, error} = await supabase.storage
+      const { data, error } = await supabase.storage
         .from(this.BUCKET_NAME)
         .list(userId);
 
-      if (error) {
-        console.error('❌ Error checking avatar existence:', error);
-        return false;
-      }
+      if (error) return false;
 
       const exists = data.some(file => file.name === 'avatar.jpg');
-      console.log('🔍 Avatar exists check result:', {exists, files: data});
-
       return exists;
     } catch (error) {
-      console.error('❌ Error in checkAvatarExists:', error);
+      console.error('Error checking avatar existence:', error);
       return false;
     }
   }
 
   /**
-   * Obter URL do avatar com cache-busting
+   * Limpar cache expirado (manutenção)
    */
+  static async clearExpiredCache(): Promise<void> {
+    try {
+      const keys = await AsyncStorage.getAllKeys();
+      const cacheKeys = keys.filter(key => key.startsWith(this.CACHE_KEY_PREFIX));
+
+      for (const key of cacheKeys) {
+        const cachedDataStr = await AsyncStorage.getItem(key);
+        if (!cachedDataStr) continue;
+
+        const cachedData = JSON.parse(cachedDataStr);
+        const isExpired = (Date.now() - cachedData.timestamp) > this.CACHE_DURATION;
+
+        if (isExpired) {
+          await AsyncStorage.removeItem(key);
+        }
+      }
+
+      console.log('Expired cache cleared');
+    } catch (error) {
+      console.error('Error clearing expired cache:', error);
+    }
+  }
+
+  // Manter métodos legados para compatibilidade
   static getAvatarUrlWithCacheBusting(userId: string): string {
-    const {data} = supabase.storage
+    const { data } = supabase.storage
       .from(this.BUCKET_NAME)
       .getPublicUrl(`${userId}/avatar.jpg`);
 
     return `${data.publicUrl}?t=${Date.now()}`;
   }
 
-  /**
-   * Limpar cache de avatar forçando re-download
-   */
   static async forceClearAvatarCache(userId: string): Promise<void> {
-    try {
-      const url = this.getAvatarUrlWithCacheBusting(userId);
-
-      // Tentar fazer fetch da nova URL para forçar update do cache
-      await fetch(url, {
-        method: 'HEAD',
-        cache: 'no-cache',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        }
-      });
-
-      console.log('✅ Avatar cache cleared for user:', userId);
-    } catch (error) {
-      console.warn('⚠️ Could not clear avatar cache:', error);
-    }
+    await this.clearUserCache(userId);
   }
 }

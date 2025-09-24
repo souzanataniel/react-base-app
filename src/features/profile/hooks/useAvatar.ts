@@ -1,8 +1,8 @@
-import {useCallback, useEffect, useState} from 'react';
-import {Alert} from 'react-native';
+import { useCallback, useEffect, useState, useRef } from 'react';
+import { Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import {getCurrentUser} from '@/features/auth/services/authService';
-import {AvatarService} from '@/features/profile/services/avatarService';
+import { getCurrentUser } from '@/features/auth/services/authService';
+import { AvatarService } from '@/features/profile/services/avatarService';
 
 interface UseAvatarReturn {
   avatarUrl: string | null;
@@ -18,95 +18,77 @@ export const useAvatar = (): UseAvatarReturn => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  // Usar ref para evitar loop infinito
+  const isInitializedRef = useRef(false);
+  const refreshingRef = useRef(false);
 
   const refreshAvatar = useCallback(async (): Promise<void> => {
+    // Evitar múltiplas chamadas simultâneas
+    if (loading || refreshingRef.current) return;
+
     try {
-      console.log('🔄 Refreshing avatar...');
+      refreshingRef.current = true;
+      setLoading(true);
+      console.log('Refreshing avatar...');
 
       const user = await getCurrentUser();
-      console.log('👤 Current user:', {
-        id: user?.id,
-        email: user?.email,
-        avatarUrl: user?.avatarUrl,
-        hasUser: !!user
-      });
+      if (!user?.id) {
+        console.log('No user found, clearing avatar');
+        setAvatarUrl(null);
+        return;
+      }
 
-      if (user?.avatarUrl) {
-        // Limpar cache adicionando timestamp
-        const cleanUrl = user.avatarUrl.split('?')[0]; // Remove existing query params
-        const urlWithTimestamp = `${cleanUrl}?t=${Date.now()}`;
+      console.log('Getting avatar for user:', user.id);
 
-        console.log('✅ Setting avatar URL with cache-busting:', urlWithTimestamp);
-        setAvatarUrl(urlWithTimestamp);
+      // Usar o método otimizado que verifica cache primeiro
+      const avatarPath = await AvatarService.getAvatarUrl(user.id);
+
+      if (avatarPath) {
+        console.log('Avatar loaded:', avatarPath.includes('?t=') ? 'from cache' : 'from server');
+        setAvatarUrl(avatarPath);
       } else {
-        console.log('⚠️ No avatar URL found, setting to null');
+        console.log('No avatar found');
         setAvatarUrl(null);
       }
     } catch (error) {
-      console.error('❌ Error loading avatar:', error);
-      setAvatarUrl(null); // Garantir que limpa em caso de erro
+      console.error('Error refreshing avatar:', error);
+      setAvatarUrl(null);
+    } finally {
+      setLoading(false);
+      refreshingRef.current = false;
     }
-  }, []);
+  }, []); // Remover dependências para evitar loop
 
   const uploadAvatar = async (imageUri: string): Promise<string> => {
     try {
       setUploading(true);
       setProgress(0);
-      console.log('📸 Starting avatar upload...', {imageUri});
+      console.log('Starting avatar upload...', { imageUri });
 
       const user = await getCurrentUser();
       if (!user) {
-        console.error('❌ No user found');
         throw new Error('Usuário não autenticado');
       }
 
-      console.log('👤 User for upload:', {id: user.id, email: user.email});
       setProgress(25);
 
-      // IMPORTANTE: Limpar avatar atual antes do upload para evitar cache
-      console.log('🧹 Clearing current avatar to prevent cache issues...');
-      setAvatarUrl(null);
+      // Upload usando o serviço otimizado
+      console.log('Calling optimized upload service...');
+      const avatarUrl = await AvatarService.uploadAndUpdateAvatar(user.id, imageUri);
 
-      // Upload usando o serviço
-      console.log('⬆️ Calling AvatarService.uploadAndUpdateAvatar...');
-      const newAvatarUrl = await AvatarService.uploadAndUpdateAvatar(user.id, imageUri);
-
-      console.log('✅ Upload completed, new URL:', newAvatarUrl);
       setProgress(75);
 
-      // Verificar se a URL está acessível
-      console.log('🔍 Testing avatar URL accessibility...');
-      try {
-        const response = await fetch(newAvatarUrl, {method: 'HEAD'});
-        console.log('🌐 URL test response:', {
-          status: response.status,
-          ok: response.ok,
-          url: newAvatarUrl
-        });
-      } catch (fetchError) {
-        console.warn('⚠️ Error testing URL accessibility:', fetchError);
-      }
-
-      setProgress(90);
-
-      // Atualizar estado local com a nova URL (sem cache-busting)
-      const cleanUrl = newAvatarUrl.split('?')[0]; // Remove query parameters
-      const finalUrl = `${cleanUrl}?t=${Date.now()}`; // Add fresh timestamp
-
-      console.log('✅ Setting new avatar with cache-busting:', finalUrl);
-      setAvatarUrl(finalUrl);
-
-      // Refresh para garantir sincronização (com delay maior)
-      setTimeout(async () => {
-        console.log('🔄 Auto-refreshing avatar after upload...');
-        await refreshAvatar();
-      }, 2000); // Aumentar delay para 2 segundos
+      // Atualizar estado local
+      console.log('Upload completed, updating local state:', avatarUrl);
+      setAvatarUrl(avatarUrl);
 
       setProgress(100);
-      return finalUrl;
+      return avatarUrl;
 
     } catch (error) {
-      console.error('❌ Error in uploadAvatar:', error);
+      console.error('Error in uploadAvatar:', error);
       throw error instanceof Error ? error : new Error('Erro no upload');
     } finally {
       setUploading(false);
@@ -117,42 +99,28 @@ export const useAvatar = (): UseAvatarReturn => {
   const deleteAvatar = async (): Promise<void> => {
     try {
       setUploading(true);
-      console.log('🗑️ Starting avatar deletion...');
+      console.log('Starting avatar deletion...');
 
       const user = await getCurrentUser();
       if (!user) {
-        console.error('❌ No user found for deletion');
         throw new Error('Usuário não autenticado');
       }
 
-      console.log('👤 User for deletion:', {id: user.id, email: user.email});
-
-      // Limpar estado local IMEDIATAMENTE
-      console.log('🧹 Clearing avatar state immediately...');
+      // Limpar estado local imediatamente
       setAvatarUrl(null);
 
-      // Deletar do storage e banco
+      // Deletar usando serviço otimizado
       await AvatarService.deleteAndUpdateAvatar(user.id);
-      console.log('✅ Avatar deleted successfully');
-
-      // Garantir que o estado permanece limpo
-      console.log('✅ Ensuring avatar state remains cleared');
-      setAvatarUrl(null);
-
-      // Refresh para confirmar sincronização (com delay)
-      setTimeout(async () => {
-        console.log('🔄 Auto-refreshing avatar after deletion...');
-        await refreshAvatar();
-
-        // Garantir que ainda está null após refresh
-        setTimeout(() => {
-          console.log('🔍 Final state check after delete refresh');
-          setAvatarUrl(null);
-        }, 500);
-      }, 1000);
+      console.log('Avatar deleted successfully');
 
     } catch (error) {
-      console.error('❌ Error deleting avatar:', error);
+      console.error('Error deleting avatar:', error);
+      // Tentar recarregar em caso de erro
+      setTimeout(() => {
+        if (!refreshingRef.current) {
+          refreshAvatar();
+        }
+      }, 1000);
       throw error instanceof Error ? error : new Error('Erro ao deletar avatar');
     } finally {
       setUploading(false);
@@ -161,7 +129,7 @@ export const useAvatar = (): UseAvatarReturn => {
 
   const pickImage = async (source: 'camera' | 'gallery' = 'gallery'): Promise<string | undefined> => {
     try {
-      console.log('🖼️ Starting image picker...', {source});
+      console.log('Starting image picker...', { source });
 
       // Verificar permissões
       const permission = source === 'camera'
@@ -169,12 +137,9 @@ export const useAvatar = (): UseAvatarReturn => {
         : await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (!permission.granted) {
-        console.warn('⚠️ Permission denied for', source);
         Alert.alert('Permissão Necessária', 'Permissão para acessar a galeria/câmera é necessária!');
         return undefined;
       }
-
-      console.log('✅ Permission granted for', source);
 
       // Configurar opções
       const options: ImagePicker.ImagePickerOptions = {
@@ -190,40 +155,37 @@ export const useAvatar = (): UseAvatarReturn => {
         ? await ImagePicker.launchCameraAsync(options)
         : await ImagePicker.launchImageLibraryAsync(options);
 
-      console.log('📱 Image picker result:', {
-        canceled: result.canceled,
-        hasAssets: result.assets?.length || 0
-      });
-
       if (!result.canceled && result.assets?.[0]) {
         const selectedImageUri = result.assets[0].uri;
-        console.log('✅ Image selected:', {uri: selectedImageUri});
-
+        console.log('Image selected:', selectedImageUri);
         return await uploadAvatar(selectedImageUri);
       }
 
-      console.log('⚠️ Image selection cancelled or failed');
       return undefined;
     } catch (error) {
-      console.error('❌ Error in pickImage:', error);
+      console.error('Error in pickImage:', error);
       throw error instanceof Error ? error : new Error('Erro ao selecionar imagem');
     }
   };
 
+  // Carregar avatar apenas uma vez na inicialização
   useEffect(() => {
-    console.log('🚀 useAvatar hook initialized, calling refreshAvatar...');
-    refreshAvatar();
-  }, [refreshAvatar]);
+    if (!isInitializedRef.current) {
+      console.log('useAvatar hook initialized, loading avatar...');
+      isInitializedRef.current = true;
+      refreshAvatar();
+    }
+  }, []); // Array vazio para executar apenas uma vez
 
-  // Debug: Log state changes
+  // Debug: Log state changes (sem causar re-renders)
   useEffect(() => {
-    console.log('🔄 Avatar state changed:', {
-      avatarUrl,
+    console.log('Avatar state changed:', {
+      avatarUrl: avatarUrl ? (avatarUrl.includes('?t=') ? 'cached' : 'server') : 'none',
       uploading,
+      loading,
       progress,
-      hasUrl: !!avatarUrl
     });
-  }, [avatarUrl, uploading, progress]);
+  }, [avatarUrl, uploading, loading, progress]);
 
   return {
     avatarUrl,

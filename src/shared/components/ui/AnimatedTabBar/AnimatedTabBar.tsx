@@ -1,7 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {Pressable} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
 import Animated, {
   runOnJS,
   useAnimatedStyle,
@@ -38,6 +37,7 @@ import {
 } from 'react-native-heroicons/solid';
 
 import {useTabBarHeight} from './hooks/useTabBarHeight';
+import {useHapticFeedback} from '@/shared/components/feedback/Haptic/HapticContext';
 
 interface TabRoute {
   key: string;
@@ -245,6 +245,7 @@ const AnimatedTabButton = React.memo<AnimatedTabButtonProps>(({
                                                                 config,
                                                               }) => {
   const options = descriptor?.options || {};
+  const haptic = useHapticFeedback();
 
   const label = useMemo(() => getTabLabel(options, route.name), [options, route.name]);
   const iconKey = useMemo(() => getTabIconKey(options, route.name), [options, route.name]);
@@ -274,14 +275,15 @@ const AnimatedTabButton = React.memo<AnimatedTabButtonProps>(({
   const handlePress = useCallback(() => {
     if (disabled) return;
 
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    // Usar o sistema global de haptic (respeita a configuração do usuário)
+    haptic.light();
 
     translateY.value = withSpring(-0.5, config.animation.bounce, () => {
       translateY.value = withSpring(0, config.animation.return);
     });
 
     runOnJS(onPress)();
-  }, [disabled, onPress, translateY, config.animation.bounce, config.animation.return]);
+  }, [disabled, haptic, onPress, translateY, config.animation.bounce, config.animation.return]);
 
   return (
     <Pressable

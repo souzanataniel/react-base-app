@@ -11,9 +11,9 @@ import {
   View,
   ViewStyle
 } from 'react-native';
-import {useAvatar} from '../hooks/useAvatar';
-import {Ionicons} from '@expo/vector-icons';
-import type {ImageSource} from '../types/avatar';
+import { useAvatar } from '../hooks/useAvatar';
+import { Ionicons } from '@expo/vector-icons';
+import type { ImageSource } from '../types/avatar';
 
 interface AvatarUploadProps {
   size?: number;
@@ -34,21 +34,21 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
                                                      style,
                                                      disabled = false,
                                                    }) => {
-  const {avatarUrl, uploading, progress, pickImage, deleteAvatar} = useAvatar();
+  const { avatarUrl, uploading, progress, pickImage, deleteAvatar } = useAvatar();
 
   const handleImagePicker = (): void => {
     if (disabled || uploading) return;
 
     const options = [
-      {text: 'Câmera', onPress: () => handlePickImage('camera')},
-      {text: 'Galeria', onPress: () => handlePickImage('gallery')},
+      { text: 'Câmera', onPress: () => handlePickImage('camera') },
+      { text: 'Galeria', onPress: () => handlePickImage('gallery') },
     ];
 
     if (avatarUrl && showDeleteOption) {
-      options.push({text: 'Remover Foto', onPress: handleDeleteAvatar});
+      options.push({ text: 'Remover Foto', onPress: handleDeleteAvatar });
     }
 
-    options.push({text: 'Cancelar', onPress: () => new Promise<void>(() => {})});
+    options.push({ text: 'Cancelar', onPress: () => Promise.resolve() });
 
     Alert.alert(
       'Foto do Perfil',
@@ -80,7 +80,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
       'Confirmar',
       'Tem certeza que deseja remover sua foto do perfil?',
       [
-        {text: 'Cancelar', style: 'cancel'},
+        { text: 'Cancelar', style: 'cancel' },
         {
           text: 'Remover',
           style: 'destructive',
@@ -96,21 +96,20 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
     );
   };
 
-  // ✅ CORRIGIDO: Usar StyleSheet.flatten para arrays de estilos
   const containerStyle = StyleSheet.flatten([
     styles.container,
-    {width: size, height: size},
+    { width: size, height: size },
     style
   ]);
 
   const avatarStyle = StyleSheet.flatten([
     styles.avatar,
-    {width: size, height: size, borderRadius: size / 2}
+    { width: size, height: size, borderRadius: size / 2 }
   ]);
 
   const placeholderStyle = StyleSheet.flatten([
     styles.placeholder,
-    {width: size, height: size, borderRadius: size / 2}
+    { width: size, height: size, borderRadius: size / 2 }
   ]);
 
   return (
@@ -122,7 +121,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
     >
       {avatarUrl ? (
         <Image
-          source={{uri: avatarUrl}}
+          source={{ uri: avatarUrl }}
           style={avatarStyle}
           resizeMode="cover"
         />
@@ -147,18 +146,24 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
       )}
 
       {uploading && (
-        <View style={[styles.uploadingOverlay, {borderRadius: size / 2}]}>
-          <ActivityIndicator color="white" size="small"/>
+        <View style={[styles.uploadingOverlay, { borderRadius: size / 2 }]}>
+          <ActivityIndicator color="white" size="small" />
           <Text style={styles.uploadingText}>
             {progress > 0 ? `${progress}%` : 'Enviando...'}
           </Text>
+        </View>
+      )}
+
+      {/* Indicador de cache ativo (debug) */}
+      {__DEV__ && avatarUrl?.includes('?t=') && (
+        <View style={styles.cacheIndicator}>
+          <Text style={styles.cacheText}>⚡</Text>
         </View>
       )}
     </TouchableOpacity>
   );
 };
 
-// ✅ CORRIGIDO: Interface de estilos mais específica
 interface Styles {
   container: ViewStyle;
   avatar: ImageStyle;
@@ -166,6 +171,8 @@ interface Styles {
   editIcon: ViewStyle;
   uploadingOverlay: ViewStyle;
   uploadingText: TextStyle;
+  cacheIndicator: ViewStyle;
+  cacheText: TextStyle;
 }
 
 const styles = StyleSheet.create<Styles>({
@@ -219,6 +226,21 @@ const styles = StyleSheet.create<Styles>({
     fontSize: 12,
     fontWeight: '600',
     marginTop: 4,
+  },
+  cacheIndicator: {
+    position: 'absolute',
+    top: -5,
+    left: -5,
+    backgroundColor: 'green',
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cacheText: {
+    color: 'white',
+    fontSize: 8,
   },
 });
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import type {ButtonProps} from 'tamagui';
 import {Button, Spinner, Text, XStack} from 'tamagui';
-import * as Haptics from 'expo-haptics';
+import {useHapticFeedback} from '@/shared/components/feedback/Haptic/HapticContext';
 
 interface LoadingButtonProps extends Omit<ButtonProps, 'children'> {
   loading?: boolean;
@@ -10,7 +10,8 @@ interface LoadingButtonProps extends Omit<ButtonProps, 'children'> {
   loadingColor?: string;
   spinnerSize?: 'small' | 'large';
   hapticFeedback?: boolean;
-  hapticType?: 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error';
+  hapticType?: 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error' | 'selection';
+  disableHaptic?: boolean;
 }
 
 export const LoadingButton = ({
@@ -27,32 +28,40 @@ export const LoadingButton = ({
                                 fontWeight = '600',
                                 hapticFeedback = true,
                                 hapticType = 'light',
+                                disableHaptic = false,
                                 onPress,
                                 ...props
                               }: LoadingButtonProps) => {
 
+  const haptic = useHapticFeedback();
+
   const handlePress = async (event: any) => {
-    if (hapticFeedback && !disabled && !loading) {
+    if (hapticFeedback && !disableHaptic && !disabled && !loading) {
       try {
         switch (hapticType) {
           case 'light':
-            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            haptic.light();
             break;
           case 'medium':
-            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            haptic.medium();
             break;
           case 'heavy':
-            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+            haptic.heavy();
             break;
           case 'success':
-            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            haptic.success();
             break;
           case 'warning':
-            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+            haptic.warning();
             break;
           case 'error':
-            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+            haptic.error();
             break;
+          case 'selection':
+            haptic.selection();
+            break;
+          default:
+            haptic.light();
         }
       } catch (error) {
         console.log('Haptic feedback not available');
@@ -107,3 +116,30 @@ export const LoadingButton = ({
   );
 };
 
+export const LoadingPrimaryButton: React.FC<Omit<LoadingButtonProps, 'hapticType'>> = (props) => (
+  <LoadingButton hapticType="medium" {...props} />
+);
+
+export const LoadingSuccessButton: React.FC<Omit<LoadingButtonProps, 'hapticType'>> = (props) => (
+  <LoadingButton
+    hapticType="success"
+    backgroundColor="$green9"
+    {...props}
+  />
+);
+
+export const LoadingWarningButton: React.FC<Omit<LoadingButtonProps, 'hapticType'>> = (props) => (
+  <LoadingButton
+    hapticType="warning"
+    backgroundColor="$orange9"
+    {...props}
+  />
+);
+
+export const LoadingErrorButton: React.FC<Omit<LoadingButtonProps, 'hapticType'>> = (props) => (
+  <LoadingButton
+    hapticType="error"
+    backgroundColor="$red9"
+    {...props}
+  />
+);
