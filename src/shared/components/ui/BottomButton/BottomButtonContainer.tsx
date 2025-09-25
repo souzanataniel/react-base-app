@@ -2,6 +2,7 @@ import React from 'react';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {XStack, YStack} from 'tamagui';
 import {AnimatedSaveButton} from '@/shared/components/ui/Button/AnimatedSaveButton';
+import {Platform} from 'react-native';
 
 interface BottomButtonContainerProps {
   onSave: () => Promise<void> | void;
@@ -26,7 +27,9 @@ export const BottomButtonContainer: React.FC<BottomButtonContainerProps> = ({
                                                                             }) => {
   const insets = useSafeAreaInsets();
 
+  const additionalPadding = Platform.select({ios: 0, android: 16, default: 0});
   const paddingBottom = customPaddingBottom ?? Math.max(insets.bottom, 16);
+
 
   return (
     <YStack
@@ -34,7 +37,7 @@ export const BottomButtonContainer: React.FC<BottomButtonContainerProps> = ({
       bottom={0}
       left={0}
       right={0}
-      paddingBottom={paddingBottom}
+      paddingBottom={paddingBottom + additionalPadding}
       paddingHorizontal="$4"
     >
       <XStack

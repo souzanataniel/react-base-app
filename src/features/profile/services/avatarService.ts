@@ -1,5 +1,5 @@
-import { supabase } from '@/lib/supabase';
-import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
+import {supabase} from '@/lib/supabase';
+import {manipulateAsync, SaveFormat} from 'expo-image-manipulator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export class AvatarService {
@@ -8,8 +8,88 @@ export class AvatarService {
   private static readonly CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 dias
 
   /**
-   * Obter avatar com cache AsyncStorage
+   * Obter thumbnail do avatar (80x80 para ícones)
    */
+  static async getAvatarThumbnailUrl(userId: string): Promise<string | null> {
+    try {
+      console.log('Getting avatar thumbnail for user:', userId);
+
+      // 1. Verificar cache do thumbnail
+      const cachedThumb = await this.getCachedAvatar(`${userId}_thumb`);
+      if (cachedThumb) {
+        console.log('Using cached thumbnail data');
+        return cachedThumb;
+      }
+
+      // 2. Buscar thumbnail do servidor
+      const thumbUrl = await this.getServerThumbnailUrl(userId);
+      if (!thumbUrl) {
+        console.log('No thumbnail found, falling back to main avatar');
+        // Fallback para avatar principal se thumbnail não existir
+        return await this.getAvatarUrl(userId);
+      }
+
+      // 3. Cachear URL do thumbnail
+      const cachedThumbUrl = `${thumbUrl}?t=${Date.now()}`;
+      await this.cacheAvatarUrl(`${userId}_thumb`, cachedThumbUrl);
+
+      console.log('Thumbnail URL cached:', cachedThumbUrl);
+      return cachedThumbUrl;
+
+    } catch (error) {
+      console.error('Error getting thumbnail URL:', error);
+      // Fallback para avatar principal em caso de erro
+      return await this.getAvatarUrl(userId);
+    }
+  }
+
+  /**
+   * Verificar se thumbnail existe no servidor
+   */
+  private static async getServerThumbnailUrl(userId: string): Promise<string | null> {
+    try {
+      const fileName = `${userId}/avatar_thumb.jpg`;
+      const {data: files, error} = await supabase.storage
+        .from(this.BUCKET_NAME)
+        .list(userId);
+
+      if (error || !files || files.length === 0) return null;
+
+      const thumbFile = files.find(f => f.name === 'avatar_thumb.jpg');
+      if (!thumbFile) return null;
+
+      const {data} = supabase.storage
+        .from(this.BUCKET_NAME)
+        .getPublicUrl(fileName);
+
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error getting server thumbnail URL:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Gerar thumbnail local a partir de uma imagem URI
+   */
+  static async generateThumbnail(imageUri: string, size: number = 80): Promise<string> {
+    try {
+      console.log('Generating thumbnail from URI:', imageUri);
+
+      const thumbnail = await manipulateAsync(
+        imageUri,
+        [{resize: {width: size, height: size}}],
+        {compress: 0.6, format: SaveFormat.JPEG}
+      );
+
+      console.log('Thumbnail generated:', thumbnail.uri);
+      return thumbnail.uri;
+    } catch (error) {
+      console.error('Error generating thumbnail:', error);
+      throw error instanceof Error ? error : new Error('Erro ao gerar thumbnail');
+    }
+  }
+
   static async getAvatarUrl(userId: string): Promise<string | null> {
     try {
       console.log('Getting avatar for user:', userId);
@@ -103,7 +183,7 @@ export class AvatarService {
   private static async getServerAvatarUrl(userId: string): Promise<string | null> {
     try {
       const fileName = `${userId}/avatar.jpg`;
-      const { data: files, error } = await supabase.storage
+      const {data: files, error} = await supabase.storage
         .from(this.BUCKET_NAME)
         .list(userId);
 
@@ -112,7 +192,7 @@ export class AvatarService {
       const avatarFile = files.find(f => f.name === 'avatar.jpg');
       if (!avatarFile) return null;
 
-      const { data } = supabase.storage
+      const {data} = supabase.storage
         .from(this.BUCKET_NAME)
         .getPublicUrl(fileName);
 
@@ -124,50 +204,89 @@ export class AvatarService {
   }
 
   /**
-   * Upload de avatar
+   * Upload de avatar com thumbnail
    */
   static async uploadAvatar(userId: string, imageUri: string): Promise<string> {
     try {
-      console.log('Starting avatar upload:', { userId, imageUri });
+      console.log('Starting avatar upload:', {userId, imageUri});
 
-      // Comprimir imagem
+      // Comprimir imagem principal (400x400)
       const compressedImage = await manipulateAsync(
         imageUri,
-        [{ resize: { width: 400, height: 400 } }],
-        { compress: 0.8, format: SaveFormat.JPEG }
+        [{resize: {width: 400, height: 400}}],
+        {compress: 0.8, format: SaveFormat.JPEG}
       );
 
-      // Upload para Supabase
-      const formData = new FormData();
-      formData.append('file', {
+      // Criar thumbnail (80x80 para ícones)
+      const thumbnailImage = await manipulateAsync(
+        imageUri,
+        [{resize: {width: 80, height: 80}}],
+        {compress: 0.6, format: SaveFormat.JPEG}
+      );
+
+      // Upload imagem principal
+      const mainFormData = new FormData();
+      mainFormData.append('file', {
         uri: compressedImage.uri,
         type: 'image/jpeg',
         name: 'avatar.jpg',
       } as any);
 
-      const fileName = `${userId}/avatar.jpg`;
-      const { data, error } = await supabase.storage
+      const mainFileName = `${userId}/avatar.jpg`;
+      const {error: mainError} = await supabase.storage
         .from(this.BUCKET_NAME)
-        .upload(fileName, formData, {
+        .upload(mainFileName, mainFormData, {
           cacheControl: '3600',
           upsert: true,
           contentType: 'image/jpeg',
         });
 
-      if (error) throw error;
+      if (mainError) throw mainError;
 
-      // Obter URL público
-      const { data: urlData } = supabase.storage
+      // Upload thumbnail
+      const thumbFormData = new FormData();
+      thumbFormData.append('file', {
+        uri: thumbnailImage.uri,
+        type: 'image/jpeg',
+        name: 'avatar_thumb.jpg',
+      } as any);
+
+      const thumbFileName = `${userId}/avatar_thumb.jpg`;
+      const {error: thumbError} = await supabase.storage
         .from(this.BUCKET_NAME)
-        .getPublicUrl(fileName);
+        .upload(thumbFileName, thumbFormData, {
+          cacheControl: '3600',
+          upsert: true,
+          contentType: 'image/jpeg',
+        });
 
-      const publicUrl = urlData.publicUrl;
+      if (thumbError) {
+        console.warn('Thumbnail upload failed, continuing with main image:', thumbError);
+      } else {
+        console.log('Thumbnail uploaded successfully');
+      }
 
-      // Cachear URL com timestamp para forçar atualização
-      const cachedUrl = `${publicUrl}?t=${Date.now()}`;
+      // Obter URLs públicas
+      const {data: mainUrlData} = supabase.storage
+        .from(this.BUCKET_NAME)
+        .getPublicUrl(mainFileName);
+
+      const {data: thumbUrlData} = supabase.storage
+        .from(this.BUCKET_NAME)
+        .getPublicUrl(thumbFileName);
+
+      const publicUrl = mainUrlData.publicUrl;
+      const thumbUrl = thumbUrlData.publicUrl;
+
+      // Cachear ambas URLs
+      const timestamp = Date.now();
+      const cachedUrl = `${publicUrl}?t=${timestamp}`;
+      const cachedThumbUrl = `${thumbUrl}?t=${timestamp}`;
+
       await this.cacheAvatarUrl(userId, cachedUrl);
+      await this.cacheAvatarUrl(`${userId}_thumb`, cachedThumbUrl);
 
-      console.log('Upload successful and cached:', cachedUrl);
+      console.log('Upload successful and cached:', {main: cachedUrl, thumb: cachedThumbUrl});
       return cachedUrl;
     } catch (error) {
       console.error('Error in avatar upload:', error);
@@ -176,20 +295,36 @@ export class AvatarService {
   }
 
   /**
-   * Deletar avatar
+   * Deletar avatar e thumbnail
    */
   static async deleteAvatar(userId: string): Promise<void> {
     try {
-      const fileName = `${userId}/avatar.jpg`;
-      const { error } = await supabase.storage
+      const mainFileName = `${userId}/avatar.jpg`;
+      const thumbFileName = `${userId}/avatar_thumb.jpg`;
+
+      // Deletar arquivo principal
+      const {error: mainError} = await supabase.storage
         .from(this.BUCKET_NAME)
-        .remove([fileName]);
+        .remove([mainFileName]);
 
-      if (error) throw error;
+      if (mainError) throw mainError;
 
-      // Limpar cache
+      // Deletar thumbnail (não falha se não existir)
+      const {error: thumbError} = await supabase.storage
+        .from(this.BUCKET_NAME)
+        .remove([thumbFileName]);
+
+      if (thumbError) {
+        console.warn('Thumbnail delete failed (may not exist):', thumbError);
+      } else {
+        console.log('Thumbnail deleted successfully');
+      }
+
+      // Limpar cache principal e thumbnail
       await this.clearUserCache(userId);
-      console.log('Avatar deleted successfully');
+      await this.clearUserCache(`${userId}_thumb`);
+
+      console.log('Avatar and thumbnail deleted successfully');
     } catch (error) {
       console.error('Error deleting avatar:', error);
       throw error instanceof Error ? error : new Error('Erro ao deletar avatar');
@@ -206,7 +341,7 @@ export class AvatarService {
         updated_at: new Date().toISOString(),
       };
 
-      const { data, error } = await supabase
+      const {data, error} = await supabase
         .from('profiles')
         .update(updateData)
         .eq('id', userId)
@@ -253,7 +388,7 @@ export class AvatarService {
   static async checkAvatarExists(userId: string): Promise<boolean> {
     try {
       const fileName = `${userId}/avatar.jpg`;
-      const { data, error } = await supabase.storage
+      const {data, error} = await supabase.storage
         .from(this.BUCKET_NAME)
         .list(userId);
 
@@ -295,7 +430,7 @@ export class AvatarService {
 
   // Manter métodos legados para compatibilidade
   static getAvatarUrlWithCacheBusting(userId: string): string {
-    const { data } = supabase.storage
+    const {data} = supabase.storage
       .from(this.BUCKET_NAME)
       .getPublicUrl(`${userId}/avatar.jpg`);
 

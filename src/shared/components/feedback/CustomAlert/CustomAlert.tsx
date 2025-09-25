@@ -8,7 +8,7 @@ import React, {
   useRef,
   useState
 } from 'react';
-import {Dimensions, Keyboard, StyleSheet} from 'react-native';
+import {Dimensions, Keyboard, Platform, StyleSheet} from 'react-native';
 import {Button, Circle, Text, useTheme, YStack} from 'tamagui';
 import BottomSheet, {BottomSheetBackdrop, BottomSheetView} from '@gorhom/bottom-sheet';
 import Animated, {useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
@@ -367,6 +367,8 @@ const useThemedStyles = () => {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const isTablet = screenWidth > 768;
+  const marginBottom = Platform.OS === 'ios' ? Math.max(insets.bottom - 8, 0) : Math.max(insets.bottom + 8, 0);
+  const borderBottomRadius = Platform.OS === 'ios' ? 32 : 16;
 
   return StyleSheet.create({
     bottomSheetBackground: {
@@ -388,10 +390,10 @@ const useThemedStyles = () => {
     },
     bottomSheetContainer: {
       marginHorizontal: isTablet ? 16 : 8,
-      marginBottom: Math.max(insets.bottom - 8, 0),
+      marginBottom: marginBottom,
       borderRadius: 16,
-      borderBottomLeftRadius: 32,
-      borderBottomRightRadius: 32,
+      borderBottomLeftRadius: borderBottomRadius,
+      borderBottomRightRadius: borderBottomRadius,
     }
   });
 };

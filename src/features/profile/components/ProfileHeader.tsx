@@ -1,9 +1,9 @@
-import { Text, View, YStack } from 'tamagui';
-import { Camera, Edit3, User, RefreshCw } from '@tamagui/lucide-icons';
+import {Text, View, YStack} from 'tamagui';
+import {Camera, Edit3, User} from '@tamagui/lucide-icons';
 import React from 'react';
-import { ActivityIndicator, Alert, Image, Platform, Pressable } from 'react-native';
-import { ProfileHeaderProps } from '@/shared/components/lists/types';
-import { useAvatar } from '@/features/profile/hooks/useAvatar';
+import {ActivityIndicator, Alert, Image, Platform, Pressable} from 'react-native';
+import {ProfileHeaderProps} from '@/shared/components/lists/types';
+import {useAvatar} from '@/features/profile/hooks/useAvatar';
 
 interface ExtendedProfileHeaderProps extends Omit<ProfileHeaderProps, 'avatarUri'> {
   name: string;
@@ -43,9 +43,9 @@ export const ProfileHeader = ({
   }, [avatarUrl, uploading]);
 
   const sizeConfig = {
-    small: { avatarSize: '$8', nameSize: '$6', padding: '$4' },
-    medium: { avatarSize: '$10', nameSize: '$7', padding: '$3' },
-    large: { avatarSize: '$12', nameSize: '$8', padding: '$6' },
+    small: {avatarSize: '$8', nameSize: '$6', padding: '$4'},
+    medium: {avatarSize: '$10', nameSize: '$7', padding: '$3'},
+    large: {avatarSize: '$12', nameSize: '$8', padding: '$6'},
   };
 
   const marginBottom = Platform.OS === 'ios' ? '$4' : '$6';
@@ -59,7 +59,7 @@ export const ProfileHeader = ({
 
     if (!enableAvatarUpload) return;
 
-    const options = [
+    const options: any = [
       {
         text: 'Câmera',
         onPress: () => handlePickImage('camera'),
@@ -74,18 +74,12 @@ export const ProfileHeader = ({
       options.push({
         text: 'Remover Foto',
         onPress: handleDeleteAvatar,
+        style: 'destructive'
       });
 
       options.push({
         text: 'Atualizar Avatar',
         onPress: handleRefreshAvatar,
-      });
-    }
-
-    if (onEditPress) {
-      options.push({
-        text: 'Editar Perfil',
-        onPress: onEditPress as () => Promise<void>,
       });
     }
 
@@ -123,7 +117,7 @@ export const ProfileHeader = ({
       'Confirmar',
       'Tem certeza que deseja remover sua foto do perfil?',
       [
-        { text: 'Cancelar', style: 'cancel' },
+        {text: 'Cancelar', style: 'cancel'},
         {
           text: 'Remover',
           style: 'destructive',
@@ -162,7 +156,7 @@ export const ProfileHeader = ({
       justifyContent="center"
       zIndex={10}
     >
-      <ActivityIndicator color="white" size="small" />
+      <ActivityIndicator color="white" size="small"/>
       <Text color="white" fontSize="$2" marginTop="$1" fontWeight="600">
         {progress > 0 ? `${progress}%` : 'Enviando...'}
       </Text>
@@ -179,7 +173,7 @@ export const ProfileHeader = ({
       backgroundColor="$card"
       style={{
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.06,
         shadowRadius: 8,
         elevation: 2,
@@ -192,7 +186,7 @@ export const ProfileHeader = ({
         <Pressable
           onPress={(enableAvatarUpload || onEditPress) ? handleAvatarPress : undefined}
           disabled={uploading}
-          style={{ position: 'relative' }}
+          style={{position: 'relative'}}
         >
           <View
             style={{
@@ -207,7 +201,7 @@ export const ProfileHeader = ({
           >
             {avatarUrl ? (
               <Image
-                source={{ uri: avatarUrl }}
+                source={{uri: avatarUrl}}
                 style={{
                   width: '100%',
                   height: '100%',
@@ -229,7 +223,7 @@ export const ProfileHeader = ({
             )}
           </View>
 
-          {uploading && <AvatarLoadingOverlay />}
+          {uploading && <AvatarLoadingOverlay/>}
 
           {(enableAvatarUpload || onEditPress) && !uploading && (
             <View
@@ -246,16 +240,16 @@ export const ProfileHeader = ({
                 borderWidth: 3,
                 borderColor: 'white',
                 shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
+                shadowOffset: {width: 0, height: 2},
                 shadowOpacity: 0.25,
                 shadowRadius: 6,
                 elevation: 5,
               }}
             >
               {enableAvatarUpload ? (
-                <Camera size={15} color="white" />
+                <Camera size={15} color="white"/>
               ) : (
-                <Edit3 size={15} color="white" />
+                <Edit3 size={15} color="white"/>
               )}
             </View>
           )}

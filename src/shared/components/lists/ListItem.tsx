@@ -99,8 +99,8 @@ export const ListItem = ({
           </Text>
           {subtitle && (
             <Text
-              fontSize="$3"
-              color="$defaultSecondaryLabel"
+              fontSize="$2"
+              color="$colorSecondary"
               marginTop="$0.5"
             >
               {subtitle}
