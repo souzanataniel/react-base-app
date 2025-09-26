@@ -5,7 +5,7 @@ import {CardTitle} from '@/shared/components/ui/Cards/CardTitle';
 import {Lock} from '@tamagui/lucide-icons';
 import {ScreenWithBlurHeader} from '@/shared/components/layout/ScreenWithBlurHeader';
 import {FormPasswordInput} from '@/shared/components/ui/Input/FormPasswordInput';
-import {useGlobalAlert} from '@/shared/components/feedback/CustomAlert/CustomAlert';
+import {useGlobalAlert} from '@/shared/components/feedback/BaseAlert/BaseAlert';
 import {useUpdatePassword} from '@/features/auth/hooks/useUpdatePassword';
 import {PasswordStrengthIndicator} from '@/shared/components/ui/PasswordIndicator/PasswordStrengthIndicator';
 import {BottomButtonContainer} from '@/shared/components/ui/BottomButton/BottomButtonContainer';

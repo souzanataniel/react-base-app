@@ -88,6 +88,10 @@ export function SignUpForm(props: StepperSignUpFormProps) {
               autoCapitalize="words"
               showSuccessIcon
               successIcon={<CircleCheck size={25} color="$defaultPrimary"/>}
+              backgroundColor="$defaultBackgroundInput"
+              color="$defaultBlack"
+              placeholderTextColor="$defaultPlaceholderColor"
+              textColor="$defaultBlack"
             />
 
             <FormInput
@@ -100,6 +104,10 @@ export function SignUpForm(props: StepperSignUpFormProps) {
               autoCapitalize="words"
               showSuccessIcon
               successIcon={<CircleCheck size={25} color="$defaultPrimary"/>}
+              backgroundColor="$defaultBackgroundInput"
+              color="$defaultBlack"
+              placeholderTextColor="$defaultPlaceholderColor"
+              textColor="$defaultBlack"
             />
 
             <PhoneInput
@@ -110,6 +118,10 @@ export function SignUpForm(props: StepperSignUpFormProps) {
               onChangeText={onPhoneChange}
               onBlur={onBlurPhone}
               value={phone}
+              backgroundColor="$defaultBackgroundInput"
+              color="$defaultBlack"
+              placeholderTextColor="$defaultPlaceholderColor"
+              textColor="$defaultBlack"
             />
           </YStack>
         );
@@ -125,6 +137,10 @@ export function SignUpForm(props: StepperSignUpFormProps) {
               leftIcon={<Mail size={20} color="$defaultSecondaryLabel"/>}
               showSuccessIcon
               successIcon={<CircleCheck size={25} color="$defaultPrimary"/>}
+              backgroundColor="$defaultBackgroundInput"
+              color="$defaultBlack"
+              placeholderTextColor="$defaultPlaceholderColor"
+              textColor="$defaultBlack"
             />
 
             <FormPasswordInput
@@ -133,6 +149,10 @@ export function SignUpForm(props: StepperSignUpFormProps) {
               onChangeText={onPasswordChange}
               onBlur={onBlurPassword}
               leftIcon={<LockKeyhole size={20} color="$defaultSecondaryLabel"/>}
+              backgroundColor="$defaultBackgroundInput"
+              color="$defaultBlack"
+              placeholderTextColor="$defaultPlaceholderColor"
+              textColor="$defaultBlack"
             />
 
             <PasswordStrengthIndicator
@@ -159,6 +179,8 @@ export function SignUpForm(props: StepperSignUpFormProps) {
               fontSize="$4"
               fontWeight="600"
               hapticType="medium"
+              color="$defaultWhite"
+              backgroundColor="$defaultPrimary"
             >
               Cadastrar
             </LoadingButton>
@@ -185,6 +207,8 @@ export function SignUpForm(props: StepperSignUpFormProps) {
           <HapticButton
             onPress={handleNext}
             hapticType="light"
+            color="$defaultWhite"
+            backgroundColor="$defaultPrimary"
           >
             Próximo
           </HapticButton>

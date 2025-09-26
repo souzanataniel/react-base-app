@@ -1,12 +1,12 @@
 import React from 'react';
 import {Text, View, XStack, YStack} from 'tamagui';
 import {BaseScreenWrapper} from '@/shared/components/layout';
-import {Link} from 'expo-router';
+import {Link, router} from 'expo-router';
 import {useSignUp} from '@/features/auth/hooks/useSignUp';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {SignUpForm} from '@/features/auth/components/SignUpForm';
 import {LogoMediumDark} from '@/shared/components/ui/Background/Logo';
-import {useBaseAlert} from '@/shared/components/feedback/Alert/BaseAlertProvider';
+import {useGlobalAlert} from '@/shared/components/feedback/BaseAlert/BaseAlert';
 
 export const SignUpScreen = () => {
   const {
@@ -31,13 +31,13 @@ export const SignUpScreen = () => {
   } = useSignUp();
 
   const insets = useSafeAreaInsets();
-  const alert = useBaseAlert();
+  const {showError} = useGlobalAlert();
 
   const handleSubmitClick = async () => {
     const result = await submit();
 
     if (!result.success) {
-      alert.showError('Erro no Cadastro', result.message);
+      showError('Erro no Cadastro', result.message);
     }
 
     if (Object.keys(errors).length > 0) {
@@ -45,7 +45,7 @@ export const SignUpScreen = () => {
         .map((e: any) => e?.message)
         .filter(Boolean)
         .join('\n');
-      alert.showError('Corrija os campos', msgs || 'Há erros no formulário.');
+      showError('Corrija os campos', msgs || 'Há erros no formulário.');
     }
   };
 
@@ -64,6 +64,22 @@ export const SignUpScreen = () => {
             shadowRadius={3}
             gap="$2"
           >
+            <YStack position="absolute" top="$4" left="$4" zIndex={10}>
+              <YStack
+                width={40}
+                height={40}
+                borderRadius={20}
+                backgroundColor="$defaultQuaternaryLabel"
+                alignItems="center"
+                justifyContent="center"
+                pressStyle={{opacity: 0.7, scale: 0.95}}
+                onPress={() => router.push('/(auth)/home')}>
+                <Text fontSize="$5" color="$defaultSecondaryLabel" fontWeight="600">
+                  ←
+                </Text>
+              </YStack>
+            </YStack>
+
             <YStack alignItems="center" marginBottom="$2">
               <LogoMediumDark/>
             </YStack>

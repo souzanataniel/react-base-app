@@ -30,6 +30,10 @@ export function ForgotPasswordForm({
         leftIcon={<Mail size={20} color="$defaultSecondaryLabel"/>}
         showSuccessIcon
         successIcon={<CircleCheck size={25} color="$defaultPrimary"/>}
+        backgroundColor="$defaultBackgroundInput"
+        placeholderTextColor="$defaultPlaceholderColor"
+        color="$defaultBlack"
+        textColor="$defaultBlack"
       />
 
       <YStack marginTop="$4">
@@ -41,6 +45,8 @@ export function ForgotPasswordForm({
           fontSize="$4"
           fontWeight="600"
           hapticType="medium"
+          color="$defaultWhite"
+          backgroundColor="$defaultPrimary"
         >
           Recuperar Senha
         </LoadingButton>

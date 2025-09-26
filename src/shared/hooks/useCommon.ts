@@ -1,16 +1,20 @@
 import {useAuth} from '@/features/auth/hooks/useAuth';
-import {useBaseAlert} from '@/shared/components/feedback/Alert/BaseAlertProvider';
+import {useGlobalAlert} from '@/shared/components/feedback/BaseAlert/BaseAlert';
 
 export const useCommon = () => {
   const {signOut} = useAuth();
-  const {showConfirm} = useBaseAlert();
+  const {showConfirm} = useGlobalAlert();
 
   const logoutApp = async () => {
     showConfirm(
-      'Sair do App',
+      'Sair do App ?',
       'Você tem certeza que deseja sair do app?',
+      'Sair',
+      'Cancelar',
       () => signOut(),
-      () => {});
+      () => {},
+      'logout'
+    )
   };
 
   return {

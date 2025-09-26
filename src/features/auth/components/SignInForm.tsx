@@ -34,6 +34,10 @@ export function SignInForm({
         leftIcon={<Mail size={20} color="$defaultSecondaryLabel"/>}
         showSuccessIcon
         successIcon={<CircleCheck size={25} color="$defaultPrimary"/>}
+        backgroundColor="$defaultBackgroundInput"
+        placeholderTextColor="$defaultPlaceholderColor"
+        color="$defaultBlack"
+        textColor="$defaultBlack"
       />
 
       <FormPasswordInput
@@ -42,6 +46,10 @@ export function SignInForm({
         onChangeText={onPasswordChange}
         onBlur={onBlurPassword}
         leftIcon={<LockKeyhole size={20} color="$defaultSecondaryLabel"/>}
+        backgroundColor="$defaultBackgroundInput"
+        color="$defaultBlack"
+        placeholderTextColor="$defaultPlaceholderColor"
+        textColor="$defaultBlack"
       />
 
       <XStack
@@ -69,6 +77,7 @@ export function SignInForm({
         onPress={onSubmit}
         disabled={!canSubmit}
         color="$defaultWhite"
+        backgroundColor="$defaultPrimary"
         height={52}
         fontSize="$4"
         fontWeight="600"

@@ -13,7 +13,7 @@ import {ZodError} from 'zod';
 import {dateMasks} from '@/shared/utils/masks';
 import {updateProfile} from '@/features/profile/services/updateProfileService';
 import {AnimatedSaveButton} from '@/shared/components/ui/Button/AnimatedSaveButton';
-import {useGlobalAlert} from '@/shared/components/feedback/CustomAlert/CustomAlert';
+import {useGlobalAlert} from '@/shared/components/feedback/BaseAlert/BaseAlert';
 
 type FieldType = 'text' | 'phone' | 'date';
 

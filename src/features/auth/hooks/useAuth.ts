@@ -1,4 +1,4 @@
-import { useAuthStore } from '@/features/auth/stores/authStore';
+import {useAuthStore} from '@/features/auth/stores/authStore';
 
 export const useAuth = () => {
   const store = useAuthStore();
@@ -8,7 +8,7 @@ export const useAuth = () => {
     isAuthenticated: store.isAuthenticated,
     isLoading: store.isLoading,
     isInitialized: store.isInitialized,
-    isRedirecting: store.isRedirecting, // 🎯 NOVO
+    isRedirecting: store.isRedirecting,
     error: store.error,
 
     signIn: store.signIn,
@@ -19,7 +19,7 @@ export const useAuth = () => {
     setUser: store.setUser,
     setError: store.setError,
     setLoading: store.setLoading,
-    setRedirecting: store.setRedirecting, // 🎯 NOVO
+    setRedirecting: store.setRedirecting,
     clearError: store.clearError,
   };
 };

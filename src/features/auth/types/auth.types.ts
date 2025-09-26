@@ -7,14 +7,12 @@ export interface User {
   phone?: string;
   dateOfBirth?: string;
   avatarUrl?: string;
-  country?: string;
-  city?: string;
   timezone?: string;
   language?: string;
   isActive?: boolean;
   isVerified?: boolean;
   pushNotifications?: boolean;
-  emailNotifications?: boolean;
+  location?: boolean;
   themePreference?: 'light' | 'dark' | 'system';
   firstLoginAt?: string;
   lastActiveAt?: string;

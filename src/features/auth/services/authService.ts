@@ -41,8 +41,6 @@ const mapSupabaseUserToDomain = async (supabaseUser: any): Promise<User | null> 
       avatarUrl: profile?.avatar_url, // ✅ Já mapeado corretamente
 
       // Localização
-      country: profile?.country,
-      city: profile?.city,
       timezone: profile?.timezone || 'America/Sao_Paulo',
       language: profile?.language || 'pt-BR',
 
@@ -51,8 +49,8 @@ const mapSupabaseUserToDomain = async (supabaseUser: any): Promise<User | null> 
       isVerified: profile?.is_verified ?? false,
 
       // Preferências
-      pushNotifications: profile?.push_notifications ?? true,
-      emailNotifications: profile?.email_notifications ?? true,
+      pushNotifications: profile?.push_notifications ?? false,
+      location: profile?.location ?? false,
       themePreference: profile?.theme_preference || 'system',
 
       // UX

@@ -15,7 +15,7 @@ export const ListSection = ({
       {title && (
         <Text
           fontSize="$3"
-          color="$color"
+          color="$colorSecondary"
           fontWeight="600"
           paddingHorizontal="$4"
           paddingBottom="$2"

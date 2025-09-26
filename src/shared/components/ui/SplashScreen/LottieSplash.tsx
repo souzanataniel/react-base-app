@@ -13,7 +13,7 @@ interface LottieSplashProps {
   textSize?: number;
   animationSize?: { width: number; height: number } | 'fullscreen';
   spacing?: number;
-  fillMode?: 'contain' | 'cover' | 'stretch'; // Novo prop para controlar como a animação preenche
+  fillMode?: 'contain' | 'cover' | 'stretch';
 }
 
 export const LottieSplash: React.FC<LottieSplashProps> = ({
@@ -34,12 +34,10 @@ export const LottieSplash: React.FC<LottieSplashProps> = ({
   const textFadeAnim = useRef(new Animated.Value(0)).current;
   const [animationCompleted, setAnimationCompleted] = useState(false);
 
-  // Obter dimensões da tela
   const screenDimensions = Dimensions.get('window');
   const screenWidth = screenDimensions.width;
   const screenHeight = screenDimensions.height;
 
-  // Calcular tamanho da animação
   const getAnimationSize = () => {
     if (animationSize === 'fullscreen') {
       switch (fillMode) {
@@ -125,7 +123,6 @@ export const LottieSplash: React.FC<LottieSplashProps> = ({
     });
   };
 
-  // Determinar o resizeMode baseado no fillMode
   const getResizeMode = (): 'contain' | 'cover' | 'center' => {
     switch (fillMode) {
       case 'contain':
@@ -133,7 +130,7 @@ export const LottieSplash: React.FC<LottieSplashProps> = ({
       case 'cover':
         return 'cover';
       case 'stretch':
-        return 'cover'; // LottieView não tem stretch, usa cover
+        return 'cover';
       default:
         return 'contain';
     }

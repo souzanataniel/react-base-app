@@ -33,6 +33,7 @@ const customTokens = createTokens({
     defaultBlack: '#000000',
 
     defaultBackgroundInput: '#F9F9F9',
+    defaultPlaceholderColor: '#3C3C434C',
 
     defaultLabel: '#000000',
     defaultSecondaryLabel: '#3C3C4399',

@@ -11,7 +11,7 @@ import {PhoneInput} from '@/shared/components/ui/Input/BasePhoneInput';
 import {DateInput} from '@/shared/components/ui/Input/DateInput';
 import {ZodError} from 'zod';
 import {updateProfileField} from '@/features/profile/services/updateProfileService';
-import {useGlobalAlert} from '@/shared/components/feedback/CustomAlert/CustomAlert';
+import {useGlobalAlert} from '@/shared/components/feedback/BaseAlert/BaseAlert';
 import {BottomButtonContainer} from '@/shared/components/ui/BottomButton/BottomButtonContainer';
 
 type FieldType = 'text' | 'phone' | 'date' | 'email' | 'password';

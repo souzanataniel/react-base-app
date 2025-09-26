@@ -2,8 +2,9 @@ import React from 'react';
 import {Button, Text, View, XStack, YStack} from 'tamagui';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {BackgroundImage} from '@/shared/components/ui/Background/BackgroundImage';
-import {Link} from 'expo-router';
+import {Link, router} from 'expo-router';
 import {LogoLargeLight} from '@/shared/components/ui/Background/Logo';
+import {HapticButton} from '@/shared/components';
 
 export const HomeAuthScreen = () => {
   const insets = useSafeAreaInsets()
@@ -89,52 +90,29 @@ export const HomeAuthScreen = () => {
       >
         <YStack gap="$4" justifyContent="center">
           <Link href="/(auth)/sign-in" asChild>
-            <Button
-              backgroundColor="$lightBackground"
-              color="$dark"
-              size="$5"
+            <HapticButton
+              hapticType="light"
+              backgroundColor="$defaultWhite"
+              borderColor="$defaultWhite"
+              borderWidth={0}
               borderRadius="$10"
-              fontWeight="600"
-              pressStyle={{
-                scale: 0.98,
-                backgroundColor: '$lightest'
-              }}
-              style={{
-                shadowColor: '#000',
-                shadowOffset: {
-                  width: 0,
-                  height: 4,
-                },
-                shadowOpacity: 0.3,
-                shadowRadius: 8,
-                elevation: 8,
-              }}
+              color="$defaultBlack"
             >
-              <Text color="$darkBlue" fontWeight="600" lineHeight={20}>Fazer Login</Text>
-            </Button>
+              Fazer Login
+            </HapticButton>
           </Link>
 
           <Link href="/(auth)/sign-up" asChild>
-            <Button
+            <HapticButton
+              hapticType="light"
               backgroundColor="transparent"
-              borderColor="white"
+              borderColor="$defaultWhite"
               borderWidth={2}
-              color="white"
-              size="$5"
               borderRadius="$10"
-              fontWeight="600"
-              pressStyle={{
-                scale: 0.98,
-                backgroundColor: 'rgba(255,255,255,0.1)'
-              }}
-              style={{
-                backdropFilter: 'blur(10px)',
-              }}
+              color="$defaultWhite"
             >
-              <Text color="white" fontWeight="500">
-                Realizar Cadastro
-              </Text>
-            </Button>
+              Realizar Cadastro
+            </HapticButton>
           </Link>
 
           <YStack alignItems="center" marginTop="$4">

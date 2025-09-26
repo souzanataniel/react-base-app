@@ -9,17 +9,20 @@ import {useCommon} from '@/shared/hooks/useCommon';
 import {ScreenWithBlurHeader} from '@/shared/components/layout/ScreenWithBlurHeader';
 import {ProfileHeader} from '@/features/profile/components/ProfileHeader';
 import {useHaptic, useHapticFeedback} from '@/shared/components/feedback/Haptic/HapticContext';
+import {updateProfileSingleField} from '@/features/profile/services/updateProfileService';
 
 export function ProfileScreen() {
-  const [enableLocation, setEnableLocation] = useState(false);
-  const [enableNotifications, setEnableNotifications] = useState(false);
-  const {nextTheme, getModeDisplayName} = useThemeManager();
-  const {logoutApp} = useCommon();
-
-  const {isHapticEnabled, setHapticEnabled} = useHaptic();
-  const haptic = useHapticFeedback();
-
   const {user} = useAuth();
+
+  const [enableLocation, setEnableLocation] = useState(user?.location);
+  const [enableNotifications, setEnableNotifications] = useState(user?.pushNotifications);
+
+  const {nextTheme, getModeDisplayName} = useThemeManager();
+
+  const {logoutApp} = useCommon();
+  const {isHapticEnabled, setHapticEnabled} = useHaptic();
+
+  const haptic = useHapticFeedback();
 
   const changeTheme = async () => {
     await nextTheme();
@@ -33,11 +36,13 @@ export function ProfileScreen() {
   const handleLocationToggle = (enabled: boolean) => {
     haptic.selection();
     setEnableLocation(enabled);
+    void updateProfileSingleField(user!.id, 'location', enabled);
   };
 
   const handleNotificationsToggle = (enabled: boolean) => {
     haptic.selection();
     setEnableNotifications(enabled);
+    void updateProfileSingleField(user!.id, 'push_notifications', enabled);
   };
 
   const handleAvatarUploadSuccess = (url: string) => {
@@ -120,16 +125,6 @@ export function ProfileScreen() {
           />
 
           <ListItem
-            icon={<Vibrate size={18} color="$colorInverse"/>}
-            title="Feedback Tátil"
-            subtitle={isHapticEnabled ? 'Vibração ativada' : 'Vibração desativada'}
-            showSwitch={true}
-            switchValue={isHapticEnabled}
-            onSwitchChange={handleHapticToggle}
-            showChevron={false}
-          />
-
-          <ListItem
             icon={<BellRing size={18} color="$colorInverse"/>}
             title="Notificações"
             showSwitch={true}
@@ -141,11 +136,23 @@ export function ProfileScreen() {
 
         <ListSection title="Aplicação">
           <ListItem
+            icon={<Vibrate size={18} color="$colorInverse"/>}
+            title="Feedback Tátil"
+            subtitle={isHapticEnabled ? 'Vibração ativada' : 'Vibração desativada'}
+            showSwitch={true}
+            switchValue={isHapticEnabled}
+            onSwitchChange={handleHapticToggle}
+            showChevron={false}
+          />
+          <ListItem
             icon={<PaintBucket size={18} color="$colorInverse"/>}
             title="Tema do App"
             valueText={getModeDisplayName()}
             onPress={handleThemeChange}
           />
+        </ListSection>
+
+        <ListSection title="Geral">
           <ListItem
             icon={<Info size={18} color="$colorInverse"/>}
             title="Sobre o App"

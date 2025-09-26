@@ -1,11 +1,11 @@
 import React, {useEffect} from 'react';
 import {Text, View, XStack, YStack} from 'tamagui';
 import {BaseScreenWrapper} from '@/shared/components/layout';
-import {Link} from 'expo-router';
+import {Link, router} from 'expo-router';
 import {useSignIn} from '@/features/auth/hooks/useSignIn';
 import {SignInForm} from '@/features/auth/components/SignInForm';
-import {useBaseAlert} from '@/shared/components/feedback/Alert/BaseAlertProvider';
 import {LogoMediumDark} from '@/shared/components/ui/Background/Logo';
+import {useGlobalAlert} from '@/shared/components/feedback/BaseAlert/BaseAlert';
 
 export const SignInScreen = () => {
   const {
@@ -19,13 +19,13 @@ export const SignInScreen = () => {
     clearError,
     errors,
   } = useSignIn();
-  const alert = useBaseAlert();
+  const {showError} = useGlobalAlert();
 
   const handleSubmitClick = async () => {
     const result = await submit();
 
     if (!result.success) {
-      alert.showError('Erro no Login', result.message);
+      showError('Erro no Login', result.message);
     }
 
     if (Object.keys(errors).length > 0) {
@@ -33,7 +33,7 @@ export const SignInScreen = () => {
         .map((e: any) => e?.message)
         .filter(Boolean)
         .join('\n');
-      alert.showError('Corrija os campos', msgs || 'Há erros no formulário.');
+      showError('Corrija os campos', msgs || 'Há erros no formulário.');
     }
   };
 
@@ -56,6 +56,21 @@ export const SignInScreen = () => {
             shadowOffset={{width: 0, height: 1}}
             shadowRadius={3}
           >
+            <YStack position="absolute" top="$4" left="$4" zIndex={10}>
+              <YStack
+                width={40}
+                height={40}
+                borderRadius={20}
+                backgroundColor="$defaultQuaternaryLabel"
+                alignItems="center"
+                justifyContent="center"
+                pressStyle={{opacity: 0.7, scale: 0.95}}
+                onPress={() => router.push('/(auth)/home')}>
+                <Text fontSize="$5" color="$defaultSecondaryLabel" fontWeight="600">
+                  ←
+                </Text>
+              </YStack>
+            </YStack>
             <YStack alignItems="center" marginBottom="$4">
               <LogoMediumDark/>
             </YStack>

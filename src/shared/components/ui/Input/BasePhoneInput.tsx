@@ -12,6 +12,7 @@ type PhoneInputProps = Omit<InputProps, 'keyboardType' | 'maxLength'> & {
   showSuccessIcon?: boolean;
   successIcon?: ReactNode;
   validationFn?: (value: string) => boolean;
+  textColor?: string;
 };
 
 // Máscara para telefone brasileiro: (XX) X XXXX-XXXX
@@ -59,6 +60,9 @@ function BasePhoneInput(
     onChangeText,
     placeholder = '(11) 9 1234-5678',
     value,
+    backgroundColor = 'backgroundInput',
+    placeholderTextColor = 'placeholderText',
+    textColor = '$color',
     ...inputProps
   }: PhoneInputProps,
   ref: React.Ref<any>
@@ -92,7 +96,7 @@ function BasePhoneInput(
     fontSize: 14,
     paddingLeft,
     paddingRight,
-    backgroundColor: theme.backgroundInput?.get() || '#F9F9F9',
+    backgroundColor: theme[backgroundColor as any]?.get() || '#F9F9F9',
     color: theme.color?.get() || '#000000',
     borderRadius: 12,
     borderWidth: isFocused ? 1 : 0,
@@ -102,7 +106,7 @@ function BasePhoneInput(
   return (
     <YStack gap="$2" {...containerProps}>
       {label ? (
-        <Text fontSize={labelFontSize} color="$color" fontWeight="500">
+        <Text fontSize={labelFontSize} color={textColor} fontWeight="500">
           {label}
         </Text>
       ) : null}
@@ -129,7 +133,7 @@ function BasePhoneInput(
           mask={PHONE_MASK}
           keyboardType="phone-pad"
           placeholder={placeholder}
-          placeholderTextColor={theme.placeholderTex?.get() || '#999999'}
+          placeholderTextColor={theme[placeholderTextColor as any]?.get() || '#999999'}
           style={inputStyle}
           onFocus={(e) => {
             setIsFocused(true);

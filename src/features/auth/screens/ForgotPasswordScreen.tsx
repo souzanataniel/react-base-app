@@ -4,9 +4,9 @@ import {BaseScreenWrapper} from '@/shared/components/layout';
 import {LogoMediumDark} from '@/shared/components/ui/Background/Logo';
 import {ForgotPasswordForm} from '@/features/auth/components/ForgotPasswordForm';
 import {useForgotPassword} from '@/features/auth/hooks/useForgotPassword';
-import {useBaseAlert} from '@/shared/components/feedback/Alert/BaseAlertProvider';
 import {HapticButton} from '@/shared/components';
 import {router} from 'expo-router';
+import {useGlobalAlert} from '@/shared/components/feedback/BaseAlert/BaseAlert';
 
 export const ForgotPasswordScreen = () => {
   const {
@@ -17,16 +17,16 @@ export const ForgotPasswordScreen = () => {
     isLoading,
     clearError,
   } = useForgotPassword();
-  const alert = useBaseAlert();
+  const {showError, showSuccess} = useGlobalAlert();
 
   const handleSubmitClick = async () => {
     const result = await submit();
 
     if (result.success) {
-      alert.showSuccess('Email Enviado', result.message);
+      showSuccess('Email Enviado', result.message);
       router.push('/(auth)/forgot-password-sent')
     } else {
-      alert.showError('Erro', result.message);
+      showError('Erro', result.message);
     }
   };
 

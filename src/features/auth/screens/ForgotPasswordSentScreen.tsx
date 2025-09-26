@@ -76,8 +76,8 @@ export const ForgotPasswordSentScreen = ({email = 'seu email !'}: Props) => {
               marginBottom="$5"
               width="100%"
             >
-              <Mail size={20} color="$absoluteWhite"/>
-              <Text fontSize="$3" color="$absoluteWhite" flex={1}>
+              <Mail size={20} color="$defaultBlack"/>
+              <Text fontSize="$3" color="$defaultBlack" flex={1}>
                 Verifique sua caixa de entrada e spam
               </Text>
             </XStack>
@@ -89,6 +89,8 @@ export const ForgotPasswordSentScreen = ({email = 'seu email !'}: Props) => {
                 fontWeight="600"
                 hapticType="light"
                 onPress={() => router.replace('/(auth)/sign-in')}
+                color="$defaultWhite"
+                backgroundColor="$defaultPrimary"
               >
                 Voltar para Login
               </HapticButton>

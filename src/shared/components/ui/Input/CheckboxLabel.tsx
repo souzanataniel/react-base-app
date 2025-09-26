@@ -19,8 +19,8 @@ export function CheckboxLabel({
         {...checkboxProps}
         checked={checked}
         onCheckedChange={onCheckedChange}
-        backgroundColor={checked ? '$primary' : 'transparent'}
-        borderColor={checked ? '$primary' : '$defaultTertiaryLabel'}
+        backgroundColor={checked ? '$defaultPrimary' : 'transparent'}
+        borderColor={checked ? '$defaultPrimary' : '$defaultTertiaryLabel'}
         borderWidth={2}
         borderRadius={4}
       >
@@ -31,7 +31,7 @@ export function CheckboxLabel({
 
       <Text
         fontSize="$3"
-        color="$absoluteTextTertiary"
+        color="$defaultSecondaryLabel"
         lineHeight="$4"
         flex={1}
         onPress={() => onCheckedChange && onCheckedChange(!checked)}

@@ -7,9 +7,11 @@ import {Text, XStack, YStack} from 'tamagui';
 interface FormPasswordInputProps extends BaseInputProps {
   showSuccessIcon?: boolean;
   successIcon?: React.ReactNode;
+  textColor?: string ;
 }
 
-export const FormPasswordInput = memo(forwardRef<any, FormPasswordInputProps>((props, ref) => {
+export const FormPasswordInput = memo(forwardRef<any, FormPasswordInputProps>(
+  (props, ref) => {
   const [visible, setVisible] = useState(false);
   const {showSuccessIcon, successIcon, label, ...baseProps} = props;
 
@@ -22,7 +24,7 @@ export const FormPasswordInput = memo(forwardRef<any, FormPasswordInputProps>((p
       {label && (
         <XStack>
           {typeof label === 'string' ? (
-            <Text fontSize="$3" fontWeight="500" color="$gray12">
+            <Text fontSize="$3" fontWeight="500" color={props.textColor}>
               {label}
             </Text>
           ) : (

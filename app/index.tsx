@@ -5,10 +5,6 @@ import {useAuthStore} from '@/features/auth/stores/authStore';
 import LottieSplash from '@/shared/components/ui/SplashScreen/LottieSplash';
 import splashAnimation from '@/assets/animations/loader.json';
 
-/**
- * 🎯 Página inicial que redireciona baseado no estado de autenticação
- * Esta é a primeira tela que aparece quando o app abre
- */
 export default function IndexPage() {
   const {isInitialized, isAuthenticated, initialize} = useAuthStore();
 
@@ -19,14 +15,13 @@ export default function IndexPage() {
     }
   }, [isInitialized, initialize]);
 
-  // 🔄 LOADING: Mostra splash até inicializar
   if (!isInitialized) {
     console.log('⏳ Index: Aguardando inicialização...');
     return (
       <View style={{flex: 1}}>
         <LottieSplash
           animationSource={splashAnimation}
-          onComplete={() => {}} // Não faz nada, espera isInitialized
+          onComplete={() => {}}
           duration={3000}
           text="Inicializando..."
           textSize={16}
@@ -37,7 +32,6 @@ export default function IndexPage() {
     );
   }
 
-  // ✅ REDIRECIONAR baseado no estado de autenticação
   if (isAuthenticated) {
     console.log('🏠 Index: Redirecionando para app (autenticado)');
     return <Redirect href="/(app)/home"/>;

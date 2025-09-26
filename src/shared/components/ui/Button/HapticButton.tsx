@@ -82,48 +82,7 @@ export const HapticButton = ({
       pressStyle={{
         scale: 0.95,
         backgroundColor: backgroundColor,
-        borderColor: COLORS.PRIMARY
       }}
     />
   );
 };
-
-export const HapticPrimaryButton: React.FC<Omit<HapticButtonProps, 'hapticType'>> = (props) => (
-  <HapticButton hapticType="medium" {...props} />
-);
-
-export const HapticSecondaryButton: React.FC<Omit<HapticButtonProps, 'hapticType'>> = (props) => (
-  <HapticButton hapticType="light" {...props} />
-);
-
-export const HapticSuccessButton: React.FC<Omit<HapticButtonProps, 'hapticType'>> = (props) => (
-  <HapticButton
-    hapticType="success"
-    backgroundColor="$green9"
-    {...props}
-  />
-);
-
-export const HapticWarningButton: React.FC<Omit<HapticButtonProps, 'hapticType'>> = (props) => (
-  <HapticButton
-    hapticType="warning"
-    backgroundColor="$orange9"
-    {...props}
-  />
-);
-
-export const HapticErrorButton: React.FC<Omit<HapticButtonProps, 'hapticType'>> = (props) => (
-  <HapticButton
-    hapticType="error"
-    backgroundColor="$red9"
-    {...props}
-  />
-);
-
-export const HapticDestructiveButton: React.FC<Omit<HapticButtonProps, 'hapticType'>> = (props) => (
-  <HapticButton hapticType="heavy" backgroundColor="$red9" {...props} />
-);
-
-export const HapticSelectionButton: React.FC<Omit<HapticButtonProps, 'hapticType'>> = (props) => (
-  <HapticButton hapticType="selection" {...props} />
-);

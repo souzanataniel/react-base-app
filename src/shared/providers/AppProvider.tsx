@@ -3,14 +3,13 @@ import {TamaguiProvider, type TamaguiProviderProps, Theme} from 'tamagui';
 import {ToastProvider, ToastViewport} from '@tamagui/toast';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {BaseToast} from '../components';
-import {BaseAlertProvider} from '../components/feedback/Alert';
 import {BaseLoaderProvider} from '../components/feedback/Loader';
 import {config} from '../../../tamagui.config';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {AuthProvider} from '@/features/auth/providers/AuthProvider';
 import {useThemeManager} from '@/shared/hooks/useTheme';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import {AlertProvider} from '@/shared/components/feedback/CustomAlert/CustomAlert';
+import {BaseAlertProvider} from '@/shared/components/feedback/BaseAlert/BaseAlert';
 import {HapticProvider} from '@/shared/components/feedback/Haptic/HapticContext';
 
 const queryClient = new QueryClient({
@@ -70,9 +69,9 @@ export function AppProvider({children, ...rest}: Omit<TamaguiProviderProps, 'con
           <SafeAreaProvider>
             <TamaguiProvider config={config} {...rest}>
               <ThemedApp>
-                <AlertProvider>
+                <BaseAlertProvider>
                   {children}
-                </AlertProvider>
+                </BaseAlertProvider>
               </ThemedApp>
             </TamaguiProvider>
           </SafeAreaProvider>

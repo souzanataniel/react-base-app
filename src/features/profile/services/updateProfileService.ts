@@ -88,8 +88,6 @@ export const updateProfile = async (
       avatarUrl: updatedProfile.avatar_url,
 
       // Localização
-      country: updatedProfile.country,
-      city: updatedProfile.city,
       timezone: updatedProfile.timezone || 'America/Sao_Paulo',
       language: updatedProfile.language || 'pt-BR',
 
@@ -98,8 +96,8 @@ export const updateProfile = async (
       isVerified: updatedProfile.is_verified ?? false,
 
       // Preferências
-      pushNotifications: updatedProfile.push_notifications ?? true,
-      emailNotifications: updatedProfile.email_notifications ?? true,
+      pushNotifications: updatedProfile.push_notifications ?? false,
+      location: updatedProfile.location ?? false,
       themePreference: updatedProfile.theme_preference || 'system',
 
       // UX
@@ -196,6 +194,55 @@ export const updateProfileField = async (
   }
 };
 
+export const updateProfileSingleField = async (
+  userId: string,
+  field: string,
+  value: any
+): Promise<UpdateProfileResponse> => {
+  try {
+    console.log(`🔄 Atualizando campo ${field} do usuário:`, userId);
+
+    if (!userId) {
+      return {
+        user: null,
+        error: `ID do usuário nao pode ser null`,
+        success: false
+      };
+    }
+
+    const updateData = {
+      [field]: value,
+      updated_at: new Date().toISOString(),
+    };
+
+    const {error} = await supabase
+      .from('profiles')
+      .update(updateData)
+      .eq('id', userId);
+
+    if (error) {
+      console.log(`❌ Erro ao atualizar ${field}:`, error.message);
+      return {
+        user: null,
+        error: `Erro ao atualizar ${field}: ${error.message}`,
+        success: false
+      };
+    }
+
+    console.log(`✅ Campo ${field} atualizado com sucesso`);
+
+    return await getCurrentUserProfile(userId);
+
+  } catch (error) {
+    console.error(`💥 Exceção ao atualizar ${field}:`, error);
+    return {
+      user: null,
+      error: error instanceof Error ? error.message : `Erro inesperado ao atualizar ${field}`,
+      success: false
+    };
+  }
+};
+
 /**
  * Busca perfil completo do usuário atual
  */
@@ -242,8 +289,6 @@ export const getCurrentUserProfile = async (userId: string): Promise<UpdateProfi
       avatarUrl: profile.avatar_url,
 
       // Localização
-      country: profile.country,
-      city: profile.city,
       timezone: profile.timezone || 'America/Sao_Paulo',
       language: profile.language || 'pt-BR',
 
@@ -252,8 +297,8 @@ export const getCurrentUserProfile = async (userId: string): Promise<UpdateProfi
       isVerified: profile.is_verified ?? false,
 
       // Preferências
-      pushNotifications: profile.push_notifications ?? true,
-      emailNotifications: profile.email_notifications ?? true,
+      pushNotifications: profile.push_notifications ?? false,
+      location: profile.location ?? false,
       themePreference: profile.theme_preference || 'system',
 
       // UX
