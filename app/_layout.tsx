@@ -36,8 +36,10 @@ const setupNotifications = () => {
         data: remoteMessage.data
       });
 
+      // Exemplo: salvar dados localmente, fazer cache, etc.
       if (remoteMessage.data) {
         console.log('💾 Processando dados da notificação:', remoteMessage.data);
+        // Fazer algum processamento dos dados se necessário
       }
 
       return Promise.resolve();
@@ -57,6 +59,7 @@ const setupNotifications = () => {
   }
 };
 
+// Executar configuração
 setupNotifications();
 
 SplashScreen.preventAutoHideAsync();
@@ -75,6 +78,7 @@ export default function RootLayout() {
     }
   }, [fontsLoaded]);
 
+  // Listener para quando usuário toca na notificação
   useEffect(() => {
     const notificationResponseSubscription = Notifications.addNotificationResponseReceivedListener(
       (response) => {
