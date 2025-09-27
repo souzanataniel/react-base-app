@@ -1,12 +1,11 @@
-import React, { useEffect } from 'react';
-import { Alert } from 'react-native';
-import { Text, View, XStack, YStack } from 'tamagui';
-import { BaseScreenWrapper } from '@/shared/components/layout';
-import { Link, router } from 'expo-router';
-import { useSignIn } from '@/features/auth/hooks/useSignIn';
-import { SignInForm } from '@/features/auth/components/SignInForm';
-import { LogoMediumDark } from '@/shared/components/ui/Background/Logo';
-// import { useGlobalAlert } from '@/shared/components/feedback/BaseAlert/BaseAlert'; // TEMPORARIAMENTE COMENTADO
+import React, {useEffect} from 'react';
+import {Text, View, XStack, YStack} from 'tamagui';
+import {BaseScreenWrapper} from '@/shared/components/layout';
+import {Link, router} from 'expo-router';
+import {useSignIn} from '@/features/auth/hooks/useSignIn';
+import {SignInForm} from '@/features/auth/components/SignInForm';
+import {LogoMediumDark} from '@/shared/components/ui/Background/Logo';
+import {useGlobalAlert} from '@/shared/components/feedback/BaseAlert/BaseAlert';
 
 export const SignInScreen = () => {
   const {
@@ -20,17 +19,13 @@ export const SignInScreen = () => {
     clearError,
     errors,
   } = useSignIn();
-
-  // TEMPORARIAMENTE COMENTADO PARA EVITAR ERRO
-  // const { showError } = useGlobalAlert();
+  const {showError} = useGlobalAlert();
 
   const handleSubmitClick = async () => {
     const result = await submit();
 
     if (!result.success) {
-      // USANDO Alert nativo temporariamente
-      Alert.alert('Erro no Login', result.message);
-      // showError('Erro no Login', result.message);
+      showError('Erro no Login', result.message);
     }
 
     if (Object.keys(errors).length > 0) {
@@ -38,10 +33,7 @@ export const SignInScreen = () => {
         .map((e: any) => e?.message)
         .filter(Boolean)
         .join('\n');
-
-      // USANDO Alert nativo temporariamente
-      Alert.alert('Corrija os campos', msgs || 'Há erros no formulário.');
-      // showError('Corrija os campos', msgs || 'Há erros no formulário.');
+      showError('Corrija os campos', msgs || 'Há erros no formulário.');
     }
   };
 
@@ -61,7 +53,7 @@ export const SignInScreen = () => {
             marginHorizontal="$2"
             shadowColor="#000"
             shadowOpacity={0.15}
-            shadowOffset={{ width: 0, height: 1 }}
+            shadowOffset={{width: 0, height: 1}}
             shadowRadius={3}
           >
             <YStack position="absolute" top="$4" left="$4" zIndex={10}>
@@ -72,7 +64,7 @@ export const SignInScreen = () => {
                 backgroundColor="$defaultQuaternaryLabel"
                 alignItems="center"
                 justifyContent="center"
-                pressStyle={{ opacity: 0.7, scale: 0.95 }}
+                pressStyle={{opacity: 0.7, scale: 0.95}}
                 onPress={() => router.push('/(auth)/home')}>
                 <Text fontSize="$5" color="$defaultSecondaryLabel" fontWeight="600">
                   ←
@@ -80,7 +72,7 @@ export const SignInScreen = () => {
               </YStack>
             </YStack>
             <YStack alignItems="center" marginBottom="$4">
-              <LogoMediumDark />
+              <LogoMediumDark/>
             </YStack>
 
             <YStack gap="$2" marginBottom="$6" alignItems="center">
@@ -103,8 +95,8 @@ export const SignInScreen = () => {
                 updatePassword(value);
                 clearError();
               }}
-              onBlurEmail={() => { }}
-              onBlurPassword={() => { }}
+              onBlurEmail={() => {}}
+              onBlurPassword={() => {}}
               canSubmit={canSubmit}
               isLoading={isLoading}
               onSubmit={handleSubmitClick}
@@ -112,7 +104,7 @@ export const SignInScreen = () => {
 
             <YStack alignItems="center" gap="$4" paddingTop="$4">
               <XStack alignItems="center" width="100%" paddingHorizontal="$4">
-                <View flex={1} height={1} backgroundColor="$defaultPlaceholderText" />
+                <View flex={1} height={1} backgroundColor="$defaultPlaceholderText"/>
                 <Text
                   fontSize="$3"
                   color="$defaultSecondaryLabel"
@@ -121,11 +113,11 @@ export const SignInScreen = () => {
                 >
                   ou
                 </Text>
-                <View flex={1} height={1} backgroundColor="$defaultPlaceholderText" />
+                <View flex={1} height={1} backgroundColor="$defaultPlaceholderText"/>
               </XStack>
 
               <Link href="/(auth)/sign-up" replace asChild>
-                <YStack alignItems="center" pressStyle={{ opacity: 0.7 }}>
+                <YStack alignItems="center" pressStyle={{opacity: 0.7}}>
                   <Text fontSize="$3" color="$defaultSecondaryLabel" fontWeight="400" textAlign="center">
                     Não possui conta?{' '}
                     <Text fontWeight="600" textDecorationLine="underline" color="$defaultLabel">

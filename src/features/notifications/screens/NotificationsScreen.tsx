@@ -144,7 +144,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
               {!notification.is_read && (
                 <Button
                   size="$2"
-                  variant="ghost"
+                  variant="outlined"
                   icon={<Check size={16} />}
                   onPress={handleMarkAsRead}
                   circular
@@ -153,7 +153,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
 
               <Button
                 size="$2"
-                variant="ghost"
+                variant="outlined"
                 icon={<Trash2 size={16} />}
                 onPress={handleDelete}
                 circular
@@ -296,7 +296,7 @@ export function NotificationsScreen() {
             <XStack space="$2">
               <Button
                 size="$3"
-                variant="ghost"
+                variant="outlined"
                 icon={<Filter size={18} />}
                 onPress={() => handleFilter()}
                 circular
@@ -305,7 +305,7 @@ export function NotificationsScreen() {
               {hasUnread && (
                 <Button
                   size="$3"
-                  variant="ghost"
+                  variant="outlined"
                   icon={<CheckCheck size={18} />}
                   onPress={handleMarkAllAsRead}
                   circular
@@ -364,7 +364,7 @@ export function NotificationsScreen() {
         <XStack space="$2" padding="$3" backgroundColor="$gray1" flexWrap="wrap">
           <Button
             size="$3"
-            variant={!filters.type ? "solid" : "outlined"}
+            variant={!filters.type ? undefined : "outlined"}
             onPress={() => clearFilters()}
           >
             Todas
@@ -372,7 +372,7 @@ export function NotificationsScreen() {
 
           <Button
             size="$3"
-            variant={filters.unreadOnly ? "solid" : "outlined"}
+            variant={filters.unreadOnly ? undefined : "outlined"}
             onPress={() => applyFilters({ ...filters, unreadOnly: !filters.unreadOnly })}
           >
             Não lidas
@@ -380,7 +380,7 @@ export function NotificationsScreen() {
 
           <Button
             size="$3"
-            variant={filters.type === 'message' ? "solid" : "outlined"}
+            variant={filters.type === 'message' ? undefined : "outlined"}
             onPress={() => handleFilter('message')}
           >
             💬 Mensagens
@@ -388,7 +388,7 @@ export function NotificationsScreen() {
 
           <Button
             size="$3"
-            variant={filters.type === 'reminder' ? "solid" : "outlined"}
+            variant={filters.type === 'reminder' ? undefined : "outlined"}
             onPress={() => handleFilter('reminder')}
           >
             ⏰ Lembretes
@@ -396,7 +396,7 @@ export function NotificationsScreen() {
 
           <Button
             size="$3"
-            variant={filters.type === 'system' ? "solid" : "outlined"}
+            variant={filters.type === 'system' ? undefined : "outlined"}
             onPress={() => handleFilter('system')}
           >
             ⚙️ Sistema
@@ -481,7 +481,7 @@ export function NotificationsScreen() {
       >
         <Button
           size="$3"
-          variant="ghost"
+          variant="outlined"
           onPress={() => router.back()}
           circular
           marginRight="$3"
