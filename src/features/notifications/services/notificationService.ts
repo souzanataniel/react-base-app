@@ -1,5 +1,5 @@
 import {Platform} from 'react-native';
-import messaging, { AuthorizationStatus } from '@react-native-firebase/messaging';
+import messaging, {AuthorizationStatus} from '@react-native-firebase/messaging';
 import * as Notifications from 'expo-notifications';
 import {supabase} from '@/lib/supabase';
 import {NotificationData, NotificationFilters, NotificationStats} from '@/features/notifications/types/notification';
@@ -28,6 +28,7 @@ export class NotificationService {
 
       // 1. Permissão Expo Notifications
       const {status} = await Notifications.requestPermissionsAsync();
+
       if (status !== 'granted') {
         return {success: false};
       }
@@ -58,7 +59,6 @@ export class NotificationService {
           token = await messaging().getToken();
         } catch (iosError: any) {
           console.log('Erro específico do iOS ao obter token:', iosError);
-
           // Verificar se é erro de APNS (comum no desenvolvimento iOS)
           if (iosError.message?.includes('APNS') || iosError.message?.includes('No APNS token')) {
             console.log('Erro APNS detectado - normal no desenvolvimento iOS');

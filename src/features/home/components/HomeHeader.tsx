@@ -1,12 +1,11 @@
 import React from 'react';
 import {styled, Text, View, XStack, YStack} from 'tamagui';
-import {BellIcon} from 'react-native-heroicons/outline';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {COLORS} from '@/shared/constants/colors';
-import {HapticButton} from '@/shared/components';
 import {PatternOverlay} from '@/shared/components/ui/GradientDotPattern/PatternOverlay';
 import {GradientDotPatternProps} from '@/shared/components/ui/GradientDotPattern/GradientDotPattern';
-import {AvatarIconMedium, AvatarIconSmall} from '@/features/profile/components/AvatarIcon';
+import {AvatarIconMedium} from '@/features/profile/components/AvatarIcon';
+import {NotificationIcon} from '@/features/notifications/components/NotificationIcon';
 
 const HeaderContainer = styled(View, {
   backgroundColor: COLORS.PRIMARY,
@@ -89,17 +88,7 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
           </YStack>
         </XStack>
 
-        <HapticButton
-          onPress={onNotification}
-          chromeless
-          backgroundColor="rgba(255, 255, 255, 0.2)"
-          borderRadius={8}
-          width={40}
-          height={40}
-          padding={0}
-          icon={<BellIcon size={20} color="white"/>}
-          hapticType="light"
-        />
+        <NotificationIcon/>
       </XStack>
     </HeaderContainer>
   );

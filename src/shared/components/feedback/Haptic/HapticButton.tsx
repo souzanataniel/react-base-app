@@ -2,6 +2,8 @@ import React from 'react';
 import {Button, ButtonProps} from 'tamagui';
 import {useHaptic} from '@/shared/components/feedback/Haptic/HapticContext';
 import {HapticType} from '@/shared/components/feedback/Haptic/haptic';
+import {useAnimatedStyle, useSharedValue, withTiming, withSequence} from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 interface HapticButtonProps extends ButtonProps {
   hapticType?: HapticType;
@@ -16,7 +18,22 @@ export const HapticButton: React.FC<HapticButtonProps> = ({
                                                           }) => {
   const {triggerHaptic} = useHaptic();
 
+  const shakeX = useSharedValue(0);
+  const scale = useSharedValue(1);
+
+  const buttonStyle = useAnimatedStyle(() => ({
+    transform: [
+      {scale: scale.value},
+      {translateX: shakeX.value},
+    ],
+  }));
+
   const handlePress = (event: any) => {
+    scale.value = withSequence(
+      withTiming(0.92, { duration: 100 }),
+      withTiming(1, { duration: 150 })
+    );
+
     if (!disableHaptic) {
       triggerHaptic(hapticType);
     }
@@ -27,25 +44,11 @@ export const HapticButton: React.FC<HapticButtonProps> = ({
   };
 
   return (
-    <Button
-      {...props}
-      onPress={handlePress}
-    />
+    <Animated.View style={buttonStyle}>
+      <Button
+        {...props}
+        onPress={handlePress}
+      />
+    </Animated.View>
   );
 };
-
-export const HapticPrimaryButton: React.FC<Omit<HapticButtonProps, 'hapticType'>> = (props) => (
-  <HapticButton hapticType="medium" {...props} />
-);
-
-export const HapticSecondaryButton: React.FC<Omit<HapticButtonProps, 'hapticType'>> = (props) => (
-  <HapticButton hapticType="light" {...props} />
-);
-
-export const HapticDestructiveButton: React.FC<Omit<HapticButtonProps, 'hapticType'>> = (props) => (
-  <HapticButton hapticType="heavy" {...props} />
-);
-
-export const HapticSelectionButton: React.FC<Omit<HapticButtonProps, 'hapticType'>> = (props) => (
-  <HapticButton hapticType="selection" {...props} />
-);

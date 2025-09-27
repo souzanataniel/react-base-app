@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, Button } from 'tamagui';
-import { Bell } from '@tamagui/lucide-icons';
-import { NotificationBadge } from './NotificationBadge';
-import { router } from 'expo-router';
-import { useHapticFeedback } from '@/shared/components/feedback/Haptic/HapticContext';
+import {View} from 'tamagui';
+import {Bell} from '@tamagui/lucide-icons';
+import {NotificationBadge} from './NotificationBadge';
+import {router} from 'expo-router';
+import {HapticButton} from '@/shared/components/feedback/Haptic/HapticButton';
 
 interface NotificationIconProps {
   size?: number;
@@ -13,33 +13,36 @@ interface NotificationIconProps {
 }
 
 export const NotificationIcon: React.FC<NotificationIconProps> = ({
-                                                                    size = 24,
-                                                                    color = '$color',
+                                                                    size = 40,
+                                                                    color = 'white',
                                                                     onPress,
                                                                     showBadge = true
                                                                   }) => {
-  const haptic = useHapticFeedback();
-
   const handlePress = () => {
-    haptic.light();
     if (onPress) {
       onPress();
     } else {
-      router.push('/(app)/notifications');
+      setTimeout(() => {
+        router.push('/(app)/notifications');
+      }, 150);
     }
   };
 
   return (
     <View position="relative">
-      <Button
-        size="$4"
-        variant="outlined"
-        icon={<Bell size={size} color={color} />}
+      <HapticButton
         onPress={handlePress}
-        circular
+        chromeless
+        backgroundColor="rgba(255, 255, 255, 0.2)"
+        borderRadius={8}
+        width={40}
+        height={40}
+        padding={0}
+        icon={<Bell size={size / 2} color={color}/>}
+        hapticType="light"
       />
 
-      {showBadge && <NotificationBadge />}
+      {showBadge && <NotificationBadge/>}
     </View>
   );
 };

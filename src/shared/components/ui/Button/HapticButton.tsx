@@ -1,7 +1,6 @@
 import React from 'react';
 import type {ButtonProps} from 'tamagui';
 import {Button} from 'tamagui';
-import {COLORS} from '@/shared/constants/colors';
 import {useHapticFeedback} from '@/shared/components/feedback/Haptic/HapticContext';
 
 interface HapticButtonProps extends Omit<ButtonProps, 'pressStyle' | 'style'> {
