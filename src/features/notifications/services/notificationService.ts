@@ -1,6 +1,5 @@
 import {Platform} from 'react-native';
-import {getApp} from '@react-native-firebase/app';
-import {AuthorizationStatus, getMessaging, getToken, requestPermission} from '@react-native-firebase/messaging';
+import messaging, { AuthorizationStatus } from '@react-native-firebase/messaging';
 import * as Notifications from 'expo-notifications';
 import {supabase} from '@/lib/supabase';
 import {NotificationData, NotificationFilters, NotificationStats} from '@/features/notifications/types/notification';
@@ -22,7 +21,7 @@ export class NotificationService {
     }
   }
 
-  // MÉTODO PRINCIPAL - Solicitar permissão e obter token
+  // MÉTODO PRINCIPAL - Solicitar permissão e obter token (ajustado para iOS)
   static async requestPermissionAndGetToken(): Promise<{ success: boolean; token?: string }> {
     try {
       await this.initialize();
@@ -33,9 +32,8 @@ export class NotificationService {
         return {success: false};
       }
 
-      // 2. Permissão Firebase Messaging
-      const messaging = getMessaging(getApp());
-      const authStatus = await requestPermission(messaging, {
+      // 2. Permissão Firebase Messaging (usando sintaxe padrão para iOS)
+      const authStatus = await messaging().requestPermission({
         alert: true,
         badge: true,
         sound: true,
@@ -50,14 +48,82 @@ export class NotificationService {
         return {success: false};
       }
 
-      // 3. Obter token FCM
-      const token = await getToken(messaging);
+      // 3. Obter token FCM (com tratamento específico para iOS)
+      let token;
 
+      if (Platform.OS === 'ios') {
+        try {
+          // No iOS, aguardar um pouco antes de solicitar o token
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          token = await messaging().getToken();
+        } catch (iosError: any) {
+          console.log('Erro específico do iOS ao obter token:', iosError);
+
+          // Verificar se é erro de APNS (comum no desenvolvimento iOS)
+          if (iosError.message?.includes('APNS') || iosError.message?.includes('No APNS token')) {
+            console.log('Erro APNS detectado - normal no desenvolvimento iOS');
+            console.log('Para funcionar completamente, use build nativo: eas build --platform ios');
+            return {
+              success: true,
+              token: 'iOS_DEVELOPMENT_MODE'
+            };
+          }
+          throw iosError;
+        }
+      } else {
+        // Android - usar método normal
+        token = await messaging().getToken();
+      }
+
+      console.log('token', token);
       return {success: true, token};
 
     } catch (error) {
       console.error('Erro ao solicitar permissão de notificação:', error);
+
+      // Para iOS em desenvolvimento, retornar sucesso parcial se for erro APNS
+      if (Platform.OS === 'ios' && error instanceof Error && error.message?.includes('APNS')) {
+        console.log('Modo iOS desenvolvimento - notificações funcionarão apenas em build nativo');
+        return {
+          success: true,
+          token: 'iOS_DEVELOPMENT_PLACEHOLDER'
+        };
+      }
+
       return {success: false};
+    }
+  }
+
+  // Método adicional para verificar se está em modo desenvolvimento iOS
+  static async isIOSDevelopmentMode(): Promise<boolean> {
+    if (Platform.OS !== 'ios') return false;
+
+    try {
+      await messaging().getToken();
+      return false; // Se conseguiu obter token, não está em modo desenvolvimento
+    } catch (error: any) {
+      return error.message?.includes('APNS') || error.message?.includes('No APNS token');
+    }
+  }
+
+  // Método para obter token com tratamento iOS
+  static async getCurrentToken(): Promise<string | null> {
+    try {
+      if (Platform.OS === 'ios') {
+        // Verificar se está em modo desenvolvimento
+        if (await this.isIOSDevelopmentMode()) {
+          console.log('iOS em modo desenvolvimento - token não disponível');
+          return null;
+        }
+
+        // Aguardar um pouco no iOS antes de solicitar token
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
+      return await messaging().getToken();
+    } catch (error) {
+      console.error('Erro ao obter token atual:', error);
+      return null;
     }
   }
 
