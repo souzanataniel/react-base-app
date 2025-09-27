@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "expo-router-example",
-    "slug": "expo-router-example",
+    "name": "react-base-app",
+    "slug": "react-base-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -16,17 +16,24 @@
       "**/*"
     ],
     "ios": {
+      "googleServicesFile": "./GoogleService-Info.plist",
       "supportsTablet": true,
-      "bundleIdentifier": "com.souzanataniel.exporouterexample",
+      "bundleIdentifier": "com.pacsistemas.reactbaseapp",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.pacsistemas.reactbaseapp",
+      "permissions": [
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.VIBRATE"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -36,6 +43,7 @@
     "plugins": [
       "expo-router",
       "expo-font",
+      "expo-dev-client",
       [
         "expo-build-properties",
         {
@@ -48,7 +56,17 @@
         }
       ],
       "expo-web-browser",
-      "expo-secure-store"
+      "expo-secure-store",
+      "@react-native-firebase/app",
+      [
+        "@react-native-firebase/messaging",
+        {
+          "androidNotificationChannelId": "default",
+          "androidNotificationChannelName": "Default",
+          "androidNotificationChannelDescription": "Default notification channel",
+          "iosNSExtensionPrincipalClass": "NotificationService"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
@@ -56,8 +74,14 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "02684b37-4216-46f1-a406-d46713a19562"
+        "projectId": "4b4b34bf-ba69-45bb-bda7-4b76ea28ef1e"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/4b4b34bf-ba69-45bb-bda7-4b76ea28ef1e"
     }
   }
 }

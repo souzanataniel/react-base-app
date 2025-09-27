@@ -99,6 +99,7 @@ export const updateProfile = async (
       pushNotifications: updatedProfile.push_notifications ?? false,
       location: updatedProfile.location ?? false,
       themePreference: updatedProfile.theme_preference || 'system',
+      fcm_token: updatedProfile?.fcm_token || '',
 
       // UX
       firstLoginAt: updatedProfile.first_login_at,
@@ -300,6 +301,7 @@ export const getCurrentUserProfile = async (userId: string): Promise<UpdateProfi
       pushNotifications: profile.push_notifications ?? false,
       location: profile.location ?? false,
       themePreference: profile.theme_preference || 'system',
+      fcm_token: profile?.fcm_token || '',
 
       // UX
       firstLoginAt: profile.first_login_at,

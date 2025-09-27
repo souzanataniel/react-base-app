@@ -12,6 +12,7 @@ export interface User {
   isActive?: boolean;
   isVerified?: boolean;
   pushNotifications?: boolean;
+  fcm_token?: string;
   location?: boolean;
   themePreference?: 'light' | 'dark' | 'system';
   firstLoginAt?: string;

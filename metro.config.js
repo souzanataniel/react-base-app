@@ -1,7 +1,4 @@
-// Learn more https://docs.expo.io/guides/customizing-metro
-/**
- * @type {import('expo/metro-config').MetroConfig}
- */
+// metro.config.js
 const { getDefaultConfig } = require('expo/metro-config')
 const { withTamagui } = require('@tamagui/metro-plugin')
 
@@ -10,7 +7,10 @@ const config = getDefaultConfig(__dirname, {
   isCSSEnabled: true,
 })
 
+// Configurações para React Native Firebase
 config.resolver.sourceExts.push('mjs')
+config.resolver.sourceExts.push('cjs')
+config.resolver.unstable_enablePackageExports = false
 
 module.exports = withTamagui(config, {
   components: ['tamagui'],

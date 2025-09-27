@@ -52,6 +52,7 @@ const mapSupabaseUserToDomain = async (supabaseUser: any): Promise<User | null> 
       pushNotifications: profile?.push_notifications ?? false,
       location: profile?.location ?? false,
       themePreference: profile?.theme_preference || 'system',
+      fcm_token: profile?.fcm_token || '',
 
       // UX
       firstLoginAt: profile?.first_login_at,

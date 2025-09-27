@@ -1,27 +1,26 @@
-import React, {useState} from 'react';
-import {BellRing, Info, Lock, LogOut, MapPin, PaintBucket, Phone, User, Vibrate} from '@tamagui/lucide-icons';
-import {ListItem, ListSection} from '@/shared/components/lists';
-import {useAuth} from '@/features/auth/hooks/useAuth';
-import {router} from 'expo-router';
-import {StatusBar} from 'expo-status-bar';
-import {useThemeManager} from '@/shared/hooks/useTheme';
-import {useCommon} from '@/shared/hooks/useCommon';
-import {ScreenWithBlurHeader} from '@/shared/components/layout/ScreenWithBlurHeader';
-import {ProfileHeader} from '@/features/profile/components/ProfileHeader';
-import {useHaptic, useHapticFeedback} from '@/shared/components/feedback/Haptic/HapticContext';
-import {updateProfileSingleField} from '@/features/profile/services/updateProfileService';
+import React, { useState } from 'react';
+import { BellRing, Info, Lock, LogOut, MapPin, PaintBucket, Phone, User, Vibrate } from '@tamagui/lucide-icons';
+import { ListItem, ListSection } from '@/shared/components/lists';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import { router } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { useThemeManager } from '@/shared/hooks/useTheme';
+import { useCommon } from '@/shared/hooks/useCommon';
+import { ScreenWithBlurHeader } from '@/shared/components/layout/ScreenWithBlurHeader';
+import { ProfileHeader } from '@/features/profile/components/ProfileHeader';
+import { useHaptic, useHapticFeedback } from '@/shared/components/feedback/Haptic/HapticContext';
+import { updateProfileSingleField } from '@/features/profile/services/updateProfileService';
+import {NotificationService} from '@/features/notifications/services/notificationService';
 
 export function ProfileScreen() {
-  const {user} = useAuth();
+  const { user } = useAuth();
 
   const [enableLocation, setEnableLocation] = useState(user?.location);
-  const [enableNotifications, setEnableNotifications] = useState(user?.pushNotifications);
+  const [enableNotifications, setEnableNotifications] = useState(user?.pushNotifications || false);
 
-  const {nextTheme, getModeDisplayName} = useThemeManager();
-
-  const {logoutApp} = useCommon();
-  const {isHapticEnabled, setHapticEnabled} = useHaptic();
-
+  const { nextTheme, getModeDisplayName } = useThemeManager();
+  const { logoutApp } = useCommon();
+  const { isHapticEnabled, setHapticEnabled } = useHaptic();
   const haptic = useHapticFeedback();
 
   const changeTheme = async () => {
@@ -39,25 +38,44 @@ export function ProfileScreen() {
     void updateProfileSingleField(user!.id, 'location', enabled);
   };
 
-  const handleNotificationsToggle = (enabled: boolean) => {
+  const handleNotificationsToggle = async (enabled: boolean) => {
     haptic.selection();
-    setEnableNotifications(enabled);
-    void updateProfileSingleField(user!.id, 'push_notifications', enabled);
+
+    try {
+      if (enabled) {
+        // Solicitar permissão e habilitar notificações
+        const result = await NotificationService.requestPermissionAndGetToken();
+
+        if (result.success) {
+          setEnableNotifications(true);
+          await updateProfileSingleField(user!.id, 'push_notifications', true);
+        } else {
+          console.log('Não foi possível habilitar notificações');
+          setEnableNotifications(false);
+        }
+      } else {
+        // Desabilitar notificações
+        setEnableNotifications(false);
+        await updateProfileSingleField(user!.id, 'push_notifications', false);
+      }
+    } catch (error) {
+      console.error('Erro ao alterar configuração de notificações:', error);
+      // Reverter o estado em caso de erro
+      setEnableNotifications(!enabled);
+    }
   };
 
   const handleAvatarUploadSuccess = (url: string) => {
-    console.log('✅ Avatar uploaded successfully:', url);
-    haptic.success(); // Simples e limpo
+    haptic.success();
   };
 
   const handleAvatarUploadError = (error: Error) => {
-    console.error('❌ Avatar upload error:', error);
-    haptic.error(); // Simples e limpo
+    console.error('Avatar upload error:', error);
+    haptic.error();
   };
 
   const handleEditProfile = () => {
     haptic.light();
-    console.log('Edit profile pressed');
     router.push('/(app)/update-profile');
   };
 
@@ -78,7 +96,7 @@ export function ProfileScreen() {
 
   return (
     <>
-      <StatusBar style="auto"/>
+      <StatusBar style="auto" />
       <ScreenWithBlurHeader
         title="Perfil"
         onBack={() => router.push('/(app)/profile')}
@@ -98,17 +116,17 @@ export function ProfileScreen() {
 
         <ListSection title="Perfil">
           <ListItem
-            icon={<User size={18} color="$colorInverse"/>}
+            icon={<User size={18} color="$colorInverse" />}
             title="Informações Pessoais"
             onPress={() => handleNavigation('/(app)/update-profile')}
           />
           <ListItem
-            icon={<Phone size={18} color="$colorInverse"/>}
+            icon={<Phone size={18} color="$colorInverse" />}
             title="Informações de Contato"
             onPress={() => handleNavigation('/(app)/update-contacts')}
           />
           <ListItem
-            icon={<Lock size={18} color="$colorInverse"/>}
+            icon={<Lock size={18} color="$colorInverse" />}
             title="Alterar Senha"
             onPress={() => handleNavigation('/(app)/update-password')}
           />
@@ -116,7 +134,7 @@ export function ProfileScreen() {
 
         <ListSection title="Configurações">
           <ListItem
-            icon={<MapPin size={18} color="$colorInverse"/>}
+            icon={<MapPin size={18} color="$colorInverse" />}
             title="Localização"
             showSwitch={true}
             switchValue={enableLocation}
@@ -125,7 +143,7 @@ export function ProfileScreen() {
           />
 
           <ListItem
-            icon={<BellRing size={18} color="$colorInverse"/>}
+            icon={<BellRing size={18} color="$colorInverse" />}
             title="Notificações"
             showSwitch={true}
             switchValue={enableNotifications}
@@ -136,7 +154,7 @@ export function ProfileScreen() {
 
         <ListSection title="Aplicação">
           <ListItem
-            icon={<Vibrate size={18} color="$colorInverse"/>}
+            icon={<Vibrate size={18} color="$colorInverse" />}
             title="Feedback Tátil"
             subtitle={isHapticEnabled ? 'Vibração ativada' : 'Vibração desativada'}
             showSwitch={true}
@@ -145,7 +163,7 @@ export function ProfileScreen() {
             showChevron={false}
           />
           <ListItem
-            icon={<PaintBucket size={18} color="$colorInverse"/>}
+            icon={<PaintBucket size={18} color="$colorInverse" />}
             title="Tema do App"
             valueText={getModeDisplayName()}
             onPress={handleThemeChange}
@@ -154,16 +172,15 @@ export function ProfileScreen() {
 
         <ListSection title="Geral">
           <ListItem
-            icon={<Info size={18} color="$colorInverse"/>}
+            icon={<Info size={18} color="$colorInverse" />}
             title="Sobre o App"
             onPress={() => {
               haptic.light();
-              console.log('About app');
             }}
             showChevron={false}
           />
           <ListItem
-            icon={<LogOut size={18} color="$colorInverse"/>}
+            icon={<LogOut size={18} color="$colorInverse" />}
             title="Sair do App"
             onPress={handleLogout}
             showChevron={false}
