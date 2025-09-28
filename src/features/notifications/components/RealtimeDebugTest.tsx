@@ -18,7 +18,7 @@ export const RealtimeDebugTest = () => {
     }
 
     const newSub = supabase
-      .channel('notifications_test_basic')
+      .channel('notifications')
       .on('postgres_changes', {
         event: '*', // Todos os eventos
         schema: 'public',
@@ -50,7 +50,7 @@ export const RealtimeDebugTest = () => {
     }
 
     const newSub = supabase
-      .channel('notifications_test_filtered')
+      .channel('notifications')
       .on('postgres_changes', {
         event: '*',
         schema: 'public',

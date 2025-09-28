@@ -1,7 +1,7 @@
-import React, {useState} from 'react';
-import {Alert, FlatList, ListRenderItem, RefreshControl} from 'react-native';
+import React, {useState, useEffect, useRef} from 'react';
+import {Alert, FlatList, ListRenderItem, RefreshControl, Animated} from 'react-native';
 import {Button, Text, View, XStack, YStack} from 'tamagui';
-import {BellOff, Check, CheckCheck, Filter, Trash2} from '@tamagui/lucide-icons';
+import {BellOff, Check, CheckCheck, Filter, Trash2, RefreshCw} from '@tamagui/lucide-icons';
 import {router} from 'expo-router';
 import {formatDistanceToNow} from 'date-fns';
 import {ptBR} from 'date-fns/locale';
@@ -16,15 +16,35 @@ interface NotificationItemProps {
   onPress: (notification: NotificationData) => void;
   onMarkAsRead: (id: string) => void;
   onDelete: (id: string) => void;
+  isNew?: boolean;
 }
 
 const NotificationItem: React.FC<NotificationItemProps> = ({
                                                              notification,
                                                              onPress,
                                                              onMarkAsRead,
-                                                             onDelete
+                                                             onDelete,
+                                                             isNew = false
                                                            }) => {
   const haptic = useHapticFeedback();
+  const scaleAnim = useRef(new Animated.Value(isNew ? 0.95 : 1)).current;
+
+  useEffect(() => {
+    if (isNew) {
+      Animated.sequence([
+        Animated.timing(scaleAnim, {
+          toValue: 1.02,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [isNew, scaleAnim]);
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -88,119 +108,138 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
   };
 
   return (
-    <View
-      padding="$4"
-      marginVertical="$1"
-      marginHorizontal="$3"
-      backgroundColor={notification.is_read ? '$background' : '$blue1'}
-      borderRadius="$4"
-      borderWidth={1}
-      borderColor={notification.is_read ? '$borderColor' : '$blue6'}
-      pressStyle={{opacity: 0.8, scale: 0.98}}
-      onPress={handlePress}
-    >
-      <XStack space="$3" alignItems="flex-start">
-        <View
-          width={40}
-          height={40}
-          backgroundColor={getPriorityColor(notification.priority)}
-          borderRadius={20}
-          alignItems="center"
-          justifyContent="center"
-        >
-          <Text fontSize="$5">{getTypeIcon(notification.type)}</Text>
-        </View>
-
-        <YStack flex={1} space="$1">
-          <XStack justifyContent="space-between" alignItems="flex-start">
-            <Text
-              fontSize="$4"
-              fontWeight={notification.is_read ? '500' : '700'}
-              color="$color"
-              flex={1}
-              marginRight="$2"
-            >
-              {notification.title}
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      <View
+        padding="$4"
+        marginVertical="$1"
+        marginHorizontal="$3"
+        backgroundColor={notification.is_read ? '$background' : '$blue1'}
+        borderRadius="$4"
+        borderWidth={isNew ? 2 : 1}
+        borderColor={isNew ? '$green8' : (notification.is_read ? '$borderColor' : '$blue6')}
+        pressStyle={{opacity: 0.8, scale: 0.98}}
+        onPress={handlePress}
+      >
+        {isNew && (
+          <View
+            position="absolute"
+            top={-1}
+            right={8}
+            backgroundColor="$green9"
+            paddingHorizontal="$2"
+            paddingVertical="$1"
+            borderRadius="$2"
+            zIndex={1}
+          >
+            <Text fontSize="$1" color="white" fontWeight="bold">
+              NOVA
             </Text>
+          </View>
+        )}
 
-            {!notification.is_read && (
-              <View
-                width={8}
-                height={8}
-                backgroundColor="$blue9"
-                borderRadius={4}
-              />
-            )}
-          </XStack>
+        <XStack space="$3" alignItems="flex-start">
+          <View
+            width={40}
+            height={40}
+            backgroundColor={getPriorityColor(notification.priority)}
+            borderRadius={20}
+            alignItems="center"
+            justifyContent="center"
+          >
+            <Text fontSize="$5">{getTypeIcon(notification.type)}</Text>
+          </View>
 
-          {notification.body && (
-            <Text
-              fontSize="$3"
-              color="$color11"
-              numberOfLines={2}
-            >
-              {notification.body}
-            </Text>
-          )}
+          <YStack flex={1} space="$1">
+            <XStack justifyContent="space-between" alignItems="flex-start">
+              <Text
+                fontSize="$4"
+                fontWeight={notification.is_read ? '500' : '700'}
+                color="$color"
+                flex={1}
+                marginRight="$2"
+              >
+                {notification.title}
+              </Text>
 
-          <XStack justifyContent="space-between" alignItems="center" marginTop="$2">
-            <Text fontSize="$2" color="$color10">
-              {formatDistanceToNow(new Date(notification.created_at), {
-                addSuffix: true,
-                locale: ptBR
-              })}
-            </Text>
-
-            <XStack space="$2">
               {!notification.is_read && (
+                <View
+                  width={8}
+                  height={8}
+                  backgroundColor="$blue9"
+                  borderRadius={4}
+                />
+              )}
+            </XStack>
+
+            {notification.body && (
+              <Text
+                fontSize="$3"
+                color="$color11"
+                numberOfLines={2}
+              >
+                {notification.body}
+              </Text>
+            )}
+
+            <XStack justifyContent="space-between" alignItems="center" marginTop="$2">
+              <Text fontSize="$2" color="$color10">
+                {formatDistanceToNow(new Date(notification.created_at), {
+                  addSuffix: true,
+                  locale: ptBR
+                })}
+              </Text>
+
+              <XStack space="$2">
+                {!notification.is_read && (
+                  <Button
+                    size="$2"
+                    variant="outlined"
+                    icon={<Check size={16}/>}
+                    onPress={handleMarkAsRead}
+                    circular
+                  />
+                )}
+
                 <Button
                   size="$2"
                   variant="outlined"
-                  icon={<Check size={16}/>}
-                  onPress={handleMarkAsRead}
+                  icon={<Trash2 size={16}/>}
+                  onPress={handleDelete}
                   circular
+                  theme="red"
                 />
-              )}
-
-              <Button
-                size="$2"
-                variant="outlined"
-                icon={<Trash2 size={16}/>}
-                onPress={handleDelete}
-                circular
-                theme="red"
-              />
+              </XStack>
             </XStack>
-          </XStack>
 
-          <XStack space="$2" marginTop="$1">
-            <View
-              backgroundColor="$gray4"
-              paddingHorizontal="$2"
-              paddingVertical="$1"
-              borderRadius="$2"
-            >
-              <Text fontSize="$1" color="$gray11" textTransform="uppercase">
-                {notification.type}
-              </Text>
-            </View>
-
-            {notification.category && (
+            <XStack space="$2" marginTop="$1">
               <View
-                backgroundColor="$blue4"
+                backgroundColor="$gray4"
                 paddingHorizontal="$2"
                 paddingVertical="$1"
                 borderRadius="$2"
               >
-                <Text fontSize="$1" color="$blue11">
-                  {notification.category}
+                <Text fontSize="$1" color="$gray11" textTransform="uppercase">
+                  {notification.type}
                 </Text>
               </View>
-            )}
-          </XStack>
-        </YStack>
-      </XStack>
-    </View>
+
+              {notification.category && (
+                <View
+                  backgroundColor="$blue4"
+                  paddingHorizontal="$2"
+                  paddingVertical="$1"
+                  borderRadius="$2"
+                >
+                  <Text fontSize="$1" color="$blue11">
+                    {notification.category}
+                  </Text>
+                </View>
+              )}
+            </XStack>
+          </YStack>
+        </XStack>
+      </View>
+    </Animated.View>
   );
 };
 
@@ -209,6 +248,8 @@ export function NotificationsScreen() {
   const insets = useSafeAreaInsets();
   const [showFilters, setShowFilters] = useState(false);
   const [currentFilter, setCurrentFilter] = useState<'all' | 'unread' | string>('all');
+  const [newNotificationIds, setNewNotificationIds] = useState<Set<string>>(new Set());
+  const previousNotificationIds = useRef<Set<string>>(new Set());
 
   const {
     notifications,
@@ -219,7 +260,33 @@ export function NotificationsScreen() {
     deleteNotification,
     refresh,
     hasNotifications,
+    forceReloadList,
   } = useNotifications({ isForScreen: true });
+
+  // Detectar novas notificações
+  useEffect(() => {
+    const currentIds = new Set(notifications.map(n => n.id));
+    const newIds = new Set<string>();
+
+    // Encontrar IDs que estão na lista atual mas não estavam na anterior
+    currentIds.forEach(id => {
+      if (!previousNotificationIds.current.has(id)) {
+        newIds.add(id);
+      }
+    });
+
+    if (newIds.size > 0) {
+      console.log('[NotificationsScreen] Novas notificações detectadas:', Array.from(newIds));
+      setNewNotificationIds(newIds);
+
+      // Remover marcação de "nova" após 5 segundos
+      setTimeout(() => {
+        setNewNotificationIds(new Set());
+      }, 5000);
+    }
+
+    previousNotificationIds.current = currentIds;
+  }, [notifications]);
 
   const handleNotificationPress = async (notification: NotificationData) => {
     if (!notification.is_read) {
@@ -268,6 +335,11 @@ export function NotificationsScreen() {
     setShowFilters(false);
   };
 
+  const handleForceRefresh = async () => {
+    haptic.light();
+    await forceReloadList();
+  };
+
   // Filtro local simples
   const filteredNotifications = notifications.filter(notification => {
     if (currentFilter === 'unread') {
@@ -285,6 +357,7 @@ export function NotificationsScreen() {
       onPress={handleNotificationPress}
       onMarkAsRead={handleMarkAsRead}
       onDelete={handleDelete}
+      isNew={newNotificationIds.has(item.id)}
     />
   );
 
@@ -308,6 +381,14 @@ export function NotificationsScreen() {
               <Button
                 size="$3"
                 variant="outlined"
+                icon={<RefreshCw size={18}/>}
+                onPress={handleForceRefresh}
+                circular
+              />
+
+              <Button
+                size="$3"
+                variant="outlined"
                 icon={<Filter size={18}/>}
                 onPress={() => setShowFilters(!showFilters)}
                 circular
@@ -328,6 +409,12 @@ export function NotificationsScreen() {
           {unreadCount > 0 && (
             <Text fontSize="$3" color="$blue10" marginTop="$1">
               {unreadCount} não {unreadCount === 1 ? 'lida' : 'lidas'}
+            </Text>
+          )}
+
+          {newNotificationIds.size > 0 && (
+            <Text fontSize="$3" color="$green10" marginTop="$1">
+              🆕 {newNotificationIds.size} nova{newNotificationIds.size === 1 ? '' : 's'} notificação{newNotificationIds.size === 1 ? '' : 'ões'}
             </Text>
           )}
         </YStack>

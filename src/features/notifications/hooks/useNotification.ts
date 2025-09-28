@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useState, useRef} from 'react';
 import {useAuth} from '@/features/auth/hooks/useAuth';
 import {NotificationData, NotificationFilters} from '@/features/notifications/types/notification';
 import {notificationManager} from '@/features/notifications/services/notificationManager';
@@ -15,6 +15,10 @@ export const useNotifications = (options: { isForScreen?: boolean } = {}) => {
   const [notifications, setNotifications] = useState<NotificationData[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // Ref para controlar se deve recarregar a lista
+  const shouldReloadList = useRef(false);
+  const currentFilters = useRef<NotificationFilters>({});
+
   // Configurar usuário no manager
   useEffect(() => {
     notificationManager.setUserId(user?.id || null);
@@ -24,19 +28,44 @@ export const useNotifications = (options: { isForScreen?: boolean } = {}) => {
   useEffect(() => {
     const unsubscribe = notificationManager.subscribe(() => {
       const newCount = notificationManager.getUnreadCount();
+      const previousCount = unreadCount;
+
+      console.log('[useNotifications] Contador atualizado:', { previousCount, newCount, isForScreen });
+
       setUnreadCount(newCount);
+
+      // Se é para tela e houve mudança no contador, recarregar lista
+      if (isForScreen && newCount !== previousCount) {
+        console.log('[useNotifications] Recarregando lista devido a mudança no contador');
+        shouldReloadList.current = true;
+      }
     });
 
     return unsubscribe;
-  }, []);
+  }, [unreadCount, isForScreen]);
+
+  // Recarregar lista quando necessário
+  useEffect(() => {
+    if (isForScreen && shouldReloadList.current && user?.id) {
+      console.log('[useNotifications] Executando reload automático da lista');
+      shouldReloadList.current = false;
+      loadNotifications(currentFilters.current);
+    }
+  }, [unreadCount]); // Dependência no unreadCount para disparar quando ele mudar
 
   // Carregar notificações apenas se for para tela
   const loadNotifications = useCallback(async (filters: NotificationFilters = {}) => {
     if (!user?.id || !isForScreen) return;
 
+    console.log('[useNotifications] Carregando notificações com filtros:', filters);
+
+    // Atualizar filtros atuais
+    currentFilters.current = filters;
+
     setLoading(true);
     try {
       const result = await NotificationService.getUserNotifications(user.id, 1, 20, filters);
+      console.log('[useNotifications] Notificações carregadas:', result.data.length);
       setNotifications(result.data);
     } catch (error) {
       console.error('Erro ao carregar notificações:', error);
@@ -54,6 +83,8 @@ export const useNotifications = (options: { isForScreen?: boolean } = {}) => {
 
   // Ações simplificadas
   const markAsRead = useCallback(async (notificationId: string) => {
+    console.log('[useNotifications] Marcando como lida:', notificationId);
+
     const success = await NotificationService.markAsRead(notificationId);
     if (success) {
       // Atualizar lista local se for tela
@@ -74,6 +105,8 @@ export const useNotifications = (options: { isForScreen?: boolean } = {}) => {
   const markAllAsRead = useCallback(async () => {
     if (!user?.id) return 0;
 
+    console.log('[useNotifications] Marcando todas como lidas');
+
     const count = await NotificationService.markAllAsRead(user.id);
     if (count > 0) {
       if (isForScreen) {
@@ -87,6 +120,8 @@ export const useNotifications = (options: { isForScreen?: boolean } = {}) => {
   }, [user?.id, isForScreen]);
 
   const deleteNotification = useCallback(async (notificationId: string) => {
+    console.log('[useNotifications] Deletando notificação:', notificationId);
+
     const success = await NotificationService.deleteNotification(notificationId);
     if (success) {
       if (isForScreen) {
@@ -98,9 +133,18 @@ export const useNotifications = (options: { isForScreen?: boolean } = {}) => {
   }, [isForScreen]);
 
   const refresh = useCallback(async () => {
+    console.log('[useNotifications] Refresh manual');
     await notificationManager.refresh();
     if (isForScreen) {
-      await loadNotifications();
+      await loadNotifications(currentFilters.current);
+    }
+  }, [isForScreen, loadNotifications]);
+
+  // Método para forçar reload da lista (útil para debug)
+  const forceReloadList = useCallback(async () => {
+    if (isForScreen) {
+      console.log('[useNotifications] Forçando reload da lista');
+      await loadNotifications(currentFilters.current);
     }
   }, [isForScreen, loadNotifications]);
 
@@ -119,6 +163,7 @@ export const useNotifications = (options: { isForScreen?: boolean } = {}) => {
     markAllAsRead,
     deleteNotification,
     loadNotifications: isForScreen ? loadNotifications : () => {},
+    forceReloadList,
 
     // Utils
     hasNotifications: isForScreen ? notifications.length > 0 : false,
