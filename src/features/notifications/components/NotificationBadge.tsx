@@ -1,61 +1,48 @@
+// NotificationBadge.tsx - Versão simplificada
 import React from 'react';
-import {Text, View} from 'tamagui';
-import {useNotifications} from '@/features/notifications/hooks/useNotification';
+import { Text, View } from 'tamagui';
+import {useNotificationCounter} from '@/features/notifications/hooks/useNotification';
 
 interface NotificationBadgeProps {
   maxCount?: number;
   size?: 'small' | 'medium' | 'large';
-  position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
-  offset?: { x: number; y: number };
 }
 
 export const NotificationBadge: React.FC<NotificationBadgeProps> = ({
                                                                       maxCount = 99,
-                                                                      size = 'small',
-                                                                      position = 'top-right',
-                                                                      offset = {x: -5, y: -5}
+                                                                      size = 'small'
                                                                     }) => {
-  const {unreadCount} = useNotifications();
+  const { unreadCount } = useNotificationCounter();
 
   if (unreadCount === 0) return null;
 
   const sizeConfig = {
-    small: {width: 16, height: 16, fontSize: '$1', minWidth: 16},
-    medium: {width: 20, height: 20, fontSize: '$2', minWidth: 20},
-    large: {width: 24, height: 24, fontSize: '$3', minWidth: 24}
-  };
-
-  const positionConfig = {
-    'top-right': {top: offset.y, right: offset.x},
-    'top-left': {top: offset.y, left: offset.x},
-    'bottom-right': {bottom: Math.abs(offset.y), right: offset.x},
-    'bottom-left': {bottom: Math.abs(offset.y), left: offset.x}
+    small: { width: 18, height: 18, fontSize: 10 },
+    medium: { width: 22, height: 22, fontSize: 12 },
+    large: { width: 26, height: 26, fontSize: 14 }
   };
 
   const config = sizeConfig[size];
-  const positionStyle = positionConfig[position];
-
   const displayCount = unreadCount > maxCount ? `${maxCount}+` : unreadCount.toString();
 
   return (
     <View
       position="absolute"
-      backgroundColor="#FF0000"
+      top={-5}
+      right={-5}
+      backgroundColor="$error"
       borderRadius={config.width / 2}
-      minWidth={config.minWidth}
+      width={config.width}
       height={config.height}
       alignItems="center"
       justifyContent="center"
       borderWidth={2}
-      borderColor="#FF0000"
-      paddingHorizontal={unreadCount > 9 ? '$1' : 0}
-      {...positionStyle}
+      borderColor="$error"
     >
       <Text
         fontSize={config.fontSize}
         color="white"
         fontWeight="bold"
-        lineHeight={config.height - 4}
         textAlign="center"
       >
         {displayCount}

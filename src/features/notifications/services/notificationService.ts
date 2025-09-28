@@ -381,6 +381,7 @@ export class NotificationService {
           filter: `user_id=eq.${userId}`
         },
         (payload) => {
+          console.log('RAW INSERT EVENT:', payload);
           onNotification(payload.new as NotificationData);
         }
       )
@@ -393,6 +394,7 @@ export class NotificationService {
           filter: `user_id=eq.${userId}`
         },
         (payload) => {
+          console.log('RAW UPDATE EVENT:', payload);
           onUpdate(payload.new as NotificationData);
         }
       )
@@ -405,6 +407,7 @@ export class NotificationService {
           filter: `user_id=eq.${userId}`
         },
         (payload) => {
+          console.log('RAW DELETE EVENT:', payload);
           onDelete(payload.old.id);
         }
       )

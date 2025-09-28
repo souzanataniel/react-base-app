@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
-import { Alert, FlatList, ListRenderItem, RefreshControl } from 'react-native';
-import { Button, Text, View, XStack, YStack } from 'tamagui';
-import { BellOff, Check, CheckCheck, Filter, Trash2 } from '@tamagui/lucide-icons';
-import { router } from 'expo-router';
-import { formatDistanceToNow } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { StatusBar } from 'expo-status-bar';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useHapticFeedback } from '@/shared/components/feedback/Haptic/HapticContext';
-import { NotificationData } from '@/features/notifications/types/notification';
-import { useNotifications } from '@/features/notifications/hooks/useNotification';
+import React, {useState} from 'react';
+import {Alert, FlatList, ListRenderItem, RefreshControl} from 'react-native';
+import {Button, Text, View, XStack, YStack} from 'tamagui';
+import {BellOff, Check, CheckCheck, Filter, Trash2} from '@tamagui/lucide-icons';
+import {router} from 'expo-router';
+import {formatDistanceToNow} from 'date-fns';
+import {ptBR} from 'date-fns/locale';
+import {StatusBar} from 'expo-status-bar';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {useHapticFeedback} from '@/shared/components/feedback/Haptic/HapticContext';
+import {NotificationData} from '@/features/notifications/types/notification';
+import {useNotifications} from '@/features/notifications/hooks/useNotification';
 
 interface NotificationItemProps {
   notification: NotificationData;
@@ -28,22 +28,33 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'urgent': return '$red9';
-      case 'high': return '$orange9';
-      case 'normal': return '$blue9';
-      case 'low': return '$gray9';
-      default: return '$blue9';
+      case 'urgent':
+        return '$red9';
+      case 'high':
+        return '$orange9';
+      case 'normal':
+        return '$blue9';
+      case 'low':
+        return '$gray9';
+      default:
+        return '$blue9';
     }
   };
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'message': return '💬';
-      case 'reminder': return '⏰';
-      case 'system': return '⚙️';
-      case 'promotion': return '🎉';
-      case 'update': return '🔄';
-      default: return '🔔';
+      case 'message':
+        return '💬';
+      case 'reminder':
+        return '⏰';
+      case 'system':
+        return '⚙️';
+      case 'promotion':
+        return '🎉';
+      case 'update':
+        return '🔄';
+      default:
+        return '🔔';
     }
   };
 
@@ -66,7 +77,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
       'Deletar Notificação',
       'Tem certeza que deseja deletar esta notificação?',
       [
-        { text: 'Cancelar', style: 'cancel' },
+        {text: 'Cancelar', style: 'cancel'},
         {
           text: 'Deletar',
           style: 'destructive',
@@ -81,11 +92,11 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
       padding="$4"
       marginVertical="$1"
       marginHorizontal="$3"
-      backgroundColor={notification.is_read ? "$background" : "$blue1"}
+      backgroundColor={notification.is_read ? '$background' : '$blue1'}
       borderRadius="$4"
       borderWidth={1}
-      borderColor={notification.is_read ? "$borderColor" : "$blue6"}
-      pressStyle={{ opacity: 0.8, scale: 0.98 }}
+      borderColor={notification.is_read ? '$borderColor' : '$blue6'}
+      pressStyle={{opacity: 0.8, scale: 0.98}}
       onPress={handlePress}
     >
       <XStack space="$3" alignItems="flex-start">
@@ -104,7 +115,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
           <XStack justifyContent="space-between" alignItems="flex-start">
             <Text
               fontSize="$4"
-              fontWeight={notification.is_read ? "500" : "700"}
+              fontWeight={notification.is_read ? '500' : '700'}
               color="$color"
               flex={1}
               marginRight="$2"
@@ -145,7 +156,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
                 <Button
                   size="$2"
                   variant="outlined"
-                  icon={<Check size={16} />}
+                  icon={<Check size={16}/>}
                   onPress={handleMarkAsRead}
                   circular
                 />
@@ -154,7 +165,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
               <Button
                 size="$2"
                 variant="outlined"
-                icon={<Trash2 size={16} />}
+                icon={<Trash2 size={16}/>}
                 onPress={handleDelete}
                 circular
                 theme="red"
@@ -197,27 +208,18 @@ export function NotificationsScreen() {
   const haptic = useHapticFeedback();
   const insets = useSafeAreaInsets();
   const [showFilters, setShowFilters] = useState(false);
+  const [currentFilter, setCurrentFilter] = useState<'all' | 'unread' | string>('all');
 
   const {
     notifications,
     unreadCount,
-    stats,
     loading,
-    refreshing,
-    loadingMore,
     markAsRead,
     markAllAsRead,
     deleteNotification,
-    loadMore,
     refresh,
-    applyFilters,
-    clearFilters,
-    filters,
     hasNotifications,
-    hasUnread,
-    isEmpty,
-    pagination
-  } = useNotifications();
+  } = useNotifications({ isForScreen: true });
 
   const handleNotificationPress = async (notification: NotificationData) => {
     if (!notification.is_read) {
@@ -238,13 +240,15 @@ export function NotificationsScreen() {
   };
 
   const handleMarkAllAsRead = async () => {
+    if (unreadCount === 0) return;
+
     haptic.selection();
 
     Alert.alert(
       'Marcar Todas como Lidas',
-      `Marcar ${unreadCount} notificações como lidas?`,
+      `Marcar ${unreadCount} notificação${unreadCount === 1 ? '' : 's'} como lida${unreadCount === 1 ? '' : 's'}?`,
       [
-        { text: 'Cancelar', style: 'cancel' },
+        {text: 'Cancelar', style: 'cancel'},
         {
           text: 'Confirmar',
           onPress: async () => {
@@ -258,17 +262,24 @@ export function NotificationsScreen() {
     );
   };
 
-  const handleFilter = (type?: string) => {
+  const handleFilter = (filterType: 'all' | 'unread' | string) => {
     haptic.light();
-
-    if (type) {
-      applyFilters({ ...filters, type });
-    } else {
-      setShowFilters(!showFilters);
-    }
+    setCurrentFilter(filterType);
+    setShowFilters(false);
   };
 
-  const renderNotificationItem: ListRenderItem<NotificationData> = ({ item }) => (
+  // Filtro local simples
+  const filteredNotifications = notifications.filter(notification => {
+    if (currentFilter === 'unread') {
+      return !notification.is_read;
+    }
+    if (currentFilter !== 'all') {
+      return notification.type === currentFilter;
+    }
+    return true;
+  });
+
+  const renderNotificationItem: ListRenderItem<NotificationData> = ({item}) => (
     <NotificationItem
       notification={item}
       onPress={handleNotificationPress}
@@ -297,16 +308,16 @@ export function NotificationsScreen() {
               <Button
                 size="$3"
                 variant="outlined"
-                icon={<Filter size={18} />}
-                onPress={() => handleFilter()}
+                icon={<Filter size={18}/>}
+                onPress={() => setShowFilters(!showFilters)}
                 circular
               />
 
-              {hasUnread && (
+              {unreadCount > 0 && (
                 <Button
                   size="$3"
                   variant="outlined"
-                  icon={<CheckCheck size={18} />}
+                  icon={<CheckCheck size={18}/>}
                   onPress={handleMarkAllAsRead}
                   circular
                 />
@@ -314,7 +325,7 @@ export function NotificationsScreen() {
             </XStack>
           </XStack>
 
-          {hasUnread && (
+          {unreadCount > 0 && (
             <Text fontSize="$3" color="$blue10" marginTop="$1">
               {unreadCount} não {unreadCount === 1 ? 'lida' : 'lidas'}
             </Text>
@@ -322,65 +333,27 @@ export function NotificationsScreen() {
         </YStack>
       </XStack>
 
-      {stats && (
-        <XStack
-          justifyContent="space-around"
-          padding="$3"
-          backgroundColor="$gray2"
-          borderBottomWidth={1}
-          borderBottomColor="$borderColor"
-        >
-          <YStack alignItems="center">
-            <Text fontSize="$6" fontWeight="bold" color="$blue10">
-              {stats.total_notifications}
-            </Text>
-            <Text fontSize="$2" color="$color11">Total</Text>
-          </YStack>
-
-          <YStack alignItems="center">
-            <Text fontSize="$6" fontWeight="bold" color="$red10">
-              {stats.unread_count}
-            </Text>
-            <Text fontSize="$2" color="$color11">Não lidas</Text>
-          </YStack>
-
-          <YStack alignItems="center">
-            <Text fontSize="$6" fontWeight="bold" color="$green10">
-              {stats.last_24h_count}
-            </Text>
-            <Text fontSize="$2" color="$color11">Últimas 24h</Text>
-          </YStack>
-
-          <YStack alignItems="center">
-            <Text fontSize="$6" fontWeight="bold" color="$orange10">
-              {stats.last_week_count}
-            </Text>
-            <Text fontSize="$2" color="$color11">Última semana</Text>
-          </YStack>
-        </XStack>
-      )}
-
       {showFilters && (
         <XStack space="$2" padding="$3" backgroundColor="$gray1" flexWrap="wrap">
           <Button
             size="$3"
-            variant={!filters.type ? undefined : "outlined"}
-            onPress={() => clearFilters()}
+            variant={currentFilter === 'all' ? undefined : 'outlined'}
+            onPress={() => handleFilter('all')}
           >
             Todas
           </Button>
 
           <Button
             size="$3"
-            variant={filters.unreadOnly ? undefined : "outlined"}
-            onPress={() => applyFilters({ ...filters, unreadOnly: !filters.unreadOnly })}
+            variant={currentFilter === 'unread' ? undefined : 'outlined'}
+            onPress={() => handleFilter('unread')}
           >
-            Não lidas
+            Não lidas ({unreadCount})
           </Button>
 
           <Button
             size="$3"
-            variant={filters.type === 'message' ? undefined : "outlined"}
+            variant={currentFilter === 'message' ? undefined : 'outlined'}
             onPress={() => handleFilter('message')}
           >
             💬 Mensagens
@@ -388,7 +361,7 @@ export function NotificationsScreen() {
 
           <Button
             size="$3"
-            variant={filters.type === 'reminder' ? undefined : "outlined"}
+            variant={currentFilter === 'reminder' ? undefined : 'outlined'}
             onPress={() => handleFilter('reminder')}
           >
             ⏰ Lembretes
@@ -396,7 +369,7 @@ export function NotificationsScreen() {
 
           <Button
             size="$3"
-            variant={filters.type === 'system' ? undefined : "outlined"}
+            variant={currentFilter === 'system' ? undefined : 'outlined'}
             onPress={() => handleFilter('system')}
           >
             ⚙️ Sistema
@@ -404,29 +377,16 @@ export function NotificationsScreen() {
         </XStack>
       )}
 
-      {pagination.total > 0 && (
+      {hasNotifications && (
         <View padding="$2" backgroundColor="$gray1">
           <Text fontSize="$3" color="$color11" textAlign="center">
-            {notifications.length} de {pagination.total} notificações
+            {filteredNotifications.length} notificação{filteredNotifications.length === 1 ? '' : 's'}
+            {currentFilter !== 'all' && ` (filtro: ${currentFilter === 'unread' ? 'não lidas' : currentFilter})`}
           </Text>
         </View>
       )}
     </YStack>
   );
-
-  const renderFooter = () => {
-    if (loadingMore) {
-      return (
-        <View padding="$4" alignItems="center">
-          <Text fontSize="$3" color="$color11">
-            Carregando mais notificações...
-          </Text>
-        </View>
-      );
-    }
-
-    return <View height={20} />;
-  };
 
   const renderEmpty = () => (
     <YStack
@@ -445,24 +405,24 @@ export function NotificationsScreen() {
         alignItems="center"
         justifyContent="center"
       >
-        <BellOff size={40} color="$gray10" />
+        <BellOff size={40} color="$gray10"/>
       </View>
 
       <YStack alignItems="center" space="$2">
         <Text fontSize="$6" fontWeight="bold" color="$color">
-          Nenhuma notificação
+          {currentFilter === 'unread' ? 'Nenhuma notificação não lida' : 'Nenhuma notificação'}
         </Text>
         <Text fontSize="$4" color="$color11" textAlign="center">
-          {filters.unreadOnly
-            ? 'Você não tem notificações não lidas'
+          {currentFilter === 'unread'
+            ? 'Todas as notificações estão marcadas como lidas'
             : 'Quando você receber notificações, elas aparecerão aqui'
           }
         </Text>
       </YStack>
 
-      {Object.keys(filters).length > 0 && (
-        <Button onPress={clearFilters} variant="outlined">
-          Limpar Filtros
+      {currentFilter !== 'all' && (
+        <Button onPress={() => handleFilter('all')} variant="outlined">
+          Ver Todas as Notificações
         </Button>
       )}
     </YStack>
@@ -470,8 +430,9 @@ export function NotificationsScreen() {
 
   return (
     <View flex={1} backgroundColor="$background" paddingTop={insets.top}>
-      <StatusBar style="auto" />
+      <StatusBar style="auto"/>
 
+      {/* Header de navegação */}
       <XStack
         padding="$4"
         alignItems="center"
@@ -495,28 +456,43 @@ export function NotificationsScreen() {
       </XStack>
 
       <FlatList
-        data={notifications}
+        data={filteredNotifications}
         keyExtractor={(item) => item.id}
         renderItem={renderNotificationItem}
         ListHeaderComponent={renderHeader}
-        ListFooterComponent={renderFooter}
-        ListEmptyComponent={isEmpty ? renderEmpty : null}
+        ListEmptyComponent={!loading ? renderEmpty : null}
         refreshControl={
           <RefreshControl
-            refreshing={refreshing}
+            refreshing={loading}
             onRefresh={refresh}
             tintColor="$blue10"
           />
         }
-        onEndReached={loadMore}
-        onEndReachedThreshold={0.3}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           flexGrow: 1,
           backgroundColor: '$background'
         }}
-        style={{ flex: 1 }}
+        style={{flex: 1}}
       />
+
+      {/* Loading indicator */}
+      {loading && (
+        <View
+          position="absolute"
+          top={0}
+          bottom={0}
+          left={0}
+          right={0}
+          backgroundColor="rgba(0,0,0,0.1)"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <Text fontSize="$4" color="$color11">
+            Carregando...
+          </Text>
+        </View>
+      )}
     </View>
   );
 }

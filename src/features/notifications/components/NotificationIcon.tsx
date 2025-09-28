@@ -42,7 +42,7 @@ export const NotificationIcon: React.FC<NotificationIconProps> = ({
         hapticType="light"
       />
 
-      {showBadge && <NotificationBadge/>}
+      {showBadge && <NotificationBadge />}
     </View>
   );
 };
