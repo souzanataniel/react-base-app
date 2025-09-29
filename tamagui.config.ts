@@ -54,6 +54,8 @@ const customTokens = createTokens({
     defaultSecondarySystemBackground: '#F2F2F7',
     defaultSecondarySystemBackgroundDark: '#1C1C1E',
 
+    iconPlaceholder: '#FAF7F7FF',
+
     success: '#3FB950',
     successLight: '#0D4B26',
     warning: '#F79009',

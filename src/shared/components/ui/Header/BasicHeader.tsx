@@ -62,7 +62,7 @@ export const BasicHeader = React.memo(function BasicHeader({
                                                              rightIcon,
                                                              onRightPress,
                                                              showRight = !!rightIcon,
-                                                             hideBackButton = false, // Valor padrão false
+                                                             hideBackButton = false,
                                                              enableBlur = true,
                                                              blurIntensity = 80,
                                                              blurTint,

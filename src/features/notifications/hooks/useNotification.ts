@@ -1,19 +1,19 @@
-import {useCallback, useEffect, useState, useRef} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {useAuth} from '@/features/auth/hooks/useAuth';
 import {NotificationData, NotificationFilters} from '@/features/notifications/types/notification';
 import {notificationManager} from '@/features/notifications/services/notificationManager';
 import {NotificationService} from '@/features/notifications/services/notificationService';
 
 export const useNotifications = (options: { isForScreen?: boolean } = {}) => {
+  const [loading, setLoading] = useState(false);
+
   const {isForScreen = false} = options;
   const {user} = useAuth();
 
-  // Estado único para contador
   const [unreadCount, setUnreadCount] = useState(0);
 
   // Estados apenas para tela
   const [notifications, setNotifications] = useState<NotificationData[]>([]);
-  const [loading, setLoading] = useState(false);
 
   // Ref para controlar se deve recarregar a lista
   const shouldReloadList = useRef(false);
@@ -30,7 +30,7 @@ export const useNotifications = (options: { isForScreen?: boolean } = {}) => {
       const newCount = notificationManager.getUnreadCount();
       const previousCount = unreadCount;
 
-      console.log('[useNotifications] Contador atualizado:', { previousCount, newCount, isForScreen });
+      console.log('[useNotifications] Contador atualizado:', {previousCount, newCount, isForScreen});
 
       setUnreadCount(newCount);
 
