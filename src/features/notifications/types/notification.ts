@@ -39,10 +39,3 @@ export interface NotificationFilters {
   dateFrom?: string;
   dateTo?: string;
 }
-
-export interface NotificationPagination {
-  page: number;
-  limit: number;
-  hasMore: boolean;
-  total: number;
-}

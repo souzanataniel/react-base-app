@@ -55,7 +55,6 @@ class NotificationManager {
 
   subscribe(listener: () => void) {
     this.listeners.add(listener);
-    // Chamar imediatamente com estado atual
     listener();
 
     return () => {
@@ -152,13 +151,11 @@ class NotificationManager {
     await this.loadCounter();
   }
 
-  // Método para forçar atualização da tela
   async triggerUpdate() {
     console.log('[MANAGER] Trigger update manual');
     this.notifyListeners();
   }
 
-  // Método para reconectar manualmente
   async reconnect() {
     console.log('[MANAGER] Reconexão manual solicitada');
     if (this.userId) {
@@ -180,7 +177,6 @@ class NotificationManager {
     };
   }
 
-  // Método para debug - teste de inserção
   async insertTestNotification() {
     if (!this.userId) {
       console.error('[MANAGER] Não é possível inserir: userId não definido');

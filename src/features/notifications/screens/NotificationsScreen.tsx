@@ -10,6 +10,8 @@ import {NotificationData} from '@/features/notifications/types/notification';
 import {useNotifications} from '@/features/notifications/hooks/useNotification';
 import {ScreenWithFixedSection} from '@/shared/components/layout/ScreenWithFixedSection';
 import {SwipeableNotificationItem} from '@/features/notifications/components/SwipeableNotificationItem';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import LottieView from 'lottie-react-native';
 
 const DateSeparator: React.FC<{
   title: string;
@@ -38,11 +40,11 @@ const DateSeparator: React.FC<{
       <Button
         size="$2"
         chromeless
-        color="$blue10"
         pressStyle={{opacity: 0.7}}
         onPress={onMarkAllAsRead}
+        backgroundColor="$button"
       >
-        <Text fontSize="$3" color="$blue10">
+        <Text fontSize="$2" color="$buttonLabel">
           Marcar todas como lida
         </Text>
       </Button>
@@ -107,7 +109,7 @@ const TabSelector: React.FC<{
           borderColor="$button"
           justifyContent="center"
         >
-          <XStack space="$2" alignItems="center">
+          <XStack gap="$2" alignItems="center">
             <Text
               color={currentTab === 'unread' ? '$buttonLabel' : '$color'}
               fontWeight={currentTab === 'unread' ? '600' : '500'}
@@ -145,6 +147,7 @@ export function NotificationsScreen() {
   const haptic = useHapticFeedback();
   const [currentTab, setCurrentTab] = useState<'all' | 'unread'>('all');
   const openSwipeableRef = useRef<Swipeable | null>(null);
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
 
   const {
     notifications,
@@ -152,21 +155,18 @@ export function NotificationsScreen() {
     loading,
     markAsRead,
     markAllAsRead,
-    deleteNotification, // Adicione este método no seu hook
+    deleteNotification,
     refresh,
   } = useNotifications({isForScreen: true});
 
   const handleSwipeableWillOpen = (swipeable: Swipeable) => {
-    // Fecha o swipeable anterior se existir e for diferente do atual
     if (openSwipeableRef.current && openSwipeableRef.current !== swipeable) {
       openSwipeableRef.current.close();
     }
-    // Armazena a referência do novo swipeable aberto
     openSwipeableRef.current = swipeable;
   };
 
   const handleNotificationPress = async (notification: NotificationData) => {
-    // Fecha qualquer swipeable aberto ao clicar em uma notificação
     if (openSwipeableRef.current) {
       openSwipeableRef.current.close();
       openSwipeableRef.current = null;
@@ -191,8 +191,23 @@ export function NotificationsScreen() {
           text: 'Excluir',
           style: 'destructive',
           onPress: async () => {
+            // 1. Marca o item como "deletando" para iniciar animação
+            setDeletingIds(prev => new Set(prev).add(notification.id));
+
+            // 2. Aguarda a animação completar (300ms + 100ms de delay)
+            await new Promise(resolve => setTimeout(resolve, 400));
+
+            // 3. Executa a deleção real no backend
             openSwipeableRef.current = null;
             await deleteNotification(notification.id);
+
+            // 4. Remove do estado de "deletando"
+            setDeletingIds(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(notification.id);
+              return newSet;
+            });
+
             haptic.success();
           },
         },
@@ -255,7 +270,7 @@ export function NotificationsScreen() {
   }, [displayedNotifications]);
 
   const flatListData = React.useMemo(() => {
-    const data: Array<{type: 'separator' | 'notification'; data: any}> = [];
+    const data: Array<{ type: 'separator' | 'notification'; data: any }> = [];
 
     if (groupedNotifications.today.length > 0) {
       data.push({type: 'separator', data: {title: 'Hoje', section: 'today'}});
@@ -298,6 +313,7 @@ export function NotificationsScreen() {
         onPress={handleNotificationPress}
         onDelete={handleDeleteNotification}
         onSwipeableWillOpen={handleSwipeableWillOpen}
+        isDeleting={deletingIds.has(item.data.id)}
       />
     );
   };
@@ -308,21 +324,29 @@ export function NotificationsScreen() {
       alignItems="center"
       justifyContent="center"
       padding="$6"
-      space="$4"
+      gap="$4"
       minHeight={400}
     >
-      <Circle size={80} backgroundColor="$gray3">
-        <BellOff size={40} color="$gray10" />
+      <Circle size={100} backgroundColor="transparent" marginBottom="$4">
+        <LottieView
+          source={require('@/assets/lottie/empty_notification.json')}
+          autoPlay
+          loop={true}
+          style={{
+            width: 172,
+            height: 172,
+          }}
+        />
       </Circle>
 
-      <YStack alignItems="center" space="$2">
+      <YStack alignItems="center" gap="$2">
         <Text fontSize="$6" fontWeight="bold" color="$color">
-          Nenhuma notificação
+          Nenhuma Notificação
         </Text>
-        <Text fontSize="$4" color="$gray11" textAlign="center">
+        <Text fontSize="$4" color="$colorSecondary" textAlign="center">
           {currentTab === 'unread'
-            ? 'Você não tem notificações não lidas'
-            : 'Quando você receber notificações, elas aparecerão aqui'}
+            ? 'Você não tem notificações não lidas.'
+            : 'Quando você receber notificações, elas aparecerão aqui !'}
         </Text>
       </YStack>
     </YStack>
@@ -330,7 +354,7 @@ export function NotificationsScreen() {
 
   return (
     <GestureHandlerRootView style={{flex: 1}}>
-      <StatusBar style="auto" />
+      <StatusBar style="auto"/>
       <ScreenWithFixedSection
         title="Notificações"
         onBack={() => router.back()}
@@ -364,10 +388,11 @@ export function NotificationsScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             flexGrow: 1,
+            paddingBottom: useSafeAreaInsets().bottom,
           }}
           ItemSeparatorComponent={({leadingItem}) =>
             leadingItem?.type === 'notification' ? (
-              <View height="$0.5" backgroundColor="$background" marginHorizontal="$4" />
+              <View height="$0.5" backgroundColor="$background" marginHorizontal="$4"/>
             ) : null
           }
           style={{flex: 1}}
