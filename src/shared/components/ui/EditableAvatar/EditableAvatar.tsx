@@ -122,7 +122,7 @@ export const EditableAvatar: React.FC<EditableAvatarProps> = ({
                 alignItems="center"
                 justifyContent="center"
               >
-                <User size={40} color="$gray10"/>
+                <User size={40} color="$iconPlaceholder"/>
               </Avatar.Fallback>
             </Avatar>
           </YStack>

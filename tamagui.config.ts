@@ -82,6 +82,7 @@ export const config = createTamagui({
     shouldAddPrefersColorThemes: true,
     themeClassNameOnRoot: true,
   },
+  disableWarnings: true,
   tokens: customTokens,
   fonts: {
     heading: poppinsFont,

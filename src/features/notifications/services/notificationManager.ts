@@ -26,6 +26,8 @@ class NotificationManager {
   private reconnectTimeout: number | null = null;
   private heartbeatInterval: number | null = null;
   private loadCounterDebounceTimeout: number | null = null;
+  private isManualDisconnect = false;
+  private isCleaningUp = false;
 
   // Configurações
   private readonly MAX_RECONNECT_ATTEMPTS = 5;
@@ -66,6 +68,12 @@ class NotificationManager {
       return;
     }
 
+    // Prevenir múltiplas chamadas simultâneas
+    if (this.isCleaningUp) {
+      console.log('[MANAGER] Cleanup em andamento, aguardando...');
+      return;
+    }
+
     console.log('[MANAGER] Mudando userId:', { from: this.state.userId, to: userId });
 
     // Limpar recursos do usuário anterior
@@ -95,6 +103,12 @@ class NotificationManager {
   }
 
   private async cleanup() {
+    if (this.isCleaningUp) {
+      console.log('[MANAGER] Cleanup já em andamento');
+      return;
+    }
+
+    this.isCleaningUp = true;
     console.log('[MANAGER] Limpando recursos');
 
     this.clearReconnectTimeout();
@@ -105,6 +119,8 @@ class NotificationManager {
     this.state.isConnected = false;
     this.state.isConnecting = false;
     this.state.connectionAttempts = 0;
+
+    this.isCleaningUp = false;
   }
 
   private async loadCounterImmediate() {
@@ -181,7 +197,12 @@ class NotificationManager {
       return;
     }
 
-    if (this.state.isConnecting) {
+    if (this.isCleaningUp) {
+      console.log('[MANAGER] Não conectando: cleanup em andamento');
+      return;
+    }
+
+    if (this.state.isConnecting) {  // ✅ Correto: this.state.isConnecting
       console.log('[MANAGER] Já está conectando, aguardando...');
       return;
     }
@@ -229,12 +250,31 @@ class NotificationManager {
             this.state.isConnected = true;
             this.state.isConnecting = false;
             this.state.connectionAttempts = 0;
+            this.clearReconnectTimeout();
             console.log('[MANAGER] ✅ Conectado com sucesso!');
-          } else if (status === 'CHANNEL_ERROR' || status === 'CLOSED') {
+
+          } else if (status === 'CHANNEL_ERROR') {
             this.state.isConnected = false;
             this.state.isConnecting = false;
             console.error('[MANAGER] ❌ Erro na conexão');
-            this.scheduleReconnect();
+
+            // Só reconectar se não for desconexão manual
+            if (!this.isManualDisconnect) {
+              this.scheduleReconnect();
+            }
+
+          } else if (status === 'CLOSED') {
+            this.state.isConnected = false;
+            this.state.isConnecting = false;
+
+            // CLOSED pode ser intencional ou não
+            if (!this.isManualDisconnect) {
+              console.warn('[MANAGER] ⚠️ Canal fechado inesperadamente');
+              this.scheduleReconnect();
+            } else {
+              console.log('[MANAGER] Canal fechado intencionalmente');
+            }
+
           } else if (status === 'TIMED_OUT') {
             this.state.isConnected = false;
             this.state.isConnecting = false;
@@ -255,6 +295,8 @@ class NotificationManager {
     if (this.channel) {
       console.log('[MANAGER] Desconectando canal realtime');
 
+      this.isManualDisconnect = true;
+
       try {
         await supabase.removeChannel(this.channel);
       } catch (error) {
@@ -262,6 +304,10 @@ class NotificationManager {
       }
 
       this.channel = null;
+
+      // Delay para garantir que callbacks CLOSED já foram processados
+      await new Promise(resolve => setTimeout(resolve, 100));
+      this.isManualDisconnect = false;
     }
 
     this.state.isConnected = false;
@@ -274,6 +320,11 @@ class NotificationManager {
       return;
     }
 
+    if (this.isManualDisconnect || this.isCleaningUp) {
+      console.log('[MANAGER] Não agendando reconexão: desconexão manual ou cleanup');
+      return;
+    }
+
     this.clearReconnectTimeout();
 
     // Backoff exponencial: 1s, 2s, 4s, 8s, 16s
@@ -283,7 +334,7 @@ class NotificationManager {
     console.log('[MANAGER] Agendando reconexão em', delay, 'ms (tentativa', this.state.connectionAttempts, ')');
 
     this.reconnectTimeout = setTimeout(() => {
-      if (this.state.userId && !this.state.isConnected) {
+      if (this.state.userId && !this.state.isConnected && !this.isCleaningUp) {
         this.connect();
       }
     }, delay);
@@ -300,7 +351,7 @@ class NotificationManager {
     this.stopHeartbeat();
 
     this.heartbeatInterval = setInterval(() => {
-      if (!this.state.isConnected && this.state.userId && networkMonitor.getIsConnected()) {
+      if (!this.state.isConnected && this.state.userId && networkMonitor.getIsConnected() && !this.isCleaningUp) {
         console.log('[MANAGER] 💓 Heartbeat: conexão perdida, reconectando...');
         this.reconnect();
       }
@@ -331,6 +382,7 @@ class NotificationManager {
   async reconnect() {
     console.log('[MANAGER] Reconexão manual solicitada');
     this.state.connectionAttempts = 0;
+    this.clearReconnectTimeout();
     await this.disconnect();
     await this.connect();
   }
@@ -343,7 +395,9 @@ class NotificationManager {
       listenersCount: this.listeners.size,
       networkConnected: networkMonitor.getIsConnected(),
       appActive: networkMonitor.isAppActive(),
-      timeSinceLastSync: Date.now() - this.state.lastSyncTime
+      timeSinceLastSync: Date.now() - this.state.lastSyncTime,
+      isManualDisconnect: this.isManualDisconnect,
+      isCleaningUp: this.isCleaningUp
     };
   }
 }
