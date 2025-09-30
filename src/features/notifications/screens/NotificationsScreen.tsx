@@ -1,17 +1,22 @@
 import React, {useRef, useState} from 'react';
-import {Alert, FlatList, ListRenderItem, Pressable, RefreshControl} from 'react-native';
+import {ActivityIndicator, Alert, Animated, ListRenderItem, Platform} from 'react-native';
 import {Button, Circle, Text, View, XStack, YStack} from 'tamagui';
-import {BellOff} from '@tamagui/lucide-icons';
 import {router} from 'expo-router';
 import {StatusBar} from 'expo-status-bar';
-import {GestureHandlerRootView, Swipeable} from 'react-native-gesture-handler';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import Reanimated, {useAnimatedStyle, useSharedValue, withSpring, withTiming,} from 'react-native-reanimated';
 import {useHapticFeedback} from '@/shared/components/feedback/Haptic/HapticContext';
 import {NotificationData} from '@/features/notifications/types/notification';
 import {useNotifications} from '@/features/notifications/hooks/useNotification';
-import {ScreenWithFixedSection} from '@/shared/components/layout/ScreenWithFixedSection';
 import {SwipeableNotificationItem} from '@/features/notifications/components/SwipeableNotificationItem';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import LottieView from 'lottie-react-native';
+import {ScrollAwareTabSelector} from '@/shared/components/ui/ScrollAwareTabSelector/ScrollAwareTabSelector';
+import {BasicHeader} from '@/shared/components/ui/Header/BasicHeader';
+import {RefreshCcw} from '@tamagui/lucide-icons';
+
+const DEFAULT_HEADER_HEIGHT = Platform.select({ios: 44, android: 56, default: 56});
+const PULL_THRESHOLD = 80;
 
 const DateSeparator: React.FC<{
   title: string;
@@ -52,102 +57,93 @@ const DateSeparator: React.FC<{
   </XStack>
 );
 
-const TabSelector: React.FC<{
-  currentTab: 'all' | 'unread';
-  onTabChange: (tab: 'all' | 'unread') => void;
-  unreadCount: number;
-}> = ({currentTab, onTabChange, unreadCount}) => {
-  const haptic = useHapticFeedback();
+const PullToRefreshIndicator: React.FC<{
+  pullDistance: Animated.AnimatedInterpolation<number>;
+  isRefreshing: boolean;
+  topOffset: number;
+}> = ({pullDistance, isRefreshing, topOffset}) => {
+  const rotation = useSharedValue(0);
+  const scale = useSharedValue(0);
 
-  const handleTabPress = (tab: 'all' | 'unread') => {
-    haptic.light();
-    onTabChange(tab);
+  React.useEffect(() => {
+    if (isRefreshing) {
+      rotation.value = withTiming(360, {duration: 1000});
+      scale.value = withSpring(1, {damping: 12});
+    } else {
+      rotation.value = 0;
+      scale.value = withSpring(0, {damping: 12});
+    }
+  }, [isRefreshing]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      {rotate: `${rotation.value}deg`},
+      {scale: scale.value},
+    ],
+  }));
+
+  const containerStyle = {
+    transform: [{translateY: pullDistance}],
   };
 
   return (
-    <XStack
-      backgroundColor="$card"
-      padding="$2"
-      marginHorizontal="$4"
-      marginTop="$3"
-      marginBottom="$2"
-      borderRadius="$3"
+    <Animated.View
+      style={[
+        {
+          position: 'absolute',
+          top: topOffset,
+          left: 0,
+          right: 0,
+          justifyContent: 'center',
+          alignItems: 'center',
+          paddingVertical: 12,
+          zIndex: 9998,
+        },
+        containerStyle,
+      ]}
+      pointerEvents="none"
     >
-      <Pressable onPress={() => handleTabPress('all')} style={{flex: 1}}>
-        <View
-          flex={1}
-          backgroundColor={currentTab === 'all' ? '$button' : 'transparent'}
-          borderRadius="$4"
-          borderBottomRightRadius="$0"
-          borderTopRightRadius="$0"
-          paddingVertical="$2"
-          alignItems="center"
-          justifyContent="center"
-          borderWidth="$0.5"
-          borderColor="$button"
+      {isRefreshing ? (
+        <Reanimated.View style={animatedStyle}>
+          <ActivityIndicator size="small" color="#007AFF"/>
+        </Reanimated.View>
+      ) : (
+        <Animated.View
+          style={{
+            opacity: pullDistance.interpolate({
+              inputRange: [0, PULL_THRESHOLD],
+              outputRange: [0, 1],
+              extrapolate: 'clamp',
+            }),
+            transform: [
+              {
+                rotate: pullDistance.interpolate({
+                  inputRange: [0, PULL_THRESHOLD],
+                  outputRange: ['0deg', '180deg'],
+                  extrapolate: 'clamp',
+                }),
+              },
+            ],
+          }}
         >
-          <Text
-            color={currentTab === 'all' ? '$buttonLabel' : '$color'}
-            fontWeight={currentTab === 'all' ? '600' : '500'}
-            fontSize="$4"
-          >
-            Todas
-          </Text>
-        </View>
-      </Pressable>
-
-      <Pressable onPress={() => handleTabPress('unread')} style={{flex: 1}}>
-        <View
-          flex={1}
-          backgroundColor={currentTab === 'unread' ? '$button' : 'transparent'}
-          borderRadius="$4"
-          borderBottomLeftRadius="$0"
-          borderTopLeftRadius="$0"
-          paddingVertical="$2"
-          alignItems="center"
-          borderWidth="$0.5"
-          borderColor="$button"
-          justifyContent="center"
-        >
-          <XStack gap="$2" alignItems="center">
-            <Text
-              color={currentTab === 'unread' ? '$buttonLabel' : '$color'}
-              fontWeight={currentTab === 'unread' ? '600' : '500'}
-              fontSize="$4"
-            >
-              Não Lidas
-            </Text>
-            {unreadCount > 0 && (
-              <View
-                backgroundColor={currentTab === 'unread' ? '$buttonLabel' : '$primary'}
-                paddingHorizontal="$2"
-                paddingVertical="$0.5"
-                borderRadius="$6"
-                minWidth={20}
-                alignItems="center"
-                justifyContent="center"
-              >
-                <Text
-                  color={currentTab === 'unread' ? '$color' : '$buttonLabel'}
-                  fontSize="$2"
-                  fontWeight="bold"
-                >
-                  {unreadCount}
-                </Text>
-              </View>
-            )}
-          </XStack>
-        </View>
-      </Pressable>
-    </XStack>
+          <RefreshCcw size="$2" color="$colorSecondary"></RefreshCcw>
+        </Animated.View>
+      )}
+    </Animated.View>
   );
 };
 
 export function NotificationsScreen() {
   const haptic = useHapticFeedback();
+  const insets = useSafeAreaInsets();
   const [currentTab, setCurrentTab] = useState<'all' | 'unread'>('all');
-  const openSwipeableRef = useRef<Swipeable | null>(null);
+  const openSwipeableRef = useRef<any>(null);
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const pullDistance = useRef(new Animated.Value(0)).current;
+
+  const headerHeight = insets.top + DEFAULT_HEADER_HEIGHT;
 
   const {
     notifications,
@@ -159,7 +155,7 @@ export function NotificationsScreen() {
     refresh,
   } = useNotifications({isForScreen: true});
 
-  const handleSwipeableWillOpen = (swipeable: Swipeable) => {
+  const handleSwipeableWillOpen = (swipeable: any) => {
     if (openSwipeableRef.current && openSwipeableRef.current !== swipeable) {
       openSwipeableRef.current.close();
     }
@@ -191,23 +187,15 @@ export function NotificationsScreen() {
           text: 'Excluir',
           style: 'destructive',
           onPress: async () => {
-            // 1. Marca o item como "deletando" para iniciar animação
             setDeletingIds(prev => new Set(prev).add(notification.id));
-
-            // 2. Aguarda a animação completar (300ms + 100ms de delay)
             await new Promise(resolve => setTimeout(resolve, 400));
-
-            // 3. Executa a deleção real no backend
             openSwipeableRef.current = null;
             await deleteNotification(notification.id);
-
-            // 4. Remove do estado de "deletando"
             setDeletingIds(prev => {
               const newSet = new Set(prev);
               newSet.delete(notification.id);
               return newSet;
             });
-
             haptic.success();
           },
         },
@@ -236,6 +224,15 @@ export function NotificationsScreen() {
         },
       ]
     );
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    haptic.selection();
+    await refresh();
+    setTimeout(() => {
+      setIsRefreshing(false);
+    }, 500);
   };
 
   const displayedNotifications = React.useMemo(() => {
@@ -352,24 +349,45 @@ export function NotificationsScreen() {
     </YStack>
   );
 
+  const animatedPullDistance = pullDistance.interpolate({
+    inputRange: [0, PULL_THRESHOLD * 2],
+    outputRange: [0, PULL_THRESHOLD],
+    extrapolate: 'clamp',
+  });
   return (
     <GestureHandlerRootView style={{flex: 1}}>
       <StatusBar style="auto"/>
-      <ScreenWithFixedSection
-        title="Notificações"
-        onBack={() => router.back()}
-        fixedContent={
-          <TabSelector
-            currentTab={currentTab}
-            onTabChange={setCurrentTab}
-            unreadCount={unreadCount}
+      <YStack flex={1} backgroundColor="$background">
+        {/* Header Fixo */}
+        <YStack
+          position="absolute"
+          top={0}
+          left={0}
+          right={0}
+          zIndex={999}
+        >
+          <BasicHeader
+            title="Notificações"
+            onBack={() => router.back()}
           />
-        }
-        fixedContentHeight={70}
-        hasTabBar={false}
-        customBottomPadding={0}
-      >
-        <FlatList
+        </YStack>
+
+        <ScrollAwareTabSelector
+          currentTab={currentTab}
+          onTabChange={setCurrentTab}
+          unreadCount={unreadCount}
+          scrollY={scrollY}
+          headerHeight={headerHeight}
+          topOffset={headerHeight}
+        />
+
+        <PullToRefreshIndicator
+          pullDistance={animatedPullDistance}
+          isRefreshing={isRefreshing}
+          topOffset={headerHeight + 58}
+        />
+
+        <Animated.FlatList
           data={flatListData}
           keyExtractor={(item, index) =>
             item.type === 'separator'
@@ -378,17 +396,13 @@ export function NotificationsScreen() {
           }
           renderItem={renderItem}
           ListEmptyComponent={!loading ? renderEmpty : null}
-          refreshControl={
-            <RefreshControl
-              refreshing={loading}
-              onRefresh={refresh}
-              tintColor="$blue10"
-            />
-          }
+          onRefresh={handleRefresh}
+          refreshing={isRefreshing}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             flexGrow: 1,
-            paddingBottom: useSafeAreaInsets().bottom,
+            paddingTop: headerHeight + 58,
+            paddingBottom: insets.bottom,
           }}
           ItemSeparatorComponent={({leadingItem}) =>
             leadingItem?.type === 'notification' ? (
@@ -396,8 +410,30 @@ export function NotificationsScreen() {
             ) : null
           }
           style={{flex: 1}}
+          onScroll={Animated.event(
+            [
+              {
+                nativeEvent: {
+                  contentOffset: {y: scrollY},
+                },
+              },
+            ],
+            {
+              useNativeDriver: false,
+              listener: (event: any) => {
+                const offsetY = event.nativeEvent.contentOffset.y;
+                // Atualiza o pullDistance quando o usuário puxa para baixo
+                if (offsetY < 0) {
+                  pullDistance.setValue(Math.abs(offsetY));
+                } else {
+                  pullDistance.setValue(0);
+                }
+              },
+            }
+          )}
+          scrollEventThrottle={16}
         />
-      </ScreenWithFixedSection>
+      </YStack>
     </GestureHandlerRootView>
   );
 }

@@ -5,7 +5,7 @@ import {router, useFocusEffect} from 'expo-router';
 import {updateContactsSchema, UpdateContatcsFormData} from '@/features/profile/schema/updateContactsSchema';
 import {CardTitle} from '@/shared/components/ui/Cards/CardTitle';
 import {CircleCheck, Contact} from '@tamagui/lucide-icons';
-import {ScreenWithBlurHeader} from '@/shared/components/layout/ScreenWithBlurHeader';
+import {ScreenWithHeader} from '@/shared/components/layout/ScreenWithHeader';
 import {FormInput} from '@/shared/components/ui/Input/FormInput';
 import {PhoneInput} from '@/shared/components/ui/Input/BasePhoneInput';
 import {DateInput} from '@/shared/components/ui/Input/DateInput';
@@ -186,7 +186,7 @@ export const UpdateContactsScreen = () => {
 
   return (
     <YStack flex={1}>
-      <ScreenWithBlurHeader
+      <ScreenWithHeader
         title="Perfil"
         onBack={() => router.push('/(app)/profile')}
         hasKeyboardInputs={true}
@@ -203,7 +203,7 @@ export const UpdateContactsScreen = () => {
             renderSection(key, section)
           )}
         </YStack>
-      </ScreenWithBlurHeader>
+      </ScreenWithHeader>
 
       <BottomButtonContainer
         onSave={handleSave}

@@ -3,9 +3,7 @@ import {Platform, Pressable, StyleSheet} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useRouter} from 'expo-router';
 import {ArrowLeft} from '@tamagui/lucide-icons';
-import {BlurView} from 'expo-blur';
 import {Text, useTheme, XStack, YStack} from 'tamagui';
-import {useThemeManager} from '@/shared/hooks/useTheme';
 
 const DEFAULT_HEADER_HEIGHT = Platform.select({ios: 44, android: 56, default: 56});
 const SIDE_WIDTH = 56;
@@ -19,11 +17,8 @@ type BasicHeaderProps = {
   rightIcon?: React.ReactNode;
   onRightPress?: () => void;
   showRight?: boolean;
-  hideBackButton?: boolean; // Nova prop adicionada
+  hideBackButton?: boolean;
   backgroundColor?: string;
-  enableBlur?: boolean;
-  blurIntensity?: number;
-  blurTint?: 'light' | 'dark' | 'default';
   statusBarTranslucent?: boolean;
   statusBarStyle?: 'light' | 'dark';
   testID?: string;
@@ -63,15 +58,11 @@ export const BasicHeader = React.memo(function BasicHeader({
                                                              onRightPress,
                                                              showRight = !!rightIcon,
                                                              hideBackButton = false,
-                                                             enableBlur = true,
-                                                             blurIntensity = 80,
-                                                             blurTint,
                                                              testID,
                                                            }: BasicHeaderProps) {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const router = useRouter();
-  const {currentTheme} = useThemeManager();
 
   const handleLeft = useCallback(() => {
     if (onLeftPress) return onLeftPress();
@@ -80,9 +71,6 @@ export const BasicHeader = React.memo(function BasicHeader({
   }, [onLeftPress, onBack, router]);
 
   const totalHeight = insets.top + DEFAULT_HEADER_HEIGHT;
-  const shouldUseBlur = enableBlur && Platform.OS === 'ios';
-  const effectiveBlurTint = blurTint && blurTint !== 'default' ? blurTint : currentTheme;
-  const finalBackgroundColor = shouldUseBlur ? 'transparent' : theme.background?.get();
 
   return (
     <YStack
@@ -90,18 +78,10 @@ export const BasicHeader = React.memo(function BasicHeader({
       position="relative"
       height={totalHeight}
       paddingTop={insets.top}
-      backgroundColor={finalBackgroundColor}
+      backgroundColor={theme.card?.get()}
       {...(Platform.OS === 'android' ? {elevation: 1} : {})}
       style={styles.shadow}
     >
-      {shouldUseBlur && (
-        <BlurView
-          intensity={blurIntensity}
-          tint={effectiveBlurTint}
-          style={styles.blurFill}
-        />
-      )}
-
       <XStack height={DEFAULT_HEADER_HEIGHT} alignItems="center">
         <XStack width={SIDE_WIDTH} alignItems="center" justifyContent="flex-start" paddingLeft="$1">
           {!hideBackButton && (
@@ -142,28 +122,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.22,
     shadowRadius: 0.22,
   },
-  blurFill: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
   iconButton: {
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 9999,
   },
 });
-
-export const useHeaderTheme = () => {
-  const {currentTheme} = useThemeManager();
-  const theme = useTheme();
-
-  return {
-    blurTint: currentTheme,
-    backgroundColor: theme.background?.get(),
-    textColor: theme.color?.get(),
-    iconColor: theme.color?.get(),
-  };
-};

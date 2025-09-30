@@ -64,6 +64,14 @@ const customTokens = createTokens({
     errorLight: '#4C1518',
     info: '#4A8AFF',
     infoLight: '#1A2B4D',
+
+    backgroundHover: '#F2F2F7',
+    borderColorHover: '#F2F2F7',
+    backgroundPress: '#F2F2F7',
+    borderColorPress: '#F2F2F7',
+    borderColor: '#F2F2F7',
+    backgroundColor: '#F2F2F7',
+    shadowColor: '#000000'
   },
 })
 

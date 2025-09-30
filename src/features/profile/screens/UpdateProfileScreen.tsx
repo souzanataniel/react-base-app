@@ -5,7 +5,7 @@ import {router, useFocusEffect} from 'expo-router';
 import {UpdateProfileFormData, updateProfileSchema} from '@/features/profile/schema/updateProfileSchema';
 import {CardTitle} from '@/shared/components/ui/Cards/CardTitle';
 import {CircleCheck, User} from '@tamagui/lucide-icons';
-import {ScreenWithBlurHeader} from '@/shared/components/layout/ScreenWithBlurHeader';
+import {ScreenWithHeader} from '@/shared/components/layout/ScreenWithHeader';
 import {FormInput} from '@/shared/components/ui/Input/FormInput';
 import {PhoneInput} from '@/shared/components/ui/Input/BasePhoneInput';
 import {DateInput} from '@/shared/components/ui/Input/DateInput';
@@ -209,7 +209,7 @@ export const UpdateProfileScreen = () => {
   ), [renderField]);
 
   return (
-    <ScreenWithBlurHeader
+    <ScreenWithHeader
       title="Perfil"
       onBack={() => router.push('/(app)/profile')}
       hasKeyboardInputs={true}
@@ -249,6 +249,6 @@ export const UpdateProfileScreen = () => {
           />
         </XStack>
       </YStack>
-    </ScreenWithBlurHeader>
+    </ScreenWithHeader>
   );
 };

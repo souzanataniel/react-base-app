@@ -3,7 +3,7 @@ import {Text, YStack} from 'tamagui';
 import {router} from 'expo-router';
 import {CardTitle} from '@/shared/components/ui/Cards/CardTitle';
 import {Lock} from '@tamagui/lucide-icons';
-import {ScreenWithBlurHeader} from '@/shared/components/layout/ScreenWithBlurHeader';
+import {ScreenWithHeader} from '@/shared/components/layout/ScreenWithHeader';
 import {FormPasswordInput} from '@/shared/components/ui/Input/FormPasswordInput';
 import {useGlobalAlert} from '@/shared/components/feedback/BaseAlert/BaseAlert';
 import {useUpdatePassword} from '@/features/auth/hooks/useUpdatePassword';
@@ -127,7 +127,7 @@ export const UpdatePasswordScreen = () => {
 
   return (
     <YStack flex={1}>
-      <ScreenWithBlurHeader
+      <ScreenWithHeader
         title="Alterar Senha"
         onBack={() => router.push('/(app)/profile')}
         hasKeyboardInputs={true}
@@ -167,7 +167,7 @@ export const UpdatePasswordScreen = () => {
             </YStack>
           </YStack>
         </YStack>
-      </ScreenWithBlurHeader>
+      </ScreenWithHeader>
 
       <BottomButtonContainer
         onSave={handleSave}

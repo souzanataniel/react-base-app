@@ -6,7 +6,7 @@ import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useThemeManager } from '@/shared/hooks/useTheme';
 import { useCommon } from '@/shared/hooks/useCommon';
-import { ScreenWithBlurHeader } from '@/shared/components/layout/ScreenWithBlurHeader';
+import { ScreenWithHeader } from '@/shared/components/layout/ScreenWithHeader';
 import { ProfileHeader } from '@/features/profile/components/ProfileHeader';
 import { useHaptic, useHapticFeedback } from '@/shared/components/feedback/Haptic/HapticContext';
 import { updateProfileSingleField } from '@/features/profile/services/updateProfileService';
@@ -97,7 +97,7 @@ export function ProfileScreen() {
   return (
     <>
       <StatusBar style="auto" />
-      <ScreenWithBlurHeader
+      <ScreenWithHeader
         title="Perfil"
         onBack={() => router.push('/(app)/profile')}
         hasKeyboardInputs={true}
@@ -186,7 +186,7 @@ export function ProfileScreen() {
             showChevron={false}
           />
         </ListSection>
-      </ScreenWithBlurHeader>
+      </ScreenWithHeader>
     </>
   );
 }

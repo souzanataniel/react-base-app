@@ -4,7 +4,8 @@ import {Circle, Text, XStack, YStack} from 'tamagui';
 import {Calendar, CreditCard, Star, Tag, Trash2} from '@tamagui/lucide-icons';
 import {formatDistanceToNow} from 'date-fns';
 import {ptBR} from 'date-fns/locale';
-import {Swipeable} from 'react-native-gesture-handler';
+import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
+import Reanimated, {Extrapolate, interpolate, SharedValue, useAnimatedStyle,} from 'react-native-reanimated';
 import {useHapticFeedback} from '@/shared/components/feedback/Haptic/HapticContext';
 import {NotificationData} from '@/features/notifications/types/notification';
 
@@ -12,7 +13,7 @@ interface SwipeableNotificationItemProps {
   notification: NotificationData;
   onPress: (notification: NotificationData) => void;
   onDelete: (notification: NotificationData) => void;
-  onSwipeableWillOpen?: (ref: Swipeable) => void;
+  onSwipeableWillOpen?: (ref: any) => void;
   shouldClose?: boolean;
   isDeleting?: boolean;
 }
@@ -22,7 +23,7 @@ export const SwipeableNotificationItem: React.FC<
 > = ({notification, onPress, onDelete, onSwipeableWillOpen, shouldClose, isDeleting = false}) => {
   const haptic = useHapticFeedback();
   const scaleAnim = useRef(new Animated.Value(1)).current;
-  const swipeableRef = useRef<Swipeable>(null);
+  const swipeableRef = useRef<any>(null);
 
   // Animações de remoção - TODAS com useNativeDriver: true
   const slideAnim = useRef(new Animated.Value(0)).current;
@@ -126,31 +127,41 @@ export const SwipeableNotificationItem: React.FC<
   };
 
   const renderRightActions = (
-    progress: Animated.AnimatedInterpolation<number>,
-    dragX: Animated.AnimatedInterpolation<number>
+    progress: SharedValue<number>,
+    drag: SharedValue<number>
   ) => {
-    const scale = dragX.interpolate({
-      inputRange: [-100, -50, 0],
-      outputRange: [1, 0.9, 0],
-      extrapolate: 'clamp',
-    });
+    const animatedStyle = useAnimatedStyle(() => {
+      const scale = interpolate(
+        drag.value,
+        [-100, -50, 0],
+        [1, 0.9, 0],
+        Extrapolate.CLAMP
+      );
 
-    const opacity = dragX.interpolate({
-      inputRange: [-100, -50, 0],
-      outputRange: [1, 0.7, 0],
-      extrapolate: 'clamp',
+      const opacity = interpolate(
+        drag.value,
+        [-100, -50, 0],
+        [1, 0.7, 0],
+        Extrapolate.CLAMP
+      );
+
+      return {
+        opacity,
+        transform: [{scale}],
+      };
     });
 
     return (
-      <Animated.View
-        style={{
-          opacity,
-          transform: [{scale}],
-          justifyContent: 'center',
-          alignItems: 'center',
-          width: 80,
-          marginRight: 8,
-        }}
+      <Reanimated.View
+        style={[
+          {
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: 80,
+            marginRight: 8,
+          },
+          animatedStyle,
+        ]}
       >
         <Pressable
           onPress={handleDelete}
@@ -168,7 +179,7 @@ export const SwipeableNotificationItem: React.FC<
             Excluir
           </Text>
         </Pressable>
-      </Animated.View>
+      </Reanimated.View>
     );
   };
 
