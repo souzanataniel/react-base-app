@@ -1,4 +1,3 @@
-// notificationManager.ts - Versão refatorada com todos os problemas resolvidos
 import { supabase } from '@/lib/supabase';
 import { NotificationService } from './notificationService';
 import { networkMonitor } from './networkMonitor';
@@ -24,9 +23,9 @@ class NotificationManager {
 
   private listeners: Set<(count: number) => void> = new Set();
   private channel: any = null;
-  private reconnectTimeout: NodeJS.Timeout | null = null;
-  private heartbeatInterval: NodeJS.Timeout | null = null;
-  private loadCounterDebounceTimeout: NodeJS.Timeout | null = null;
+  private reconnectTimeout: number | null = null;
+  private heartbeatInterval: number | null = null;
+  private loadCounterDebounceTimeout: number | null = null;
 
   // Configurações
   private readonly MAX_RECONNECT_ATTEMPTS = 5;

@@ -1,6 +1,5 @@
-// networkMonitor.ts - Monitora estado da rede e notifica mudanças
 import NetInfo from '@react-native-community/netinfo';
-import { AppState, AppStateStatus } from 'react-native';
+import {AppState, AppStateStatus} from 'react-native';
 
 type NetworkCallback = (isConnected: boolean) => void;
 type AppStateCallback = (state: AppStateStatus) => void;
@@ -14,7 +13,6 @@ class NetworkMonitor {
   private appStateSubscription: any = null;
 
   initialize() {
-    // Monitorar conexão de rede
     this.unsubscribeNetInfo = NetInfo.addEventListener(state => {
       const wasConnected = this.isConnected;
       this.isConnected = state.isConnected ?? false;

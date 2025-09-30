@@ -11,7 +11,9 @@
       "ios": {
         "resourceClass": "m-medium",
         "simulator": false,
-        "buildConfiguration": "Debug"
+        "buildConfiguration": "Debug",
+        "node": "20.17.0",
+        "cocoapods": "1.15.2"
       },
       "android": {
         "buildType": "apk",
@@ -22,8 +24,10 @@
       "distribution": "internal",
       "channel": "preview",
       "ios": {
-        "resourceClass": "m1-medium",
-        "buildConfiguration": "Release"
+        "resourceClass": "m-medium",
+        "buildConfiguration": "Release",
+        "node": "20.17.0",
+        "cocoapods": "1.15.2"
       },
       "android": {
         "buildType": "apk"
@@ -32,8 +36,10 @@
     "production": {
       "channel": "production",
       "ios": {
-        "resourceClass": "m1-medium",
-        "buildConfiguration": "Release"
+        "resourceClass": "m-medium",
+        "buildConfiguration": "Release",
+        "node": "20.17.0",
+        "cocoapods": "1.15.2"
       }
     },
     "development-simulator": {
