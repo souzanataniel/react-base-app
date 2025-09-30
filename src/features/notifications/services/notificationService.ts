@@ -220,16 +220,32 @@ export class NotificationService {
 
   static async getUnreadCount(userId: string): Promise<number> {
     try {
-      const {data, error} = await supabase.rpc('get_unread_notifications_count');
+      // Opção 1: Se sua RPC usa o token JWT automaticamente
+      const { data, error } = await supabase.rpc('get_unread_notifications_count');
 
       if (error) {
-        console.error('Erro ao obter contagem:', error.message);
-        return 0;
+        console.error('[SERVICE] Erro ao obter contagem:', error.message);
+
+        // Fallback: contar manualmente se RPC falhar
+        console.log('[SERVICE] Usando fallback manual para contagem');
+        const { count, error: countError } = await supabase
+          .from('notifications')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', userId)
+          .eq('is_read', false)
+          .or('expires_at.is.null,expires_at.gt.' + new Date().toISOString());
+
+        if (countError) {
+          console.error('[SERVICE] Erro no fallback:', countError.message);
+          return 0;
+        }
+
+        return count || 0;
       }
 
       return data || 0;
     } catch (error) {
-      console.error('Erro ao obter contagem de não lidas:', error instanceof Error ? error.message : 'Erro desconhecido');
+      console.error('[SERVICE] Erro ao obter contagem:', error);
       return 0;
     }
   }
@@ -420,5 +436,54 @@ export class NotificationService {
     if (subscription) {
       supabase.removeChannel(subscription);
     }
+  }
+
+  static async checkConnection(): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .select('id')
+        .limit(1);
+
+      return !error;
+    } catch (error) {
+      console.error('[SERVICE] Erro ao verificar conexão:', error);
+      return false;
+    }
+  }
+
+// ADICIONAR: Método para sincronização offline
+  static async syncOfflineActions(
+    actions: Array<{
+      type: 'mark_read' | 'mark_all_read' | 'delete';
+      notificationId?: string;
+      userId?: string;
+    }>
+  ): Promise<{ succeeded: number; failed: number }> {
+    let succeeded = 0;
+    let failed = 0;
+
+    console.log('[SERVICE] Sincronizando', actions.length, 'ações offline');
+
+    for (const action of actions) {
+      try {
+        if (action.type === 'mark_read' && action.notificationId) {
+          const success = await this.markAsRead(action.notificationId);
+          success ? succeeded++ : failed++;
+        } else if (action.type === 'mark_all_read' && action.userId) {
+          const count = await this.markAllAsRead(action.userId);
+          count > 0 ? succeeded++ : failed++;
+        } else if (action.type === 'delete' && action.notificationId) {
+          const success = await this.deleteNotification(action.notificationId);
+          success ? succeeded++ : failed++;
+        }
+      } catch (error) {
+        console.error('[SERVICE] Erro ao sincronizar ação:', action, error);
+        failed++;
+      }
+    }
+
+    console.log('[SERVICE] Sincronização concluída:', { succeeded, failed });
+    return { succeeded, failed };
   }
 }

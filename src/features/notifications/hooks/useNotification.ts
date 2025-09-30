@@ -1,177 +1,307 @@
-import {useCallback, useEffect, useRef, useState} from 'react';
-import {useAuth} from '@/features/auth/hooks/useAuth';
-import {NotificationData, NotificationFilters} from '@/features/notifications/types/notification';
-import {notificationManager} from '@/features/notifications/services/notificationManager';
-import {NotificationService} from '@/features/notifications/services/notificationService';
+// useNotification.ts - Versão refatorada sem race conditions
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import { NotificationData, NotificationFilters } from '@/features/notifications/types/notification';
+import { notificationManager } from '@/features/notifications/services/notificationManager';
+import { NotificationService } from '@/features/notifications/services/notificationService';
 
-export const useNotifications = (options: { isForScreen?: boolean } = {}) => {
-  const [loading, setLoading] = useState(false);
+interface UseNotificationsOptions {
+  isForScreen?: boolean;
+  autoLoad?: boolean;
+}
 
-  const {isForScreen = false} = options;
-  const {user} = useAuth();
+export const useNotifications = (options: UseNotificationsOptions = {}) => {
+  const { isForScreen = false, autoLoad = true } = options;
+  const { user } = useAuth();
 
+  // Estados
   const [unreadCount, setUnreadCount] = useState(0);
-
-  // Estados apenas para tela
   const [notifications, setNotifications] = useState<NotificationData[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [filters, setFilters] = useState<NotificationFilters>({});
 
-  // Ref para controlar se deve recarregar a lista
-  const shouldReloadList = useRef(false);
-  const currentFilters = useRef<NotificationFilters>({});
+  // Refs para controle
+  const pendingActionsRef = useRef<Set<string>>(new Set());
+  const isMountedRef = useRef(true);
+  const lastLoadTimeRef = useRef(0);
 
-  // Configurar usuário no manager
+  // Configurar userId no manager
   useEffect(() => {
     notificationManager.setUserId(user?.id || null);
   }, [user?.id]);
 
-  // Escutar mudanças do manager
+  // Subscrever ao contador do manager
   useEffect(() => {
-    const unsubscribe = notificationManager.subscribe(() => {
-      const newCount = notificationManager.getUnreadCount();
-      const previousCount = unreadCount;
+    const unsubscribe = notificationManager.subscribe((newCount) => {
+      console.log('[useNotifications] Contador do manager mudou:', newCount);
 
-      console.log('[useNotifications] Contador atualizado:', {previousCount, newCount, isForScreen});
+      if (isMountedRef.current) {
+        setUnreadCount(newCount);
 
-      setUnreadCount(newCount);
+        // Recarregar lista apenas se for para tela e não há ações pendentes
+        if (isForScreen && pendingActionsRef.current.size === 0) {
+          const timeSinceLastLoad = Date.now() - lastLoadTimeRef.current;
 
-      // Se é para tela e houve mudança no contador, recarregar lista
-      if (isForScreen && newCount !== previousCount) {
-        console.log('[useNotifications] Recarregando lista devido a mudança no contador');
-        shouldReloadList.current = true;
+          // Evitar reloads muito frequentes (mínimo 1 segundo)
+          if (timeSinceLastLoad > 1000) {
+            console.log('[useNotifications] Recarregando lista devido a mudança no contador');
+            loadNotifications(filters);
+          } else {
+            console.log('[useNotifications] Reload ignorado (muito recente)');
+          }
+        }
       }
     });
 
     return unsubscribe;
-  }, [unreadCount, isForScreen]);
+  }, [isForScreen, filters]);
 
-  // Recarregar lista quando necessário
-  useEffect(() => {
-    if (isForScreen && shouldReloadList.current && user?.id) {
-      console.log('[useNotifications] Executando reload automático da lista');
-      shouldReloadList.current = false;
-      loadNotifications(currentFilters.current);
-    }
-  }, [unreadCount]); // Dependência no unreadCount para disparar quando ele mudar
-
-  // Carregar notificações apenas se for para tela
-  const loadNotifications = useCallback(async (filters: NotificationFilters = {}) => {
-    if (!user?.id || !isForScreen) return;
-
-    console.log('[useNotifications] Carregando notificações com filtros:', filters);
-
-    // Atualizar filtros atuais
-    currentFilters.current = filters;
-
-    setLoading(true);
-    try {
-      const result = await NotificationService.getUserNotifications(user.id, 1, 20, filters);
-      console.log('[useNotifications] Notificações carregadas:', result.data.length);
-      setNotifications(result.data);
-    } catch (error) {
-      console.error('Erro ao carregar notificações:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [user?.id, isForScreen]);
-
-  // Carregar notificações quando usuário mudar (apenas para tela)
-  useEffect(() => {
-    if (isForScreen && user?.id) {
-      loadNotifications();
-    }
-  }, [user?.id, isForScreen, loadNotifications]);
-
-  // Ações simplificadas
-  const markAsRead = useCallback(async (notificationId: string) => {
-    console.log('[useNotifications] Marcando como lida:', notificationId);
-
-    const success = await NotificationService.markAsRead(notificationId);
-    if (success) {
-      // Atualizar lista local se for tela
-      if (isForScreen) {
-        setNotifications(prev =>
-          prev.map(n => n.id === notificationId
-            ? {...n, is_read: true, read_at: new Date().toISOString()}
-            : n
-          )
-        );
+  // Carregar notificações
+  const loadNotifications = useCallback(
+    async (filtersToApply: NotificationFilters = {}) => {
+      if (!user?.id || !isForScreen) {
+        return;
       }
-      // Forçar atualização do contador
-      await notificationManager.refresh();
-    }
-    return success;
-  }, [isForScreen]);
 
-  const markAllAsRead = useCallback(async () => {
+      console.log('[useNotifications] Carregando notificações:', filtersToApply);
+
+      setLoading(true);
+      setFilters(filtersToApply);
+      lastLoadTimeRef.current = Date.now();
+
+      try {
+        const result = await NotificationService.getUserNotifications(
+          user.id,
+          1,
+          20,
+          filtersToApply
+        );
+
+        if (isMountedRef.current) {
+          console.log('[useNotifications] Notificações carregadas:', result.data.length);
+          setNotifications(result.data);
+        }
+      } catch (error) {
+        console.error('[useNotifications] Erro ao carregar notificações:', error);
+      } finally {
+        if (isMountedRef.current) {
+          setLoading(false);
+        }
+      }
+    },
+    [user?.id, isForScreen]
+  );
+
+  // Carregar notificações ao montar (apenas para tela)
+  useEffect(() => {
+    if (isForScreen && user?.id && autoLoad) {
+      loadNotifications(filters);
+    }
+  }, [user?.id, isForScreen, autoLoad]);
+
+  // Cleanup ao desmontar
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  // Marcar como lida
+  const markAsRead = useCallback(
+    async (notificationId: string): Promise<boolean> => {
+      if (!user?.id) return false;
+
+      console.log('[useNotifications] Marcando como lida:', notificationId);
+
+      // Adicionar à lista de ações pendentes
+      pendingActionsRef.current.add(notificationId);
+
+      try {
+        // Update otimista (apenas visual)
+        if (isForScreen) {
+          setNotifications((prev) =>
+            prev.map((n) =>
+              n.id === notificationId
+                ? { ...n, is_read: true, read_at: new Date().toISOString() }
+                : n
+            )
+          );
+        }
+
+        // Chamar API
+        const success = await NotificationService.markAsRead(notificationId);
+
+        if (success) {
+          // Forçar refresh do contador (consistência)
+          await notificationManager.refresh();
+        } else {
+          // Rollback do update otimista
+          if (isForScreen) {
+            console.warn('[useNotifications] Falha ao marcar como lida, fazendo rollback');
+            await loadNotifications(filters);
+          }
+        }
+
+        return success;
+      } catch (error) {
+        console.error('[useNotifications] Erro ao marcar como lida:', error);
+
+        // Rollback em caso de erro
+        if (isForScreen) {
+          await loadNotifications(filters);
+        }
+
+        return false;
+      } finally {
+        // Remover da lista de ações pendentes após um delay
+        setTimeout(() => {
+          pendingActionsRef.current.delete(notificationId);
+        }, 500);
+      }
+    },
+    [user?.id, isForScreen, filters, loadNotifications]
+  );
+
+  // Marcar todas como lidas
+  const markAllAsRead = useCallback(async (): Promise<number> => {
     if (!user?.id) return 0;
 
     console.log('[useNotifications] Marcando todas como lidas');
 
-    const count = await NotificationService.markAllAsRead(user.id);
-    if (count > 0) {
+    // Adicionar marcador global de ação pendente
+    pendingActionsRef.current.add('mark_all');
+
+    try {
+      // Update otimista
       if (isForScreen) {
-        setNotifications(prev =>
-          prev.map(n => ({...n, is_read: true, read_at: new Date().toISOString()}))
+        setNotifications((prev) =>
+          prev.map((n) => ({
+            ...n,
+            is_read: true,
+            read_at: new Date().toISOString(),
+          }))
         );
       }
-      await notificationManager.refresh();
-    }
-    return count;
-  }, [user?.id, isForScreen]);
 
-  const deleteNotification = useCallback(async (notificationId: string) => {
-    console.log('[useNotifications] Deletando notificação:', notificationId);
+      // Chamar API
+      const count = await NotificationService.markAllAsRead(user.id);
 
-    const success = await NotificationService.deleteNotification(notificationId);
-    if (success) {
-      if (isForScreen) {
-        setNotifications(prev => prev.filter(n => n.id !== notificationId));
+      if (count > 0) {
+        // Forçar refresh do contador
+        await notificationManager.refresh();
       }
-      await notificationManager.refresh();
-    }
-    return success;
-  }, [isForScreen]);
 
+      return count;
+    } catch (error) {
+      console.error('[useNotifications] Erro ao marcar todas como lidas:', error);
+
+      // Rollback
+      if (isForScreen) {
+        await loadNotifications(filters);
+      }
+
+      return 0;
+    } finally {
+      setTimeout(() => {
+        pendingActionsRef.current.delete('mark_all');
+      }, 500);
+    }
+  }, [user?.id, isForScreen, filters, loadNotifications]);
+
+  // Deletar notificação
+  const deleteNotification = useCallback(
+    async (notificationId: string): Promise<boolean> => {
+      console.log('[useNotifications] Deletando notificação:', notificationId);
+
+      pendingActionsRef.current.add(notificationId);
+
+      try {
+        // Update otimista
+        if (isForScreen) {
+          setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+        }
+
+        // Chamar API
+        const success = await NotificationService.deleteNotification(notificationId);
+
+        if (success) {
+          // Forçar refresh do contador
+          await notificationManager.refresh();
+        } else {
+          // Rollback
+          if (isForScreen) {
+            await loadNotifications(filters);
+          }
+        }
+
+        return success;
+      } catch (error) {
+        console.error('[useNotifications] Erro ao deletar notificação:', error);
+
+        // Rollback
+        if (isForScreen) {
+          await loadNotifications(filters);
+        }
+
+        return false;
+      } finally {
+        setTimeout(() => {
+          pendingActionsRef.current.delete(notificationId);
+        }, 500);
+      }
+    },
+    [isForScreen, filters, loadNotifications]
+  );
+
+  // Refresh manual
   const refresh = useCallback(async () => {
     console.log('[useNotifications] Refresh manual');
-    await notificationManager.refresh();
-    if (isForScreen) {
-      await loadNotifications(currentFilters.current);
-    }
-  }, [isForScreen, loadNotifications]);
 
-  // Método para forçar reload da lista (útil para debug)
-  const forceReloadList = useCallback(async () => {
+    // Limpar ações pendentes
+    pendingActionsRef.current.clear();
+
+    // Refresh do contador
+    await notificationManager.refresh();
+
+    // Recarregar lista se for tela
     if (isForScreen) {
-      console.log('[useNotifications] Forçando reload da lista');
-      await loadNotifications(currentFilters.current);
+      await loadNotifications(filters);
     }
-  }, [isForScreen, loadNotifications]);
+  }, [isForScreen, filters, loadNotifications]);
 
   return {
-    // Dados básicos (sempre disponíveis)
+    // Dados básicos
     unreadCount,
     hasUnread: unreadCount > 0,
 
-    // Dados da tela (apenas se isForScreen = true)
+    // Dados da tela
     notifications: isForScreen ? notifications : [],
     loading: isForScreen ? loading : false,
+    hasNotifications: isForScreen ? notifications.length > 0 : false,
 
     // Ações
-    refresh,
+    loadNotifications: isForScreen ? loadNotifications : async () => {},
     markAsRead,
     markAllAsRead,
     deleteNotification,
-    loadNotifications: isForScreen ? loadNotifications : () => {},
-    forceReloadList,
+    refresh,
 
-    // Utils
-    hasNotifications: isForScreen ? notifications.length > 0 : false,
+    // Estado da conexão
+    isConnected: notificationManager.isConnected(),
   };
 };
 
-// Hook específico para badge
+// Hook especializado para badge
 export const useNotificationCounter = () => {
-  const {unreadCount, hasUnread} = useNotifications({isForScreen: false});
-  return {unreadCount, hasUnread};
+  const { unreadCount, hasUnread, isConnected } = useNotifications({
+    isForScreen: false,
+    autoLoad: false,
+  });
+
+  return {
+    unreadCount,
+    hasUnread,
+    isConnected,
+  };
 };
