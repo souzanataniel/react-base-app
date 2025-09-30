@@ -66,6 +66,30 @@
           "androidNotificationChannelDescription": "Default notification channel",
           "iosNSExtensionPrincipalClass": "NotificationService"
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static",
+            "deploymentTarget": "13.0",
+            "extraPods": [
+              {
+                "name": "Firebase",
+                "configurations": ["Debug", "Release"],
+                "modular_headers": true
+              },
+              {
+                "name": "FirebaseCoreInternal",
+                "modular_headers": true
+              },
+              {
+                "name": "GoogleUtilities",
+                "modular_headers": true
+              }
+            ]
+          }
+        }
       ]
     ],
     "experiments": {

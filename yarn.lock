@@ -7810,7 +7810,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-build-properties@npm:~1.0.7":
+"expo-build-properties@npm:~1.0.9":
   version: 1.0.9
   resolution: "expo-build-properties@npm:1.0.9"
   dependencies:
@@ -11784,7 +11784,7 @@ __metadata:
     date-fns: "npm:^4.1.0"
     expo: "npm:~54.0.10"
     expo-blur: "npm:~15.0.6"
-    expo-build-properties: "npm:~1.0.7"
+    expo-build-properties: "npm:~1.0.9"
     expo-constants: "npm:~18.0.9"
     expo-dev-client: "npm:~6.0.12"
     expo-device: "npm:~8.0.8"
