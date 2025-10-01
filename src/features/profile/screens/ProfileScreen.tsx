@@ -1,27 +1,28 @@
-import React, { useState } from 'react';
-import { BellRing, Info, Lock, LogOut, MapPin, PaintBucket, Phone, User, Vibrate } from '@tamagui/lucide-icons';
-import { ListItem, ListSection } from '@/shared/components/lists';
-import { useAuth } from '@/features/auth/hooks/useAuth';
-import { router } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { useThemeManager } from '@/shared/hooks/useTheme';
-import { useCommon } from '@/shared/hooks/useCommon';
-import { ScreenWithHeader } from '@/shared/components/layout/ScreenWithHeader';
-import { ProfileHeader } from '@/features/profile/components/ProfileHeader';
-import { useHaptic, useHapticFeedback } from '@/shared/components/feedback/Haptic/HapticContext';
-import { updateProfileSingleField } from '@/features/profile/services/updateProfileService';
+import React, {useState} from 'react';
+import {BellRing, Info, Lock, LogOut, MapPin, PaintBucket, Phone, User, Vibrate} from '@tamagui/lucide-icons';
+import {ListItem, ListSection} from '@/shared/components/lists';
+import {useAuth} from '@/features/auth/hooks/useAuth';
+import {router} from 'expo-router';
+import {StatusBar} from 'expo-status-bar';
+import {useThemeManager} from '@/shared/hooks/useTheme';
+import {useCommon} from '@/shared/hooks/useCommon';
+import {ScreenWithHeader} from '@/shared/components/layout/ScreenWithHeader';
+import {ProfileHeader} from '@/features/profile/components/ProfileHeader';
+import {useHaptic, useHapticFeedback} from '@/shared/components/feedback/Haptic/HapticContext';
+import {updateProfileSingleField} from '@/features/profile/services/updateProfileService';
 import {NotificationService} from '@/features/notifications/services/notificationService';
+import {useGlobalModal} from '@/shared/components/feedback/BaseModal/BaseModal';
+import {AppInfoScreen} from '@/features/profile/screens/AppInfoScreen';
 
 export function ProfileScreen() {
-  const { user } = useAuth();
-
+  const {user} = useAuth();
   const [enableLocation, setEnableLocation] = useState(user?.location);
   const [enableNotifications, setEnableNotifications] = useState(user?.pushNotifications || false);
-
-  const { nextTheme, getModeDisplayName } = useThemeManager();
-  const { logoutApp } = useCommon();
-  const { isHapticEnabled, setHapticEnabled } = useHaptic();
+  const {nextTheme, getModeDisplayName} = useThemeManager();
+  const {logoutApp} = useCommon();
+  const {isHapticEnabled, setHapticEnabled} = useHaptic();
   const haptic = useHapticFeedback();
+  const {showModal} = useGlobalModal();
 
   const changeTheme = async () => {
     await nextTheme();
@@ -94,9 +95,19 @@ export function ProfileScreen() {
     await changeTheme();
   };
 
+  const handleOpenModal = () => {
+    showModal({
+      snapPoints: ['75%'],
+      enablePanDownToClose: true,
+      content: (
+        <AppInfoScreen/>
+      ),
+    });
+  };
+
   return (
     <>
-      <StatusBar style="auto" />
+      <StatusBar style="auto"/>
       <ScreenWithHeader
         title="Perfil"
         onBack={() => router.push('/(app)/profile')}
@@ -116,17 +127,17 @@ export function ProfileScreen() {
 
         <ListSection title="Perfil">
           <ListItem
-            icon={<User size={18} color="$colorInverse" />}
+            icon={<User size={18} color="$colorInverse"/>}
             title="Informações Pessoais"
             onPress={() => handleNavigation('/(app)/update-profile')}
           />
           <ListItem
-            icon={<Phone size={18} color="$colorInverse" />}
+            icon={<Phone size={18} color="$colorInverse"/>}
             title="Informações de Contato"
             onPress={() => handleNavigation('/(app)/update-contacts')}
           />
           <ListItem
-            icon={<Lock size={18} color="$colorInverse" />}
+            icon={<Lock size={18} color="$colorInverse"/>}
             title="Alterar Senha"
             onPress={() => handleNavigation('/(app)/update-password')}
           />
@@ -134,7 +145,7 @@ export function ProfileScreen() {
 
         <ListSection title="Configurações">
           <ListItem
-            icon={<MapPin size={18} color="$colorInverse" />}
+            icon={<MapPin size={18} color="$colorInverse"/>}
             title="Localização"
             showSwitch={true}
             switchValue={enableLocation}
@@ -143,7 +154,7 @@ export function ProfileScreen() {
           />
 
           <ListItem
-            icon={<BellRing size={18} color="$colorInverse" />}
+            icon={<BellRing size={18} color="$colorInverse"/>}
             title="Notificações"
             showSwitch={true}
             switchValue={enableNotifications}
@@ -154,7 +165,7 @@ export function ProfileScreen() {
 
         <ListSection title="Aplicação">
           <ListItem
-            icon={<Vibrate size={18} color="$colorInverse" />}
+            icon={<Vibrate size={18} color="$colorInverse"/>}
             title="Feedback Tátil"
             subtitle={isHapticEnabled ? 'Vibração ativada' : 'Vibração desativada'}
             showSwitch={true}
@@ -163,7 +174,7 @@ export function ProfileScreen() {
             showChevron={false}
           />
           <ListItem
-            icon={<PaintBucket size={18} color="$colorInverse" />}
+            icon={<PaintBucket size={18} color="$colorInverse"/>}
             title="Tema do App"
             valueText={getModeDisplayName()}
             onPress={handleThemeChange}
@@ -172,15 +183,16 @@ export function ProfileScreen() {
 
         <ListSection title="Geral">
           <ListItem
-            icon={<Info size={18} color="$colorInverse" />}
+            icon={<Info size={18} color="$colorInverse"/>}
             title="Sobre o App"
             onPress={() => {
               haptic.light();
+              handleOpenModal();
             }}
             showChevron={false}
           />
           <ListItem
-            icon={<LogOut size={18} color="$colorInverse" />}
+            icon={<LogOut size={18} color="$colorInverse"/>}
             title="Sair do App"
             onPress={handleLogout}
             showChevron={false}

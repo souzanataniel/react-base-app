@@ -1,9 +1,11 @@
 import {Text, View, YStack} from 'tamagui';
 import {Camera, Edit3, User} from '@tamagui/lucide-icons';
 import React from 'react';
-import {ActivityIndicator, Alert, Image, Platform, Pressable} from 'react-native';
+import {ActivityIndicator, Image, Platform, Pressable} from 'react-native';
 import {ProfileHeaderProps} from '@/shared/components/lists/types';
 import {useAvatar} from '@/features/profile/hooks/useAvatar';
+import {useImageSourcePicker} from '@/shared/components/ui/ImageSourcePicker/ImageSourcePicker';
+import {useGlobalAlert} from '@/shared/components/feedback/BaseAlert/BaseAlert';
 
 interface ExtendedProfileHeaderProps extends Omit<ProfileHeaderProps, 'avatarUri'> {
   name: string;
@@ -34,6 +36,9 @@ export const ProfileHeader = ({
     refreshAvatar,
   } = useAvatar();
 
+  const {show: showImagePicker} = useImageSourcePicker();
+  const {showSuccess, showError, showConfirm} = useGlobalAlert();
+
   React.useEffect(() => {
     console.log('ProfileHeader avatar state:', {
       avatarUrl: avatarUrl ? (avatarUrl.includes('?t=') ? 'cached' : 'server') : 'none',
@@ -51,54 +56,16 @@ export const ProfileHeader = ({
   const marginBottom = Platform.OS === 'ios' ? '$4' : '$6';
   const config = sizeConfig[size];
 
-  const handleAvatarPress = () => {
-    if (!enableAvatarUpload && onEditPress) {
-      onEditPress();
-      return;
-    }
-
-    if (!enableAvatarUpload) return;
-
-    const options: any = [
-      {
-        text: 'Câmera',
-        onPress: () => handlePickImage('camera'),
-      },
-      {
-        text: 'Galeria',
-        onPress: () => handlePickImage('gallery'),
-      },
-    ];
-
-    if (avatarUrl) {
-      options.push({
-        text: 'Remover Foto',
-        onPress: handleDeleteAvatar,
-        style: 'destructive'
-      });
-
-      options.push({
-        text: 'Atualizar Avatar',
-        onPress: handleRefreshAvatar,
-      });
-    }
-
-    options.push({
-      onPress(): Promise<void> {
-        return Promise.resolve(undefined);
-      },
-      text: 'Cancelar',
-    });
-
-    Alert.alert('Foto do Perfil', 'Escolha uma opção', options);
-  };
-
   const handlePickImage = async (source: 'camera' | 'gallery') => {
     try {
       const result = await pickImage(source);
       if (result && onAvatarUploadSuccess) {
         onAvatarUploadSuccess(result);
-        Alert.alert('Sucesso', 'Foto do perfil atualizada!');
+        showSuccess(
+          'Sucesso!',
+          'Foto do perfil atualizada com sucesso',
+          'Fechar'
+        );
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error : new Error('Erro desconhecido');
@@ -107,40 +74,84 @@ export const ProfileHeader = ({
       if (onAvatarUploadError) {
         onAvatarUploadError(errorMessage);
       } else {
-        Alert.alert('Erro', 'Falha ao fazer upload da imagem');
+        showError(
+          'Erro no Upload',
+          'Não foi possível fazer upload da imagem. Tente novamente.',
+          'Fechar'
+        );
       }
     }
   };
 
   const handleDeleteAvatar = async (): Promise<void> => {
-    Alert.alert(
-      'Confirmar',
+    showConfirm(
+      'Remover Foto',
       'Tem certeza que deseja remover sua foto do perfil?',
-      [
-        {text: 'Cancelar', style: 'cancel'},
-        {
-          text: 'Remover',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteAvatar();
-              Alert.alert('Sucesso', 'Foto do perfil removida!');
-            } catch (error) {
-              Alert.alert('Erro', 'Falha ao remover foto do perfil');
-            }
-          },
-        },
-      ]
+      'Remover',
+      'Cancelar',
+      async () => {
+        try {
+          await deleteAvatar();
+          showSuccess(
+            'Foto Removida!',
+            'Sua foto do perfil foi removida com sucesso',
+            'Fechar'
+          );
+        } catch (error) {
+          showError(
+            'Erro ao Remover',
+            'Não foi possível remover a foto do perfil. Tente novamente.',
+            'Fechar'
+          );
+        }
+      },
+      undefined,
+      'warning'
     );
   };
 
   const handleRefreshAvatar = async (): Promise<void> => {
     try {
       await refreshAvatar();
-      Alert.alert('Sucesso', 'Avatar atualizado!');
+      showSuccess(
+        'Avatar Atualizado!',
+        'Seu avatar foi atualizado com sucesso',
+        'Fechar'
+      );
     } catch (error) {
-      Alert.alert('Erro', 'Falha ao atualizar avatar');
+      showError(
+        'Erro ao Atualizar',
+        'Não foi possível atualizar o avatar. Tente novamente.',
+        'Fechar'
+      );
     }
+  };
+
+  const handleAvatarPress = () => {
+    if (!enableAvatarUpload && onEditPress) {
+      onEditPress();
+      return;
+    }
+
+    if (!enableAvatarUpload) return;
+
+    showImagePicker({
+      title: 'Foto do Perfil',
+      subtitle: 'Escolha uma opção',
+      showCamera: true,
+      showGallery: true,
+      showRemove: !!avatarUrl,
+      showAvatar: !!avatarUrl,
+      cameraText: 'Câmera',
+      galleryText: 'Galeria',
+      removeText: 'Remover Foto',
+      avatarText: 'Atualizar Avatar',
+      cancelText: 'Cancelar',
+      onCamera: () => handlePickImage('camera'),
+      onGallery: () => handlePickImage('gallery'),
+      onRemove: handleDeleteAvatar,
+      onAvatar: handleRefreshAvatar,
+    });
   };
 
   const AvatarLoadingOverlay = () => (

@@ -1,17 +1,19 @@
 import React from 'react';
-import { TamaguiProvider, type TamaguiProviderProps, Theme } from 'tamagui';
-import { ToastProvider, ToastViewport } from '@tamagui/toast';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { BaseToast } from '../components';
-import { BaseLoaderProvider } from '../components/feedback/Loader';
-import { config } from '../../../tamagui.config';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from '@/features/auth/providers/AuthProvider';
-import { useThemeManager } from '@/shared/hooks/useTheme';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { BaseAlertProvider } from '@/shared/components/feedback/BaseAlert/BaseAlert';
-import { HapticProvider } from '@/shared/components/feedback/Haptic/HapticContext';
+import {TamaguiProvider, type TamaguiProviderProps, Theme} from 'tamagui';
+import {ToastProvider, ToastViewport} from '@tamagui/toast';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {BaseToast} from '../components';
+import {BaseLoaderProvider} from '../components/feedback/Loader';
+import {config} from '../../../tamagui.config';
+import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
+import {AuthProvider} from '@/features/auth/providers/AuthProvider';
+import {useThemeManager} from '@/shared/hooks/useTheme';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {BaseAlertProvider} from '@/shared/components/feedback/BaseAlert/BaseAlert';
+import {HapticProvider} from '@/shared/components/feedback/Haptic/HapticContext';
 import '@/lib/firebase';
+import {BaseModalProvider} from '@/shared/components/feedback/BaseModal/BaseModal';
+import {ImageSourcePickerProvider} from '@/shared/components/ui/ImageSourcePicker/ImageSourcePicker';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,8 +39,8 @@ const queryClient = new QueryClient({
   },
 });
 
-const ThemedApp = ({ children }: { children: React.ReactNode }) => {
-  const { currentTheme } = useThemeManager();
+const ThemedApp = ({children}: { children: React.ReactNode }) => {
+  const {currentTheme} = useThemeManager();
 
   return (
     <Theme name={currentTheme}>
@@ -46,8 +48,12 @@ const ThemedApp = ({ children }: { children: React.ReactNode }) => {
         <ToastProvider swipeDirection="horizontal" duration={3000} native={[]}>
           <BaseAlertProvider>
             <BaseLoaderProvider>
-              {children}
-              <BaseToast />
+              <BaseModalProvider>
+                <ImageSourcePickerProvider>
+                  {children}
+                </ImageSourcePickerProvider>;
+              </BaseModalProvider>
+              <BaseToast/>
               <ToastViewport
                 top="$10"
                 left="$4"
@@ -63,11 +69,11 @@ const ThemedApp = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export function AppProvider({ children, ...rest }: Omit<TamaguiProviderProps, 'config'>) {
+export function AppProvider({children, ...rest}: Omit<TamaguiProviderProps, 'config'>) {
   return (
     <HapticProvider>
       <QueryClientProvider client={queryClient}>
-        <GestureHandlerRootView style={{ flex: 1 }}>
+        <GestureHandlerRootView style={{flex: 1}}>
           <SafeAreaProvider>
             <TamaguiProvider config={config} {...rest}>
               <ThemedApp>

@@ -199,7 +199,7 @@ export const UpdateProfileScreen = () => {
 
   const renderSection = useCallback((sectionKey: string, section: Section) => (
     <YStack key={`${sectionKey}-section`} gap="$2">
-      <Text fontSize="$2" fontWeight="600" color="$gray11" paddingLeft="$2">
+      <Text fontSize="$2" fontWeight="600" color="$colorSecondary" paddingLeft="$2">
         {section.title}
       </Text>
       <YStack backgroundColor="$card" borderRadius="$3" padding="$3" gap="$2.5">

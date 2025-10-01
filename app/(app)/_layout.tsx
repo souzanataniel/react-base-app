@@ -1,17 +1,17 @@
 import React from 'react';
-import { Tabs } from 'expo-router';
-import { AnimatedTabBar } from '@/shared/components/ui/AnimatedTabBar/AnimatedTabBar';
-import { AuthGate } from '@/features/auth/components/AuthGate';
+import {Tabs} from 'expo-router';
+import {AnimatedTabBar} from '@/shared/components/ui/AnimatedTabBar/AnimatedTabBar';
+import {AuthGate} from '@/features/auth/components/AuthGate';
 
 export default function AppLayout() {
-  const visibleTabs = ['home', 'favorites', 'profile'];
-  const hiddenTabs = ['notifications', 'update-profile', 'update-contacts', 'update-password'];
+  const visibleTabs = ['home', 'favorites', 'notifications', 'profile'];
+  const hiddenTabs = ['update-profile', 'update-contacts', 'update-password'];
 
   return (
     <AuthGate requireAuth>
       <Tabs
         tabBar={(props) =>
-          <AnimatedTabBar {...props} visibleTabs={visibleTabs} hiddenRoutes={hiddenTabs} />}>
+          <AnimatedTabBar {...props} visibleTabs={visibleTabs} hiddenRoutes={hiddenTabs}/>}>
 
         <Tabs.Screen
           name="home"
@@ -36,6 +36,15 @@ export default function AppLayout() {
           options={{
             title: 'Detalhes',
             tabBarLabel: 'Ajustes',
+          }}
+        />
+
+        <Tabs.Screen
+          name="notifications"
+          options={{
+            title: 'Notificações',
+            tabBarLabel: 'Notificações',
+            headerShown: false,
           }}
         />
 
@@ -75,14 +84,6 @@ export default function AppLayout() {
           }}
         />
 
-        <Tabs.Screen
-          name="notifications"
-          options={{
-            title: 'Notificações',
-            tabBarLabel: 'Notificações',
-            headerShown: false,
-          }}
-        />
       </Tabs>
     </AuthGate>
   );

@@ -231,7 +231,7 @@ const BaseAlert = forwardRef<BaseAlertRef, {}>((_, ref) => {
   const renderButtons = () => {
     if (alertData.showTwoButtons) {
       return (
-        <XStack space="$3" width="100%" maxWidth={300}>
+        <XStack gap="$3" width="100%" maxWidth={300}>
           <Button
             flex={1}
             size="$4"
