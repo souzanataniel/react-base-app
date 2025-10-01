@@ -4,6 +4,7 @@ import {Bell} from '@tamagui/lucide-icons';
 import {NotificationBadge} from './NotificationBadge';
 import {router} from 'expo-router';
 import {HapticButton} from '@/shared/components/feedback/Haptic/HapticButton';
+import {opacity} from 'react-native-reanimated/lib/typescript/Colors';
 
 interface NotificationIconProps {
   size?: number;
@@ -38,7 +39,8 @@ export const NotificationIcon: React.FC<NotificationIconProps> = ({
         width={40}
         height={40}
         padding={0}
-        icon={<Bell size={size / 2} color={color}/>}
+        pressStyle={{scale: 0.98}}
+        icon={<Bell size={size / 2} color={color} />}
         hapticType="light"
       />
 

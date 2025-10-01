@@ -13,6 +13,7 @@ import {updateProfileSingleField} from '@/features/profile/services/updateProfil
 import {NotificationService} from '@/features/notifications/services/notificationService';
 import {useGlobalModal} from '@/shared/components/feedback/BaseModal/BaseModal';
 import {AppInfoScreen} from '@/features/profile/screens/AppInfoScreen';
+import {View, Platform} from 'react-native';
 
 export function ProfileScreen() {
   const {user} = useAuth();
@@ -44,7 +45,6 @@ export function ProfileScreen() {
 
     try {
       if (enabled) {
-        // Solicitar permissão e habilitar notificações
         const result = await NotificationService.requestPermissionAndGetToken();
 
         if (result.success) {
@@ -55,13 +55,11 @@ export function ProfileScreen() {
           setEnableNotifications(false);
         }
       } else {
-        // Desabilitar notificações
         setEnableNotifications(false);
         await updateProfileSingleField(user!.id, 'push_notifications', false);
       }
     } catch (error) {
       console.error('Erro ao alterar configuração de notificações:', error);
-      // Reverter o estado em caso de erro
       setEnableNotifications(!enabled);
     }
   };
@@ -113,90 +111,92 @@ export function ProfileScreen() {
         onBack={() => router.back()}
         hasKeyboardInputs={true}
       >
-        <ProfileHeader
-          name={user?.displayName ? user?.displayName : `${user?.firstName} ${user?.lastName}`}
-          subtitle={user?.email}
-          size="medium"
-          showEditButton={true}
-          enableAvatarUpload={true}
-          onEditPress={handleEditProfile}
-          onAvatarUploadSuccess={handleAvatarUploadSuccess}
-          onAvatarUploadError={handleAvatarUploadError}
-        />
-
-        <ListSection title="Perfil">
-          <ListItem
-            icon={<User size={18} color="$colorInverse"/>}
-            title="Informações Pessoais"
-            onPress={() => handleNavigation('/(app)/update-profile')}
-          />
-          <ListItem
-            icon={<Phone size={18} color="$colorInverse"/>}
-            title="Informações de Contato"
-            onPress={() => handleNavigation('/(app)/update-contacts')}
-          />
-          <ListItem
-            icon={<Lock size={18} color="$colorInverse"/>}
-            title="Alterar Senha"
-            onPress={() => handleNavigation('/(app)/update-password')}
-          />
-        </ListSection>
-
-        <ListSection title="Configurações">
-          <ListItem
-            icon={<MapPin size={18} color="$colorInverse"/>}
-            title="Localização"
-            showSwitch={true}
-            switchValue={enableLocation}
-            onSwitchChange={handleLocationToggle}
-            showChevron={false}
+        <View style={{paddingBottom: Platform.OS === 'android' ? 120 : 0}}>
+          <ProfileHeader
+            name={user?.displayName ? user?.displayName : `${user?.firstName} ${user?.lastName}`}
+            subtitle={user?.email}
+            size="medium"
+            showEditButton={true}
+            enableAvatarUpload={true}
+            onEditPress={handleEditProfile}
+            onAvatarUploadSuccess={handleAvatarUploadSuccess}
+            onAvatarUploadError={handleAvatarUploadError}
           />
 
-          <ListItem
-            icon={<BellRing size={18} color="$colorInverse"/>}
-            title="Notificações"
-            showSwitch={true}
-            switchValue={enableNotifications}
-            onSwitchChange={handleNotificationsToggle}
-            showChevron={false}
-          />
-        </ListSection>
+          <ListSection title="Perfil">
+            <ListItem
+              icon={<User size={18} color="$colorInverse"/>}
+              title="Informações Pessoais"
+              onPress={() => handleNavigation('/(app)/update-profile')}
+            />
+            <ListItem
+              icon={<Phone size={18} color="$colorInverse"/>}
+              title="Informações de Contato"
+              onPress={() => handleNavigation('/(app)/update-contacts')}
+            />
+            <ListItem
+              icon={<Lock size={18} color="$colorInverse"/>}
+              title="Alterar Senha"
+              onPress={() => handleNavigation('/(app)/update-password')}
+            />
+          </ListSection>
 
-        <ListSection title="Aplicação">
-          <ListItem
-            icon={<Vibrate size={18} color="$colorInverse"/>}
-            title="Feedback Tátil"
-            subtitle={isHapticEnabled ? 'Vibração ativada' : 'Vibração desativada'}
-            showSwitch={true}
-            switchValue={isHapticEnabled}
-            onSwitchChange={handleHapticToggle}
-            showChevron={false}
-          />
-          <ListItem
-            icon={<PaintBucket size={18} color="$colorInverse"/>}
-            title="Tema do App"
-            valueText={getModeDisplayName()}
-            onPress={handleThemeChange}
-          />
-        </ListSection>
+          <ListSection title="Configurações">
+            <ListItem
+              icon={<MapPin size={18} color="$colorInverse"/>}
+              title="Localização"
+              showSwitch={true}
+              switchValue={enableLocation}
+              onSwitchChange={handleLocationToggle}
+              showChevron={false}
+            />
 
-        <ListSection title="Geral">
-          <ListItem
-            icon={<Info size={18} color="$colorInverse"/>}
-            title="Sobre o App"
-            onPress={() => {
-              haptic.light();
-              handleOpenModal();
-            }}
-            showChevron={false}
-          />
-          <ListItem
-            icon={<LogOut size={18} color="$colorInverse"/>}
-            title="Sair do App"
-            onPress={handleLogout}
-            showChevron={false}
-          />
-        </ListSection>
+            <ListItem
+              icon={<BellRing size={18} color="$colorInverse"/>}
+              title="Notificações"
+              showSwitch={true}
+              switchValue={enableNotifications}
+              onSwitchChange={handleNotificationsToggle}
+              showChevron={false}
+            />
+          </ListSection>
+
+          <ListSection title="Aplicação">
+            <ListItem
+              icon={<Vibrate size={18} color="$colorInverse"/>}
+              title="Feedback Tátil"
+              subtitle={isHapticEnabled ? 'Vibração ativada' : 'Vibração desativada'}
+              showSwitch={true}
+              switchValue={isHapticEnabled}
+              onSwitchChange={handleHapticToggle}
+              showChevron={false}
+            />
+            <ListItem
+              icon={<PaintBucket size={18} color="$colorInverse"/>}
+              title="Tema do App"
+              valueText={getModeDisplayName()}
+              onPress={handleThemeChange}
+            />
+          </ListSection>
+
+          <ListSection title="Geral">
+            <ListItem
+              icon={<Info size={18} color="$colorInverse"/>}
+              title="Sobre o App"
+              onPress={() => {
+                haptic.light();
+                handleOpenModal();
+              }}
+              showChevron={false}
+            />
+            <ListItem
+              icon={<LogOut size={18} color="$colorInverse"/>}
+              title="Sair do App"
+              onPress={handleLogout}
+              showChevron={false}
+            />
+          </ListSection>
+        </View>
       </ScreenWithHeader>
     </>
   );

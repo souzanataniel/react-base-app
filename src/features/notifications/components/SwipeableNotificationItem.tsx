@@ -220,7 +220,7 @@ export const SwipeableNotificationItem: React.FC<
               borderLeftColor={
                 !notification.is_read ? '$defaultPrimary' : '$colorTertiary'
               }
-              borderRightWidth={!notification.is_read ? '$2' : '0'}
+              borderRightWidth={!notification.is_read ? '$2' : "$0"}
               borderRightColor={
                 !notification.is_read ? '$defaultPrimary' : '$colorTertiary'
               }

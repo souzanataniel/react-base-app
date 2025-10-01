@@ -14,6 +14,7 @@ export const HapticButton: React.FC<HapticButtonProps> = ({
                                                             hapticType = 'light',
                                                             disableHaptic = false,
                                                             onPress,
+                                                            pressStyle,
                                                             ...props
                                                           }) => {
   const {triggerHaptic} = useHaptic();
@@ -43,11 +44,17 @@ export const HapticButton: React.FC<HapticButtonProps> = ({
     }
   };
 
+  const mergedPressStyle = {
+    backgroundColor: props.backgroundColor || 'transparent',
+    ...pressStyle,
+  };
+
   return (
     <Animated.View style={buttonStyle}>
       <Button
         {...props}
         onPress={handlePress}
+        pressStyle={mergedPressStyle}
       />
     </Animated.View>
   );
