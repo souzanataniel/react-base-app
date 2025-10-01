@@ -14,6 +14,7 @@ import LottieView from 'lottie-react-native';
 import {ScrollAwareTabSelector} from '@/shared/components/ui/ScrollAwareTabSelector/ScrollAwareTabSelector';
 import {BasicHeader} from '@/shared/components/ui/Header/BasicHeader';
 import {RefreshCcw} from '@tamagui/lucide-icons';
+import {useConfirm} from '@/shared/components/feedback/BaseConfirm/BaseConfirm';
 
 const DEFAULT_HEADER_HEIGHT = Platform.select({ios: 44, android: 56, default: 56});
 const PULL_THRESHOLD = 80;
@@ -177,31 +178,35 @@ export function NotificationsScreen() {
     }
   };
 
+
+  const {confirm} = useConfirm();
+
   const handleDeleteNotification = async (notification: NotificationData) => {
-    Alert.alert(
-      'Excluir Notificação',
-      'Tem certeza que deseja excluir esta notificação?',
-      [
-        {text: 'Cancelar', style: 'cancel'},
-        {
-          text: 'Excluir',
-          style: 'destructive',
-          onPress: async () => {
-            setDeletingIds(prev => new Set(prev).add(notification.id));
-            await new Promise(resolve => setTimeout(resolve, 400));
-            openSwipeableRef.current = null;
-            await deleteNotification(notification.id);
-            setDeletingIds(prev => {
-              const newSet = new Set(prev);
-              newSet.delete(notification.id);
-              return newSet;
-            });
-            haptic.success();
-          },
-        },
-      ]
-    );
+    const confirmed = await confirm({
+      title: 'Excluir Notificação',
+      description: 'Tem certeza que deseja excluir esta notificação?',
+      confirmTextColor: '$error',
+      cancelText: 'Cancelar',
+      confirmText: 'Excluir',
+    });
+
+    if (confirmed) {
+      setDeletingIds(prev => new Set(prev).add(notification.id));
+      await new Promise(resolve => setTimeout(resolve, 400));
+      openSwipeableRef.current = null;
+      await deleteNotification(notification.id);
+      setDeletingIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(notification.id);
+        return newSet;
+      });
+    } else {
+      if (openSwipeableRef.current) {
+        openSwipeableRef.current.close();
+      }
+    }
   };
+
 
   const handleMarkAllAsRead = async () => {
     if (unreadCount === 0) return;
@@ -244,14 +249,24 @@ export function NotificationsScreen() {
 
   const groupedNotifications = React.useMemo(() => {
     const now = new Date();
+    // Normaliza para meia-noite de hoje
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
     const today: NotificationData[] = [];
     const yesterday: NotificationData[] = [];
     const older: NotificationData[] = [];
 
     displayedNotifications.forEach(notification => {
       const notificationDate = new Date(notification.created_at);
+      // Normaliza a data da notificação para meia-noite
+      const notificationStart = new Date(
+        notificationDate.getFullYear(),
+        notificationDate.getMonth(),
+        notificationDate.getDate()
+      );
+
       const diffInDays = Math.floor(
-        (now.getTime() - notificationDate.getTime()) / (1000 * 60 * 60 * 24)
+        (todayStart.getTime() - notificationStart.getTime()) / (1000 * 60 * 60 * 24)
       );
 
       if (diffInDays === 0) {
@@ -357,7 +372,7 @@ export function NotificationsScreen() {
   return (
     <GestureHandlerRootView style={{flex: 1}}>
       <StatusBar style="auto"/>
-      <YStack flex={1} backgroundColor="$background">
+      <YStack flex={1} backgroundColor="$background" marginBottom={insets.bottom + 40}>
         {/* Header Fixo */}
         <YStack
           position="absolute"
@@ -422,7 +437,6 @@ export function NotificationsScreen() {
               useNativeDriver: false,
               listener: (event: any) => {
                 const offsetY = event.nativeEvent.contentOffset.y;
-                // Atualiza o pullDistance quando o usuário puxa para baixo
                 if (offsetY < 0) {
                   pullDistance.setValue(Math.abs(offsetY));
                 } else {

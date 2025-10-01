@@ -14,6 +14,7 @@ import {HapticProvider} from '@/shared/components/feedback/Haptic/HapticContext'
 import '@/lib/firebase';
 import {BaseModalProvider} from '@/shared/components/feedback/BaseModal/BaseModal';
 import {ImageSourcePickerProvider} from '@/shared/components/ui/ImageSourcePicker/ImageSourcePicker';
+import {ConfirmProvider} from '@/shared/components/feedback/BaseConfirm/BaseConfirm';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -50,8 +51,10 @@ const ThemedApp = ({children}: { children: React.ReactNode }) => {
             <BaseLoaderProvider>
               <BaseModalProvider>
                 <ImageSourcePickerProvider>
+                  <ConfirmProvider>
                   {children}
-                </ImageSourcePickerProvider>;
+                  </ConfirmProvider>
+                </ImageSourcePickerProvider>
               </BaseModalProvider>
               <BaseToast/>
               <ToastViewport

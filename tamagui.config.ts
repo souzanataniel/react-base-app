@@ -118,6 +118,8 @@ export const config = createTamagui({
       backgroundInput: '#F9F9F9',
       placeholderText: '#3C3C434C',
 
+      grayButton: '#D6D6D6'
+
     },
 
     dark: {
@@ -146,6 +148,8 @@ export const config = createTamagui({
 
       backgroundInput: '#323232',
       placeholderText: '#EBEBF54C',
+
+      grayButton: '#D6D6D6'
 
     }
   },

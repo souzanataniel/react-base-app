@@ -24,10 +24,7 @@ const InfoRow: React.FC<InfoRowProps> = ({icon, label, value, onPress}) => {
       paddingHorizontal="$3"
       backgroundColor="$background"
       borderRadius="$3"
-      pressStyle={onPress ? {
-        backgroundColor: '$backgroundPress',
-        scale: 0.98,
-      } : undefined}
+      pressStyle={onPress ? {opacity: 0.7, scale: 0.98} : undefined}
     >
       <XStack alignItems="center" gap="$2.5" flex={1}>
         {icon}
@@ -69,10 +66,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({icon, label, onPress}) => (
       backgroundColor="$background"
       borderRadius="$4"
       gap="$2"
-      pressStyle={{
-        backgroundColor: '$backgroundPress',
-        scale: 0.98,
-      }}
+      pressStyle={{opacity: 0.7, scale: 0.98}}
     >
       {icon}
       <Text fontSize="$2" fontWeight="500" color="$color">

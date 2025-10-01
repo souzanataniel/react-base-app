@@ -110,9 +110,8 @@ export function ProfileScreen() {
       <StatusBar style="auto"/>
       <ScreenWithHeader
         title="Perfil"
-        onBack={() => router.push('/(app)/profile')}
+        onBack={() => router.back()}
         hasKeyboardInputs={true}
-        hideBackButton
       >
         <ProfileHeader
           name={user?.displayName ? user?.displayName : `${user?.firstName} ${user?.lastName}`}

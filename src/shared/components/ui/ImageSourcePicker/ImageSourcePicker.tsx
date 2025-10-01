@@ -9,10 +9,9 @@ import React, {
   useRef,
   useState
 } from 'react';
-import {Dimensions, Keyboard, Platform, StyleSheet} from 'react-native';
+import {Dimensions, Keyboard, Platform, Pressable, StyleSheet} from 'react-native';
 import {Button, Text, useTheme, YStack} from 'tamagui';
 import BottomSheet, {BottomSheetBackdrop, BottomSheetView} from '@gorhom/bottom-sheet';
-import Animated, {useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useHapticFeedback} from '@/shared/components/feedback/Haptic/HapticContext';
 
@@ -81,8 +80,6 @@ const ImageSourcePicker = forwardRef<ImageSourcePickerRef, {}>((_, ref) => {
     return [`${heightPercentage}%`];
   }, [config]);
 
-  const contentOpacity = useSharedValue(0);
-
   const showPicker = useCallback((pickerConfig?: ImageSourceConfig) => {
     Keyboard.dismiss();
 
@@ -95,12 +92,10 @@ const ImageSourcePicker = forwardRef<ImageSourcePickerRef, {}>((_, ref) => {
     }
 
     bottomSheetRef.current?.expand();
-    contentOpacity.value = withSpring(1, {damping: 15, stiffness: 200});
   }, [hapticFeedback]);
 
   const hidePicker = useCallback(() => {
-    contentOpacity.value = withSpring(0, {damping: 15, stiffness: 200});
-    setTimeout(() => bottomSheetRef.current?.close(), 150);
+    bottomSheetRef.current?.close();
   }, []);
 
   useImperativeHandle(ref, () => ({show: showPicker, hide: hidePicker}), [showPicker, hidePicker]);
@@ -110,10 +105,6 @@ const ImageSourcePicker = forwardRef<ImageSourcePickerRef, {}>((_, ref) => {
   ), []);
 
   const handleOption = useCallback(async (callback?: () => void | Promise<void>) => {
-    if (!config.disableHaptic) {
-      hapticFeedback.selection();
-    }
-
     hidePicker();
 
     setTimeout(async () => {
@@ -123,20 +114,12 @@ const ImageSourcePicker = forwardRef<ImageSourcePickerRef, {}>((_, ref) => {
         console.error('Image source picker error:', error);
       }
     }, 200);
-  }, [config.disableHaptic, hapticFeedback, hidePicker]);
+  }, [hidePicker]);
 
   const handleCancel = useCallback(() => {
-    if (!config.disableHaptic) {
-      hapticFeedback.light();
-    }
-
     config.onCancel?.();
     hidePicker();
-  }, [config, hapticFeedback, hidePicker]);
-
-  const contentAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: contentOpacity.value,
-  }));
+  }, [config, hidePicker]);
 
   return (
     <BottomSheet
@@ -151,128 +134,191 @@ const ImageSourcePicker = forwardRef<ImageSourcePickerRef, {}>((_, ref) => {
       containerStyle={styles.bottomSheetContainer}
     >
       <BottomSheetView style={styles.contentContainer}>
-        <Animated.View style={contentAnimatedStyle}>
-          <YStack
-            flex={1}
-            gap="$2"
-            padding="$4"
-            backgroundColor="$card"
-            paddingBottom={Math.max(insets.bottom || 0, 20)}
-          >
-            {/* Header */}
-            <YStack gap="$1" marginBottom="$3" alignItems="center">
+        <YStack
+          flex={1}
+          gap="$2"
+          padding="$4"
+          backgroundColor="$card"
+          paddingBottom={Math.max(insets.bottom || 0, 20)}
+        >
+          {/* Header */}
+          <YStack gap="$1" marginBottom="$3" alignItems="center">
+            <Text
+              fontSize="$7"
+              fontWeight="700"
+              color="$color"
+              textAlign="center"
+            >
+              {config.title}
+            </Text>
+
+            {config.subtitle && (
               <Text
-                fontSize="$7"
-                fontWeight="700"
-                color="$color"
+                fontSize="$4"
+                color="$colorTertiary"
                 textAlign="center"
               >
-                {config.title}
+                {config.subtitle}
               </Text>
+            )}
+          </YStack>
 
-              {config.subtitle && (
-                <Text
-                  fontSize="$4"
-                  color="$colorTertiary"
-                  textAlign="center"
-                >
-                  {config.subtitle}
-                </Text>
-              )}
-            </YStack>
-
-            {/* Options */}
-            <YStack gap="$2">
-              {config.showCamera && (
+          {/* Options */}
+          <YStack gap="$2">
+            {config.showCamera && (
+              <Pressable
+                onPress={() => {
+                  if (!config.disableHaptic) {
+                    hapticFeedback.selection();
+                  }
+                  handleOption(config.onCamera);
+                }}
+                style={({pressed}) => [
+                  styles.buttonPressable,
+                  {
+                    opacity: pressed ? 0.7 : 1,
+                    transform: [{scale: pressed ? 0.98 : 1}],
+                  }
+                ]}
+              >
                 <Button
                   size="$5"
                   backgroundColor="$switch"
                   color="$color"
                   borderRadius="$10"
-                  pressStyle={{
-                    backgroundColor: '$backgroundPress',
-                    scale: 0.98,
-                  }}
-                  onPress={() => handleOption(config.onCamera)}
+                  pointerEvents="none"
                   fontSize="$5"
                   fontWeight="500"
+                  width="100%"
                 >
                   {config.cameraText}
                 </Button>
-              )}
+              </Pressable>
+            )}
 
-              {config.showGallery && (
+            {config.showGallery && (
+              <Pressable
+                onPress={() => {
+                  if (!config.disableHaptic) {
+                    hapticFeedback.selection();
+                  }
+                  handleOption(config.onGallery);
+                }}
+                style={({pressed}) => [
+                  styles.buttonPressable,
+                  {
+                    opacity: pressed ? 0.7 : 1,
+                    transform: [{scale: pressed ? 0.98 : 1}],
+                  }
+                ]}
+              >
                 <Button
                   size="$5"
                   backgroundColor="$switch"
                   color="$color"
                   borderRadius="$10"
-                  pressStyle={{
-                    backgroundColor: '$backgroundPress',
-                    scale: 0.98,
-                  }}
-                  onPress={() => handleOption(config.onGallery)}
+                  pointerEvents="none"
                   fontSize="$5"
                   fontWeight="500"
+                  width="100%"
                 >
                   {config.galleryText}
                 </Button>
-              )}
+              </Pressable>
+            )}
 
-              {config.showRemove && (
+            {config.showRemove && (
+              <Pressable
+                onPress={() => {
+                  if (!config.disableHaptic) {
+                    hapticFeedback.selection();
+                  }
+                  handleOption(config.onRemove);
+                }}
+                style={({pressed}) => [
+                  styles.buttonPressable,
+                  {
+                    opacity: pressed ? 0.7 : 1,
+                    transform: [{scale: pressed ? 0.98 : 1}],
+                  }
+                ]}
+              >
                 <Button
                   size="$5"
                   backgroundColor="$switch"
                   color="$error"
                   borderRadius="$10"
-                  pressStyle={{
-                    backgroundColor: '$backgroundPress',
-                    scale: 0.98,
-                  }}
-                  onPress={() => handleOption(config.onRemove)}
+                  pointerEvents="none"
                   fontSize="$5"
                   fontWeight="500"
+                  width="100%"
                 >
                   {config.removeText}
                 </Button>
-              )}
+              </Pressable>
+            )}
 
-              {config.showAvatar && (
+            {config.showAvatar && (
+              <Pressable
+                onPress={() => {
+                  if (!config.disableHaptic) {
+                    hapticFeedback.selection();
+                  }
+                  handleOption(config.onAvatar);
+                }}
+                style={({pressed}) => [
+                  styles.buttonPressable,
+                  {
+                    opacity: pressed ? 0.7 : 1,
+                    transform: [{scale: pressed ? 0.98 : 1}],
+                  }
+                ]}
+              >
                 <Button
                   size="$5"
                   backgroundColor="$switch"
                   color="$color"
                   borderRadius="$10"
-                  pressStyle={{
-                    backgroundColor: '$backgroundPress',
-                    scale: 0.98,
-                  }}
-                  onPress={() => handleOption(config.onAvatar)}
+                  pointerEvents="none"
                   fontSize="$5"
                   fontWeight="500"
+                  width="100%"
                 >
                   {config.avatarText}
                 </Button>
-              )}
+              </Pressable>
+            )}
 
+            <Pressable
+              onPress={() => {
+                if (!config.disableHaptic) {
+                  hapticFeedback.light();
+                }
+                handleCancel();
+              }}
+              style={({pressed}) => [
+                styles.buttonPressable,
+                {
+                  opacity: pressed ? 0.7 : 1,
+                  transform: [{scale: pressed ? 0.98 : 1}],
+                }
+              ]}
+            >
               <Button
                 size="$5"
                 backgroundColor="$switch"
                 color="$color"
                 borderRadius="$10"
-                pressStyle={{
-                  backgroundColor: '$backgroundPress',
-                  scale: 0.98,
-                }}
-                onPress={handleCancel}
+                pointerEvents="none"
                 fontSize="$5"
                 fontWeight="500"
+                width="100%"
               >
                 {config.cancelText}
               </Button>
-            </YStack>
+            </Pressable>
           </YStack>
-        </Animated.View>
+        </YStack>
       </BottomSheetView>
     </BottomSheet>
   );
@@ -345,6 +391,9 @@ const useThemedStyles = () => {
       borderRadius: 24,
       borderBottomLeftRadius: borderBottomRadius,
       borderBottomRightRadius: borderBottomRadius,
+    },
+    buttonPressable: {
+      width: '100%',
     }
   });
 };

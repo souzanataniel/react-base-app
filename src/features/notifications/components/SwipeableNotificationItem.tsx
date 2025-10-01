@@ -25,10 +25,9 @@ export const SwipeableNotificationItem: React.FC<
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const swipeableRef = useRef<any>(null);
 
-  // Animações de remoção - TODAS com useNativeDriver: true
   const slideAnim = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(1)).current;
-  const scaleYAnim = useRef(new Animated.Value(1)).current; // Usando scale em vez de height
+  const scaleYAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     if (shouldClose) {
@@ -36,32 +35,26 @@ export const SwipeableNotificationItem: React.FC<
     }
   }, [shouldClose]);
 
-  // Executa animação quando isDeleting muda para true
   useEffect(() => {
     if (isDeleting) {
-      // Fecha o swipeable primeiro
       swipeableRef.current?.close();
 
-      // Inicia animação de remoção após pequeno delay
       setTimeout(() => {
         Animated.parallel([
-          // Slide para direita
           Animated.timing(slideAnim, {
             toValue: 400,
             duration: 300,
-            useNativeDriver: true, // ✅ Native driver
+            useNativeDriver: true,
           }),
-          // Fade out
           Animated.timing(opacityAnim, {
             toValue: 0,
             duration: 300,
-            useNativeDriver: true, // ✅ Native driver
+            useNativeDriver: true,
           }),
-          // Scale vertical (simula collapse)
           Animated.timing(scaleYAnim, {
             toValue: 0,
             duration: 300,
-            useNativeDriver: true, // ✅ Native driver
+            useNativeDriver: true,
           }),
         ]).start();
       }, 100);
@@ -219,17 +212,21 @@ export const SwipeableNotificationItem: React.FC<
             <XStack
               padding="$4"
               backgroundColor="$card"
-              space="$3"
+              gap="$3"
               alignItems="flex-start"
               marginHorizontal="$2"
               borderRadius="$4"
-              borderLeftWidth={!notification.is_read ? '$1.5' : '$1.5'}
+              borderLeftWidth={!notification.is_read ? '$2' : '$1.5'}
               borderLeftColor={
                 !notification.is_read ? '$defaultPrimary' : '$colorTertiary'
               }
+              borderRightWidth={!notification.is_read ? '$2' : '0'}
+              borderRightColor={
+                !notification.is_read ? '$defaultPrimary' : '$colorTertiary'
+              }
             >
-              <Circle size={44} backgroundColor="$iconPlaceholder">
-                <Icon size={20} color="$defaultPrimary"/>
+              <Circle size={44} backgroundColor={!notification.is_read ? '$defaultPrimary' : '$iconPlaceholder'}>
+                <Icon size={20} color={!notification.is_read ? '$defaultWhite' : '$defaultPrimary'}/>
               </Circle>
 
               <YStack flex={1} gap="$1.5">

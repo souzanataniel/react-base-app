@@ -2,8 +2,9 @@ import React from 'react';
 import {HomeHeader} from '@/features/home/components/HomeHeader';
 import {useAuth} from '@/features/auth/hooks/useAuth';
 import {router} from 'expo-router';
-import {SimpleScreenWrapper} from '@/shared/components/layout/SimpleScreenWrapper';
 import {StatusBar} from 'expo-status-bar';
+import {YStack} from 'tamagui';
+import {Platform, ScrollView, StyleSheet} from 'react-native';
 
 export const HomeScreen = () => {
   const {user} = useAuth();
@@ -11,7 +12,7 @@ export const HomeScreen = () => {
   return (
     <>
       <StatusBar style="light"/>
-      <SimpleScreenWrapper>
+      <YStack flex={1} backgroundColor="$background">
         <HomeHeader
           dotPattern={{
             enabled: true,
@@ -27,7 +28,29 @@ export const HomeScreen = () => {
           onNotification={() => router.navigate('/(app)/notifications')}
           onUserPress={() => router.navigate('/(app)/profile')}
         />
-      </SimpleScreenWrapper>
+
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          bounces={Platform.OS === 'ios'}
+          scrollEventThrottle={16}
+        >
+          <YStack flex={1} padding={20}>
+
+            {/* <Text>Seu conteúdo aqui</Text> */}
+          </YStack>
+        </ScrollView>
+      </YStack>
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+});
