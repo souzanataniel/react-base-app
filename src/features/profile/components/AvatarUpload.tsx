@@ -154,7 +154,6 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
         </View>
       )}
 
-      {/* Indicador de cache ativo (debug) */}
       {__DEV__ && avatarUrl?.includes('?t=') && (
         <View style={styles.cacheIndicator}>
           <Text style={styles.cacheText}>⚡</Text>

@@ -96,7 +96,6 @@ export const ScreenWithFixedSection: React.FC<ScreenWithFixedSectionProps> = ({
 
   return (
     <YStack flex={1} backgroundColor="$background">
-      {/* Conteúdo principal */}
       <View
         flex={1}
         paddingTop={totalTopSpace}
@@ -105,7 +104,6 @@ export const ScreenWithFixedSection: React.FC<ScreenWithFixedSectionProps> = ({
         {children}
       </View>
 
-      {/* Header fixo */}
       <YStack
         position="absolute"
         top={0}
@@ -162,7 +160,6 @@ export const ScreenWithFixedSection: React.FC<ScreenWithFixedSectionProps> = ({
         </XStack>
       </YStack>
 
-      {/* Fixed content abaixo do header */}
       {fixedContent && (
         <View
           position="absolute"

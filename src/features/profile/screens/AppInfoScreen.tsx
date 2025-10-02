@@ -122,7 +122,6 @@ export const AppInfoScreen: React.FC = () => {
 
       <Separator marginVertical="$1"/>
 
-      {/* Informações do App */}
       <YStack gap="$1.5">
         <InfoRow
           icon={<Package size={16} color={theme.colorSecondary?.val}/>}
@@ -145,7 +144,6 @@ export const AppInfoScreen: React.FC = () => {
 
       <Separator marginVertical="$1"/>
 
-      {/* Ações Rápidas */}
       <XStack gap="$2">
         <ActionButton
           icon={<Star size={18} color={theme.button?.val}/>}
@@ -161,7 +159,6 @@ export const AppInfoScreen: React.FC = () => {
 
       <Separator marginVertical="$1"/>
 
-      {/* Links Úteis */}
       <YStack gap="$1.5">
         <InfoRow
           icon={<Shield size={16} color={theme.colorSecondary?.val}/>}
@@ -178,7 +175,6 @@ export const AppInfoScreen: React.FC = () => {
         />
       </YStack>
 
-      {/* Footer */}
       <YStack alignItems="center" gap="$1" paddingTop="$2">
         <Text fontSize="$1" color="$colorSecondary" textAlign="center">
           Pac Sistemas

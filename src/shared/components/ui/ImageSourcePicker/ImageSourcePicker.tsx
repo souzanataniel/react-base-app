@@ -141,7 +141,6 @@ const ImageSourcePicker = forwardRef<ImageSourcePickerRef, {}>((_, ref) => {
           backgroundColor="$card"
           paddingBottom={Math.max(insets.bottom || 0, 20)}
         >
-          {/* Header */}
           <YStack gap="$1" marginBottom="$3" alignItems="center">
             <Text
               fontSize="$7"
@@ -163,7 +162,6 @@ const ImageSourcePicker = forwardRef<ImageSourcePickerRef, {}>((_, ref) => {
             )}
           </YStack>
 
-          {/* Options */}
           <YStack gap="$2">
             {config.showCamera && (
               <Pressable

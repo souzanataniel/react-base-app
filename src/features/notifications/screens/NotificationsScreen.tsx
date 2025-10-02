@@ -387,7 +387,6 @@ export function NotificationsScreen() {
     <GestureHandlerRootView style={{flex: 1}}>
       <StatusBar style="auto"/>
       <YStack flex={1} backgroundColor="$background" marginBottom={insets.bottom + 40}>
-        {/* Header Fixo */}
         <YStack
           position="absolute"
           top={0}

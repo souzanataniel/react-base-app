@@ -59,7 +59,6 @@ const setupNotifications = () => {
   }
 };
 
-// Executar configuração
 setupNotifications();
 
 SplashScreen.preventAutoHideAsync();
@@ -86,9 +85,6 @@ export default function RootLayout() {
           data: response.notification.request.content.data,
           title: response.notification.request.content.title
         });
-
-        // Aqui você pode navegar para telas específicas baseado em response.notification.request.content.data
-        // Exemplo: router.push('/specific-screen')
       }
     );
 

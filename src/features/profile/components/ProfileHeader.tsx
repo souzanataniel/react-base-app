@@ -266,7 +266,6 @@ export const ProfileHeader = ({
           )}
         </Pressable>
 
-        {/* Indicador de cache ativo (debug) */}
         {__DEV__ && avatarUrl?.includes('?t=') && (
           <View
             style={{
