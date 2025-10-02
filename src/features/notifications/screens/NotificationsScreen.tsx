@@ -15,6 +15,7 @@ import {ScrollAwareTabSelector} from '@/shared/components/ui/ScrollAwareTabSelec
 import {BasicHeader} from '@/shared/components/ui/Header/BasicHeader';
 import {RefreshCcw} from '@tamagui/lucide-icons';
 import {useConfirm} from '@/shared/components/feedback/BaseConfirm/BaseConfirm';
+import {useFocusEffect, useScrollToTop} from '@react-navigation/native';
 
 const DEFAULT_HEADER_HEIGHT = Platform.select({ios: 44, android: 56, default: 56});
 const PULL_THRESHOLD = 80;
@@ -135,9 +136,24 @@ const PullToRefreshIndicator: React.FC<{
 };
 
 export function NotificationsScreen() {
+  const listRef = useRef<any>(null);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      listRef.current?.scrollToOffset?.({offset: 0, animated: false});
+      return () => {};
+    }, [])
+  );
+
+  useScrollToTop(listRef);
+
   const haptic = useHapticFeedback();
   const insets = useSafeAreaInsets();
   const [currentTab, setCurrentTab] = useState<'all' | 'unread'>('all');
+  React.useEffect(() => {
+    listRef.current?.scrollToOffset?.({offset: 0, animated: false});
+  }, [currentTab]);
+
   const openSwipeableRef = useRef<any>(null);
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -249,7 +265,6 @@ export function NotificationsScreen() {
 
   const groupedNotifications = React.useMemo(() => {
     const now = new Date();
-    // Normaliza para meia-noite de hoje
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     const today: NotificationData[] = [];
@@ -258,7 +273,6 @@ export function NotificationsScreen() {
 
     displayedNotifications.forEach(notification => {
       const notificationDate = new Date(notification.created_at);
-      // Normaliza a data da notificação para meia-noite
       const notificationStart = new Date(
         notificationDate.getFullYear(),
         notificationDate.getMonth(),
@@ -399,10 +413,11 @@ export function NotificationsScreen() {
         <PullToRefreshIndicator
           pullDistance={animatedPullDistance}
           isRefreshing={isRefreshing}
-          topOffset={headerHeight + 58}
+          topOffset={headerHeight + 78}
         />
 
         <Animated.FlatList
+          ref={listRef}
           data={flatListData}
           keyExtractor={(item, index) =>
             item.type === 'separator'
@@ -416,7 +431,7 @@ export function NotificationsScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             flexGrow: 1,
-            paddingTop: headerHeight + 58,
+            paddingTop: headerHeight + 78,
             paddingBottom: insets.bottom,
           }}
           ItemSeparatorComponent={({leadingItem}) =>

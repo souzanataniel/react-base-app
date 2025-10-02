@@ -1,6 +1,6 @@
 import {useAuth} from '@/features/auth/hooks/useAuth';
 import React, {useCallback, useMemo, useState} from 'react';
-import {Progress, Text, XStack, YStack} from 'tamagui';
+import {Progress, Text, View, XStack, YStack} from 'tamagui';
 import {router, useFocusEffect} from 'expo-router';
 import {UpdateProfileFormData, updateProfileSchema} from '@/features/profile/schema/updateProfileSchema';
 import {CardTitle} from '@/shared/components/ui/Cards/CardTitle';
@@ -14,6 +14,7 @@ import {dateMasks} from '@/shared/utils/masks';
 import {updateProfile} from '@/features/profile/services/updateProfileService';
 import {AnimatedSaveButton} from '@/shared/components/ui/Button/AnimatedSaveButton';
 import {useGlobalAlert} from '@/shared/components/feedback/BaseAlert/BaseAlert';
+import {Platform} from 'react-native';
 
 type FieldType = 'text' | 'phone' | 'date';
 
@@ -215,40 +216,42 @@ export const UpdateProfileScreen = () => {
       hasKeyboardInputs={true}
       hasTabBar={false}
     >
-      <YStack paddingHorizontal="$4" paddingVertical="$4" gap="$4">
-        <CardTitle
-          icon={<User size={24} color="white"/>}
-          title="Dados Pessoais"
-          description="Atualize suas informações básicas"
-        />
-
-        <YStack backgroundColor="$card" borderRadius="$3" padding="$3" gap="$2">
-          <XStack justifyContent="space-between" alignItems="center">
-            <Text fontSize="$2" color="$color" fontWeight="500">Perfil Completo</Text>
-            <Text fontSize="$2" color="$color" fontWeight="600">{profileProgress}%</Text>
-          </XStack>
-          <Progress value={profileProgress} max={100} size="$2">
-            <Progress.Indicator backgroundColor="$defaultPrimary" animation="bouncy" opacity={0.8} borderRadius="$5"/>
-          </Progress>
-        </YStack>
-
-        {Object.entries(FORM_SECTIONS).map(([key, section]) =>
-          renderSection(key, section)
-        )}
-
-        <XStack
-          justifyContent="center"
-          alignItems="center"
-          paddingHorizontal="$2"
-          paddingTop="$2"
-        >
-          <AnimatedSaveButton
-            onSave={handleSave}
-            isLoading={isLoading}
-            disabled={false}
+      <View style={{paddingBottom: Platform.OS === 'android' ? 48 : 0}}>
+        <YStack paddingHorizontal="$4" paddingVertical="$4" gap="$4">
+          <CardTitle
+            icon={<User size={24} color="white"/>}
+            title="Dados Pessoais"
+            description="Atualize suas informações básicas"
           />
-        </XStack>
-      </YStack>
+
+          <YStack backgroundColor="$card" borderRadius="$3" padding="$3" gap="$2">
+            <XStack justifyContent="space-between" alignItems="center">
+              <Text fontSize="$2" color="$color" fontWeight="500">Perfil Completo</Text>
+              <Text fontSize="$2" color="$color" fontWeight="600">{profileProgress}%</Text>
+            </XStack>
+            <Progress value={profileProgress} max={100} size="$2">
+              <Progress.Indicator backgroundColor="$defaultPrimary" animation="bouncy" opacity={0.8} borderRadius="$5"/>
+            </Progress>
+          </YStack>
+
+          {Object.entries(FORM_SECTIONS).map(([key, section]) =>
+            renderSection(key, section)
+          )}
+
+          <XStack
+            justifyContent="center"
+            alignItems="center"
+            paddingHorizontal="$2"
+            paddingTop="$2"
+          >
+            <AnimatedSaveButton
+              onSave={handleSave}
+              isLoading={isLoading}
+              disabled={false}
+            />
+          </XStack>
+        </YStack>
+      </View>
     </ScreenWithHeader>
   );
 };
